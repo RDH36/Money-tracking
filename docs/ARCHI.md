@@ -5,6 +5,7 @@
 **Philosophy**: Offline-first, simplicité maximale, sync intelligent. L'app doit fonctionner parfaitement sans internet et synchroniser automatiquement dès qu'une connexion est disponible. Chaque décision technique priorise la rapidité d'exécution et la fiabilité.
 
 **Tech Stack Summary**:
+
 - **Framework**: Expo SDK 54 (managed workflow) + React Native
 - **Package Manager**: pnpm
 - **UI**: Gluestack UI
@@ -18,19 +19,21 @@
 
 ### Core Stack
 
-| Tool | Choix | Pourquoi | Trade-off |
-|------|-------|----------|-----------|
-| Framework | **Expo SDK 54** | Managed workflow = setup simple, OTA updates, pas besoin de Xcode/Android Studio | Moins de contrôle sur le natif, mais suffisant pour ce projet |
-| UI | **Gluestack UI v2** | Composants accessibles, theming facile, bonne DX | Moins populaire que NativeBase, mais plus moderne et performant |
-| Navigation | **Expo Router** | File-based routing, deep linking automatique, cohérent avec Next.js | Nouveau mais stable, meilleure DX que React Navigation seul |
+| Tool       | Choix               | Pourquoi                                                                         | Trade-off                                                       |
+| ---------- | ------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Framework  | **Expo SDK 54**     | Managed workflow = setup simple, OTA updates, pas besoin de Xcode/Android Studio | Moins de contrôle sur le natif, mais suffisant pour ce projet   |
+| UI         | **Gluestack UI v2** | Composants accessibles, theming facile, bonne DX                                 | Moins populaire que NativeBase, mais plus moderne et performant |
+| Navigation | **Expo Router**     | File-based routing, deep linking automatique, cohérent avec Next.js              | Nouveau mais stable, meilleure DX que React Navigation seul     |
 
 ### State Management
 
 - **Global State**: Zustand (léger, simple, persiste facilement)
+
   - **Why**: Plus simple que Redux, 1kb, API intuitive
   - **Alternative rejetée**: Redux (overkill pour ce projet)
 
 - **Server State**: TanStack Query + custom sync hook
+
   - **Why**: Cache intelligent, refetch automatique, offline support
 
 - **Local DB State**: expo-sqlite avec wrapper custom
@@ -147,12 +150,12 @@ CREATE POLICY "Users can CRUD own transactions" ON transactions
 
 ### Authentication
 
-| Aspect | Choix | Détail |
-|--------|-------|--------|
-| Provider | **Supabase Auth** | Gratuit, intégré, JWT |
-| Méthode | **Email + Password** | Hashé avec bcrypt côté Supabase |
+| Aspect       | Choix                        | Détail                                     |
+| ------------ | ---------------------------- | ------------------------------------------ |
+| Provider     | **Supabase Auth**            | Gratuit, intégré, JWT                      |
+| Méthode      | **Email + Password**         | Hashé avec bcrypt côté Supabase            |
 | Offline Auth | **PIN local (4-6 chiffres)** | Hashé avec expo-crypto, stocké SecureStore |
-| Session | **JWT stocké SecureStore** | expo-secure-store pour le token |
+| Session      | **JWT stocké SecureStore**   | expo-secure-store pour le token            |
 
 ### Auth Flow: Online + Offline
 
@@ -192,8 +195,8 @@ CREATE POLICY "Users can CRUD own transactions" ON transactions
 
 ```typescript
 // Stockage sécurisé du PIN
-import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import * as SecureStore from "expo-secure-store";
+import * as Crypto from "expo-crypto";
 
 async function hashPin(pin: string): Promise<string> {
   return await Crypto.digestStringAsync(
@@ -204,11 +207,11 @@ async function hashPin(pin: string): Promise<string> {
 
 async function savePin(pin: string): Promise<void> {
   const hashedPin = await hashPin(pin);
-  await SecureStore.setItemAsync('user_pin_hash', hashedPin);
+  await SecureStore.setItemAsync("user_pin_hash", hashedPin);
 }
 
 async function verifyPin(enteredPin: string): Promise<boolean> {
-  const storedHash = await SecureStore.getItemAsync('user_pin_hash');
+  const storedHash = await SecureStore.getItemAsync("user_pin_hash");
   const enteredHash = await hashPin(enteredPin);
   return storedHash === enteredHash;
 }
@@ -216,13 +219,13 @@ async function verifyPin(enteredPin: string): Promise<boolean> {
 
 ### Données stockées dans SecureStore
 
-| Clé | Contenu | Usage |
-|-----|---------|-------|
-| `supabase_jwt` | JWT token | Auth Supabase quand online |
-| `supabase_refresh` | Refresh token | Renouveler JWT |
-| `user_pin_hash` | SHA-256 du PIN | Vérification offline |
-| `user_email` | Email (pour affichage) | UI seulement |
-| `pin_salt` | Salt aléatoire | Sécurité hash PIN |
+| Clé                | Contenu                | Usage                      |
+| ------------------ | ---------------------- | -------------------------- |
+| `supabase_jwt`     | JWT token              | Auth Supabase quand online |
+| `supabase_refresh` | Refresh token          | Renouveler JWT             |
+| `user_pin_hash`    | SHA-256 du PIN         | Vérification offline       |
+| `user_email`       | Email (pour affichage) | UI seulement               |
+| `pin_salt`         | Salt aléatoire         | Sécurité hash PIN          |
 
 ## Notifications Architecture
 
@@ -231,12 +234,14 @@ async function verifyPin(enteredPin: string): Promise<boolean> {
 **Librairie**: `expo-notifications`
 
 **Pourquoi pas un serveur push ?**
+
 - Les rappels sont périodiques et prévisibles
 - Pas besoin d'internet
 - Plus simple, plus fiable
 - Gratuit
 
 **Implementation**:
+
 ```typescript
 // Schedule hourly reminder
 await Notifications.scheduleNotificationAsync({
@@ -258,12 +263,14 @@ await Notifications.scheduleNotificationAsync({
 ### Choix: react-native-chart-kit
 
 **Pourquoi ce choix**:
+
 - Simple à utiliser, peu de config
 - Léger (~50kb)
 - Suffisant pour pie charts et bar charts basiques
 - Bonne doc, communauté active
 
 **Charts prévus**:
+
 - Pie chart: Répartition par catégorie
 - Bar chart: Dépenses par jour/semaine
 - Simple number displays: Solde, total dépensé
@@ -272,11 +279,11 @@ await Notifications.scheduleNotificationAsync({
 
 ### Development Environment
 
-| Outil | Usage |
-|-------|-------|
-| **Expo Go** | Dev rapide sur device physique |
-| **Android Emulator** | Tests via Android Studio |
-| **EAS Build** | Builds de production |
+| Outil                | Usage                          |
+| -------------------- | ------------------------------ |
+| **Expo Go**          | Dev rapide sur device physique |
+| **Android Emulator** | Tests via Android Studio       |
+| **EAS Build**        | Builds de production           |
 
 ### Build & Distribution
 
@@ -303,26 +310,31 @@ eas build --platform android --profile production
 ## Architecture Decision Records
 
 ### ADR-001: SQLite + Supabase (Offline-First)
+
 - **Context**: Connexion internet instable à Madagascar
 - **Decision**: SQLite comme source de vérité, Supabase pour backup
 - **Rationale**: Meilleur des deux mondes - fiabilité offline + sécurité cloud
 
 ### ADR-002: Expo Managed Workflow
+
 - **Context**: Dev solo sur Linux, Android only, MVP rapide
 - **Decision**: Expo managed (pas de bare workflow)
 - **Rationale**: Expo couvre 100% des besoins
 
 ### ADR-003: Montants en centimes (Integer)
+
 - **Context**: Éviter les erreurs de calcul avec les floats
 - **Decision**: Stocker tous les montants en centimes (INTEGER)
 - **Example**: 15000 MGA = 1500000 centimes stockés
 
 ### ADR-004: PIN Local pour Auth Offline
+
 - **Context**: App doit fonctionner offline
 - **Decision**: PIN local (4-6 chiffres) hashé pour authentification offline
 - **Rationale**: PIN rapide à entrer, sécurisé (hashé + salé), offline natif
 
 ### ADR-005: Zustand pour State Management
+
 - **Context**: Besoin de state global léger
 - **Decision**: Zustand au lieu de Redux/Context
 - **Rationale**: API simple, persist middleware, 1kb, très performant
@@ -389,34 +401,38 @@ money-tracker/
 
 ## Cost Estimation
 
-| Service | Coût | Limite |
-|---------|------|--------|
-| Supabase | **0€** | 500MB DB, 2GB bandwidth |
-| Expo/EAS | **0€** | 30 builds/month |
-| Google Play | **25$ one-time** | Publication unique |
-| **Total mensuel** | **0€** | Largement suffisant |
+| Service           | Coût             | Limite                  |
+| ----------------- | ---------------- | ----------------------- |
+| Supabase          | **0€**           | 500MB DB, 2GB bandwidth |
+| Expo/EAS          | **0€**           | 30 builds/month         |
+| Google Play       | **25$ one-time** | Publication unique      |
+| **Total mensuel** | **0€**           | Largement suffisant     |
 
 ## Implementation Priority
 
 ### Phase 1: Foundation
-1. Init projet Expo avec TypeScript + pnpm
-2. Setup Gluestack UI + theming
-3. Setup SQLite avec schema initial
+
+1. Init projet Expo avec TypeScript + pnpm (OK)
+2. Setup Gluestack UI + theming (OK)
+3. Setup SQLite avec schema initial (OK)
 4. Setup Supabase projet + auth
 
 ### Phase 2: Core Features
+
 1. Écran d'auth (login/register + PIN)
-2. Onboarding (solde initial)
-3. Saisie de dépense rapide
-4. Liste des transactions
-5. Dashboard avec solde
+2. Onboarding (solde initial) (OK)
+3. Saisie de dépense rapide (OK)
+4. Liste des transactions (OK)
+5. Dashboard avec solde (OK)
 
 ### Phase 3: Offline & Sync
+
 1. Détection réseau
 2. Logique de sync
 3. Queue de transactions pending
 
 ### Phase 4: Notifications & Polish
+
 1. Setup notifications locales
 2. Écran settings
 3. Graphiques basiques

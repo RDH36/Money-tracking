@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #f8f8f8;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .cell {
+      aspect-ratio: 1;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+    .number {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #999;
+      font-weight: 600;
+    }
+    .logo {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo svg {
+      width: 100px;
+      height: 100px;
+    }
+    .description {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+
+    <!-- Logo 1: Chart in rounded square -->
+    <div class="cell">
+      <span class="number">1</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad1" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#4ECDC4"/>
+              <stop offset="100%" style="stop-color:#56E39F"/>
+            </linearGradient>
+          </defs>
+          <rect x="8" y="8" width="84" height="84" rx="20" fill="url(#grad1)"/>
+          <path d="M24 65 L38 50 L52 58 L76 35" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="76" cy="35" r="7" fill="white"/>
+        </svg>
+      </div>
+      <p class="description">Graphique dans carré arrondi. App icon parfait.</p>
+    </div>
+
+    <!-- Logo 2: Wallet with coin and chart -->
+    <div class="cell">
+      <span class="number">2</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#56E39F"/>
+              <stop offset="100%" style="stop-color:#4ECDC4"/>
+            </linearGradient>
+          </defs>
+          <rect x="12" y="30" width="76" height="50" rx="10" fill="url(#grad2)"/>
+          <rect x="18" y="22" width="64" height="12" rx="6" fill="#3DBDB5"/>
+          <path d="M25 58 L38 48 L50 54 L62 42" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+          <circle cx="75" cy="55" r="12" fill="white"/>
+          <text x="75" y="60" text-anchor="middle" fill="#4ECDC4" font-family="Arial" font-weight="bold" font-size="14">$</text>
+        </svg>
+      </div>
+      <p class="description">Wallet avec graphique et symbole monétaire.</p>
+    </div>
+
+    <!-- Logo 3: Minimal circle chart -->
+    <div class="cell">
+      <span class="number">3</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad3" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#4ECDC4"/>
+              <stop offset="100%" style="stop-color:#45D9A8"/>
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill="url(#grad3)"/>
+          <path d="M25 55 L40 42 L55 50 L75 30" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <p class="description">Cercle épuré avec courbe ascendante. Ultra minimal.</p>
+    </div>
+
+    <!-- Logo 4: Layered wallet modern -->
+    <div class="cell">
+      <span class="number">4</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad4" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#5DDEC5"/>
+              <stop offset="100%" style="stop-color:#4ECDC4"/>
+            </linearGradient>
+          </defs>
+          <!-- Shadow layer -->
+          <rect x="22" y="42" width="60" height="42" rx="8" fill="#3DBDB5"/>
+          <!-- Main wallet -->
+          <rect x="18" y="36" width="64" height="42" rx="10" fill="url(#grad4)"/>
+          <!-- Top fold -->
+          <path d="M18 46 Q50 38 82 46" stroke="#2EAE9E" stroke-width="2" fill="none"/>
+          <!-- Coin slot -->
+          <circle cx="68" cy="57" r="11" fill="white"/>
+          <circle cx="68" cy="57" r="6" fill="#4ECDC4"/>
+        </svg>
+      </div>
+      <p class="description">Portefeuille 3D avec pièce. Moderne et reconnaissable.</p>
+    </div>
+
+    <!-- Logo 5: Chart with arrow up -->
+    <div class="cell">
+      <span class="number">5</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad5" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#4ECDC4"/>
+              <stop offset="100%" style="stop-color:#56E39F"/>
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill="url(#grad5)"/>
+          <path d="M28 62 L45 45 L58 52 L72 38" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <!-- Arrow head -->
+          <path d="M65 35 L72 38 L69 45" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <p class="description">Courbe avec flèche. Indique la croissance financière.</p>
+    </div>
+
+    <!-- Logo 6: Compact wallet stack -->
+    <div class="cell">
+      <span class="number">6</span>
+      <div class="logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="15" y="45" width="70" height="38" rx="8" fill="#4ECDC4"/>
+          <rect x="20" y="37" width="60" height="12" rx="6" fill="#3DBDB5"/>
+          <rect x="25" y="30" width="50" height="10" rx="5" fill="#2EAE9E"/>
+          <!-- Coin -->
+          <circle cx="70" cy="64" r="10" fill="white"/>
+          <path d="M67 61 L67 67 M70 61 L70 67 M73 61 L73 67" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="description">Pile de cartes avec pièce. Organisation visuelle.</p>
+    </div>
+
+  </div>
+</body>
+</html>
