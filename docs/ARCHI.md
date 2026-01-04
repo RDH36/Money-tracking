@@ -410,30 +410,39 @@ money-tracker/
 
 ## Implementation Priority
 
-### Phase 1: Foundation
+### Phase 1: Foundation (v1 - Terminé)
 
-1. Init projet Expo avec TypeScript + pnpm (OK)
-2. Setup Gluestack UI + theming (OK)
-3. Setup SQLite avec schema initial (OK)
-4. Setup Supabase projet + auth
+1. Init projet Expo avec TypeScript + pnpm ✅
+2. Setup Gluestack UI + theming ✅
+3. Setup SQLite avec schema initial ✅
 
-### Phase 2: Core Features
+### Phase 2: Core Features (v1 - Terminé)
 
-1. Écran d'auth (login/register + PIN)
-2. Onboarding (solde initial) (OK)
-3. Saisie de dépense rapide (OK)
-4. Liste des transactions (OK)
-5. Dashboard avec solde (OK)
+1. Onboarding (solde initial) ✅
+2. Saisie de dépense rapide ✅
+3. Liste des transactions ✅
+4. Dashboard avec solde ✅
+5. Écran settings ✅
+6. Graphiques basiques ✅
+7. Thèmes de couleur ✅
 
-### Phase 3: Offline & Sync
+### Phase 3: Notifications & Simulation (v1 - Terminé)
 
-1. Détection réseau
-2. Logique de sync
-3. Queue de transactions pending
+1. Setup notifications locales ✅
+2. Configuration des rappels (1h, 2h, 4h) ✅
+3. Simulation de dépenses "What-if" ✅
 
-### Phase 4: Notifications & Polish
+### Phase 4: Auth & Sync (v2 - À venir)
 
-1. Setup notifications locales
-2. Écran settings
-3. Graphiques basiques
-4. Tests sur device réel
+1. Setup Supabase projet + auth
+2. Écran d'auth (login/register)
+3. PIN local pour auth offline
+4. Détection réseau
+5. Logique de sync
+6. Queue de transactions pending
+
+### Phase 5: Polish (v2)
+
+1. Tests sur device réel
+2. Optimisations performance
+3. Bug fixes

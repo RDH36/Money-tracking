@@ -5,3 +5,4 @@ export { useCategories } from './useCategories';
 export { useTransactions } from './useTransactions';
 export { useSettings } from './useSettings';
 export { useExpensesByCategory } from './useExpensesByCategory';
+export { useSimulation } from './useSimulation';

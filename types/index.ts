@@ -46,3 +46,13 @@ export interface CategoryInsert
   is_default?: number;
   sync_status?: SyncStatus;
 }
+
+export interface SimulatedExpense {
+  id: string;
+  amount: number;
+  category_id: string | null;
+  category_name: string | null;
+  category_icon: string | null;
+  category_color: string | null;
+  note: string | null;
+}

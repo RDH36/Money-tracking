@@ -1,31 +1,47 @@
 import { useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { useSettingsStore } from '@/stores';
+import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 
 export function useSettings() {
   const db = useSQLiteContext();
-  const { balanceHidden, themeId, isInitialized, initialize, setBalanceHidden, setThemeId } =
-    useSettingsStore();
+  const {
+    balanceHidden,
+    themeId,
+    reminderFrequency,
+    isInitialized,
+    initialize,
+    setBalanceHidden,
+    setThemeId,
+    setReminderFrequency: setStoreReminderFrequency,
+  } = useSettingsStore();
 
-  // Load settings from SQLite on mount
   useEffect(() => {
     if (isInitialized) return;
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'theme_id',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'reminder_frequency',
+          ]),
         ]);
 
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise');
+        const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency);
+
+        if (frequency !== 'off') {
+          scheduleReminders(frequency);
+        }
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise');
+        initialize(false, 'turquoise', 'off');
       }
     };
 
@@ -70,11 +86,34 @@ export function useSettings() {
     [db, setThemeId]
   );
 
+  const setReminderFrequency = useCallback(
+    async (frequency: ReminderFrequency) => {
+      try {
+        const now = new Date().toISOString();
+
+        await db.runAsync(
+          `INSERT INTO settings (key, value, updated_at)
+           VALUES (?, ?, ?)
+           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
+          ['reminder_frequency', frequency, now, frequency, now]
+        );
+
+        setStoreReminderFrequency(frequency);
+        await scheduleReminders(frequency);
+      } catch (error) {
+        console.error('Error saving reminder frequency:', error);
+      }
+    },
+    [db, setStoreReminderFrequency]
+  );
+
   return {
     balanceHidden,
     themeId,
+    reminderFrequency,
     toggleBalanceVisibility,
     setTheme,
+    setReminderFrequency,
     isLoading: !isInitialized,
   };
 }

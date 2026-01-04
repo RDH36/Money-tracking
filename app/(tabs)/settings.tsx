@@ -6,15 +6,24 @@ import { VStack } from "@/components/ui/vstack";
 import { THEMES } from "@/constants/colors";
 import { useTheme } from "@/contexts";
 import { useSettings } from "@/hooks";
+import { ReminderFrequency } from "@/lib/notifications";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
+  { value: "off", label: "Désactivé" },
+  { value: "1h", label: "Chaque heure" },
+  { value: "2h", label: "Toutes les 2h" },
+  { value: "4h", label: "Toutes les 4h" },
+];
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, themeId, setTheme } = useTheme();
-  const { balanceHidden, toggleBalanceVisibility } = useSettings();
+  const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency } =
+    useSettings();
 
   return (
     <View
@@ -77,6 +86,41 @@ export default function SettingsScreen() {
                         </Box>
                       )}
                     </VStack>
+                  </Pressable>
+                );
+              })}
+            </HStack>
+          </VStack>
+
+          <VStack space="md">
+            <Text className="text-typography-700 font-semibold text-lg">
+              Rappels
+            </Text>
+            <Text className="text-typography-500 text-sm">
+              Recevez des notifications pour ne pas oublier vos dépenses
+            </Text>
+            <HStack space="sm" className="flex-wrap">
+              {REMINDER_OPTIONS.map((option) => {
+                const isSelected = reminderFrequency === option.value;
+                return (
+                  <Pressable
+                    key={option.value}
+                    onPress={() => setReminderFrequency(option.value)}
+                  >
+                    <Box
+                      className="px-4 py-2 rounded-full border-2"
+                      style={{
+                        borderColor: isSelected ? theme.colors.primary : "#E5E5E5",
+                        backgroundColor: isSelected ? theme.colors.primaryLight : "#FFFFFF",
+                      }}
+                    >
+                      <Text
+                        className="text-sm font-medium"
+                        style={{ color: isSelected ? theme.colors.primary : "#666" }}
+                      >
+                        {option.label}
+                      </Text>
+                    </Box>
                   </Pressable>
                 );
               })}

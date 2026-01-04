@@ -1,37 +1,35 @@
 import { create } from 'zustand';
 import { Theme, THEMES, DEFAULT_THEME_ID, getThemeById } from '@/constants/colors';
+import { ReminderFrequency } from '@/lib/notifications';
 
 interface SettingsState {
-  // State
   balanceHidden: boolean;
   themeId: string;
+  reminderFrequency: ReminderFrequency;
   isLoading: boolean;
   isInitialized: boolean;
 
-  // Computed
   theme: Theme;
 
-  // Actions
   setBalanceHidden: (hidden: boolean) => void;
   toggleBalanceVisibility: () => void;
   setThemeId: (id: string) => void;
-  initialize: (balanceHidden: boolean, themeId: string) => void;
+  setReminderFrequency: (frequency: ReminderFrequency) => void;
+  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency) => void;
   setLoading: (loading: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  // Initial state
   balanceHidden: false,
   themeId: DEFAULT_THEME_ID,
+  reminderFrequency: 'off' as ReminderFrequency,
   isLoading: true,
   isInitialized: false,
 
-  // Computed theme
   get theme() {
     return getThemeById(get().themeId);
   },
 
-  // Actions
   setBalanceHidden: (hidden) => set({ balanceHidden: hidden }),
 
   toggleBalanceVisibility: () => set((state) => ({ balanceHidden: !state.balanceHidden })),
@@ -42,10 +40,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  initialize: (balanceHidden, themeId) => {
+  setReminderFrequency: (frequency) => set({ reminderFrequency: frequency }),
+
+  initialize: (balanceHidden, themeId, reminderFrequency) => {
     set({
       balanceHidden,
       themeId: THEMES.some((t) => t.id === themeId) ? themeId : DEFAULT_THEME_ID,
+      reminderFrequency: reminderFrequency || 'off',
       isLoading: false,
       isInitialized: true,
     });
@@ -54,7 +55,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setLoading: (loading) => set({ isLoading: loading }),
 }));
 
-// Selector hooks for optimized re-renders
 export const useBalanceHidden = () => useSettingsStore((state) => state.balanceHidden);
 export const useTheme = () => useSettingsStore((state) => getThemeById(state.themeId));
 export const useThemeId = () => useSettingsStore((state) => state.themeId);
+export const useReminderFrequency = () => useSettingsStore((state) => state.reminderFrequency);
