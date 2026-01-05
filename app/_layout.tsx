@@ -1,15 +1,15 @@
-import { Stack } from 'expo-router';
-import { Suspense } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { Stack } from "expo-router";
+import { Suspense } from "react";
+import { ActivityIndicator, StatusBar, View } from "react-native";
 
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
-import { DatabaseProvider } from '@/lib/database/sqlite';
-import { ThemeProvider } from '@/contexts';
-import '@/global.css';
+import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import { ThemeProvider } from "@/contexts";
+import "@/global.css";
+import { DatabaseProvider } from "@/lib/database/sqlite";
 
 function LoadingFallback() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <ActivityIndicator size="large" />
     </View>
   );
@@ -18,6 +18,7 @@ function LoadingFallback() {
 export default function RootLayout() {
   return (
     <GluestackUIProvider>
+      <StatusBar barStyle="dark-content" />
       <Suspense fallback={<LoadingFallback />}>
         <DatabaseProvider>
           <ThemeProvider>
@@ -25,6 +26,7 @@ export default function RootLayout() {
               <Stack.Screen name="index" />
               <Stack.Screen name="onboarding" />
               <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="planification/[id]" />
             </Stack>
           </ThemeProvider>
         </DatabaseProvider>

@@ -44,9 +44,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="simulation"
         options={{
-          title: 'Simulation',
+          title: 'Planifier',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calculator' : 'calculator-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'clipboard' : 'clipboard-outline'} size={24} color={color} />
           ),
         }}
       />

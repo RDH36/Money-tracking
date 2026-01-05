@@ -48,6 +48,30 @@ CREATE TABLE IF NOT EXISTS sync_meta (
 );
 `;
 
+export const CREATE_PLANIFICATIONS_TABLE = `
+CREATE TABLE IF NOT EXISTS planifications (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+`;
+
+export const CREATE_PLANIFICATION_ITEMS_TABLE = `
+CREATE TABLE IF NOT EXISTS planification_items (
+  id TEXT PRIMARY KEY,
+  planification_id TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  category_id TEXT,
+  note TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (planification_id) REFERENCES planifications(id),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+`;
+
 export const CREATE_INDEXES = `
 CREATE INDEX IF NOT EXISTS idx_transactions_sync_status ON transactions(sync_status);
 CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);

@@ -56,3 +56,34 @@ export interface SimulatedExpense {
   category_color: string | null;
   note: string | null;
 }
+
+export type PlanificationStatus = 'pending' | 'completed';
+
+export interface Planification {
+  id: string;
+  title: string;
+  status: PlanificationStatus;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface PlanificationItem {
+  id: string;
+  planification_id: string;
+  amount: number;
+  category_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export interface PlanificationItemWithCategory extends PlanificationItem {
+  category_name: string | null;
+  category_icon: string | null;
+  category_color: string | null;
+}
+
+export interface PlanificationWithTotal extends Planification {
+  total: number;
+  item_count: number;
+}

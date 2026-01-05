@@ -1,7 +1,12 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { INITIAL_SCHEMA, PRAGMAS } from './schema';
+import {
+  INITIAL_SCHEMA,
+  PRAGMAS,
+  CREATE_PLANIFICATIONS_TABLE,
+  CREATE_PLANIFICATION_ITEMS_TABLE,
+} from './schema';
 
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 
 interface VersionResult {
   user_version: number;
@@ -21,6 +26,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 2) {
     await migrateToV2(db);
     currentVersion = 2;
+  }
+
+  if (currentVersion < 3) {
+    await migrateToV3(db);
+    currentVersion = 3;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -49,4 +59,9 @@ async function migrateToV2(db: SQLiteDatabase): Promise<void> {
       [ionicon, emoji]
     );
   }
+}
+
+async function migrateToV3(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(CREATE_PLANIFICATIONS_TABLE);
+  await db.execAsync(CREATE_PLANIFICATION_ITEMS_TABLE);
 }
