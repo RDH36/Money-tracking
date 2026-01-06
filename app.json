@@ -4,7 +4,7 @@
     "slug": "money-tracking",
     "version": "0.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/logo-2.png",
+    "icon": "./assets/images/adaptive-icon.png",
     "scheme": "moneytracking",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-2.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
