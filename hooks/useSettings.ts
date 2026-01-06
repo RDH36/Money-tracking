@@ -33,15 +33,13 @@ export function useSettings() {
           ]),
         ]);
 
-        const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
+        const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
         initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency);
-
-        if (frequency !== 'off') {
-          scheduleReminders(frequency);
-        }
+        scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', 'off');
+        initialize(false, 'turquoise', '1h');
+        scheduleReminders('1h');
       }
     };
 

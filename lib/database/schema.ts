@@ -53,10 +53,15 @@ CREATE TABLE IF NOT EXISTS planifications (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+  deadline TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
+`;
+
+export const ADD_DEADLINE_COLUMN = `
+ALTER TABLE planifications ADD COLUMN deadline TEXT;
 `;
 
 export const CREATE_PLANIFICATION_ITEMS_TABLE = `

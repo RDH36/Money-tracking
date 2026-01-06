@@ -19,6 +19,12 @@ const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
   { value: "4h", label: "Toutes les 4h" },
 ];
 
+const PLANIF_REMINDERS = [
+  { icon: "calendar-outline" as const, text: "1 jour avant la date butoir" },
+  { icon: "alarm-outline" as const, text: "Le jour de l'échéance" },
+  { icon: "alert-circle-outline" as const, text: "Chaque jour si expiré" },
+];
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, themeId, setTheme } = useTheme();
@@ -94,7 +100,7 @@ export default function SettingsScreen() {
 
           <VStack space="md">
             <Text className="text-typography-700 font-semibold text-lg">
-              Rappels
+              Rappels de dépenses
             </Text>
             <Text className="text-typography-500 text-sm">
               Recevez des notifications pour ne pas oublier vos dépenses
@@ -125,6 +131,38 @@ export default function SettingsScreen() {
                 );
               })}
             </HStack>
+          </VStack>
+
+          <VStack space="md">
+            <Text className="text-typography-700 font-semibold text-lg">
+              Rappels de planification
+            </Text>
+            <Text className="text-typography-500 text-sm">
+              Notifications automatiques pour les dates butoir
+            </Text>
+            <Box className="bg-background-50 p-4 rounded-xl">
+              <VStack space="md">
+                {PLANIF_REMINDERS.map((reminder, index) => (
+                  <HStack key={index} space="md" className="items-center">
+                    <Box
+                      className="w-8 h-8 rounded-full items-center justify-center"
+                      style={{ backgroundColor: theme.colors.primaryLight }}
+                    >
+                      <Ionicons
+                        name={reminder.icon}
+                        size={16}
+                        color={theme.colors.primary}
+                      />
+                    </Box>
+                    <Text className="text-typography-700 flex-1">{reminder.text}</Text>
+                    <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
+                  </HStack>
+                ))}
+              </VStack>
+            </Box>
+            <Text className="text-typography-400 text-xs">
+              Ces rappels sont envoyés automatiquement quand une planification a une date butoir définie.
+            </Text>
           </VStack>
 
           <VStack space="md">

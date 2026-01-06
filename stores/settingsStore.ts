@@ -22,7 +22,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   balanceHidden: false,
   themeId: DEFAULT_THEME_ID,
-  reminderFrequency: 'off' as ReminderFrequency,
+  reminderFrequency: '1h' as ReminderFrequency,
   isLoading: true,
   isInitialized: false,
 
@@ -46,7 +46,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({
       balanceHidden,
       themeId: THEMES.some((t) => t.id === themeId) ? themeId : DEFAULT_THEME_ID,
-      reminderFrequency: reminderFrequency || 'off',
+      reminderFrequency: reminderFrequency || '1h',
       isLoading: false,
       isInitialized: true,
     });

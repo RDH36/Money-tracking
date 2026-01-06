@@ -63,6 +63,7 @@ export interface Planification {
   id: string;
   title: string;
   status: PlanificationStatus;
+  deadline: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

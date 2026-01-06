@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
+import {
+  schedulePlanificationDeadlineReminders,
+  cancelPlanificationReminders,
+  sendExpiredPlanificationNotification,
+} from '@/lib/notifications';
 import type {
   PlanificationWithTotal,
   PlanificationItemWithCategory,
@@ -48,17 +53,22 @@ export function usePlanifications() {
   }, [fetchPlanifications]);
 
   const createPlanification = useCallback(
-    async (title: string) => {
+    async (title: string, deadline?: Date | null) => {
       setIsLoading(true);
       try {
         const now = new Date().toISOString();
         const id = generateId();
+        const deadlineStr = deadline ? deadline.toISOString() : null;
 
         await db.runAsync(
-          `INSERT INTO planifications (id, title, status, created_at, updated_at)
-           VALUES (?, ?, 'pending', ?, ?)`,
-          [id, title, now, now]
+          `INSERT INTO planifications (id, title, status, deadline, created_at, updated_at)
+           VALUES (?, ?, 'pending', ?, ?, ?)`,
+          [id, title, deadlineStr, now, now]
         );
+
+        if (deadline) {
+          await schedulePlanificationDeadlineReminders(id, title, deadline);
+        }
 
         await fetchPlanifications();
         return { success: true, id };
@@ -80,6 +90,7 @@ export function usePlanifications() {
           'UPDATE planifications SET deleted_at = ?, updated_at = ? WHERE id = ?',
           [now, now, id]
         );
+        await cancelPlanificationReminders(id);
         await fetchPlanifications();
         return true;
       } catch (err) {
@@ -89,6 +100,48 @@ export function usePlanifications() {
     },
     [db, fetchPlanifications]
   );
+
+  const updateDeadline = useCallback(
+    async (id: string, title: string, deadline: Date | null) => {
+      try {
+        const now = new Date().toISOString();
+        const deadlineStr = deadline ? deadline.toISOString() : null;
+        await db.runAsync(
+          'UPDATE planifications SET deadline = ?, updated_at = ? WHERE id = ?',
+          [deadlineStr, now, id]
+        );
+        await cancelPlanificationReminders(id);
+        if (deadline) {
+          await schedulePlanificationDeadlineReminders(id, title, deadline);
+        }
+        await fetchPlanifications();
+        return true;
+      } catch (err) {
+        console.error('Error updating deadline:', err);
+        return false;
+      }
+    },
+    [db, fetchPlanifications]
+  );
+
+  const checkExpiredPlanifications = useCallback(async () => {
+    try {
+      const now = new Date().toISOString();
+      const expired = await db.getAllAsync<{ id: string; title: string }>(
+        `SELECT id, title FROM planifications
+         WHERE status = 'pending'
+         AND deadline IS NOT NULL
+         AND deadline < ?
+         AND deleted_at IS NULL`,
+        [now]
+      );
+      for (const planif of expired) {
+        await sendExpiredPlanificationNotification(planif.id, planif.title);
+      }
+    } catch (err) {
+      console.error('Error checking expired planifications:', err);
+    }
+  }, [db]);
 
   const validatePlanification = useCallback(
     async (id: string) => {
@@ -118,6 +171,7 @@ export function usePlanifications() {
           [now, id]
         );
 
+        await cancelPlanificationReminders(id);
         await fetchPlanifications();
         return true;
       } catch (err) {
@@ -134,7 +188,9 @@ export function usePlanifications() {
     planifications,
     createPlanification,
     deletePlanification,
+    updateDeadline,
     validatePlanification,
+    checkExpiredPlanifications,
     refresh: fetchPlanifications,
     isLoading,
     isFetching,

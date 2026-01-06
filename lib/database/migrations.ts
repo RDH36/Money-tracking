@@ -4,9 +4,10 @@ import {
   PRAGMAS,
   CREATE_PLANIFICATIONS_TABLE,
   CREATE_PLANIFICATION_ITEMS_TABLE,
+  ADD_DEADLINE_COLUMN,
 } from './schema';
 
-const DATABASE_VERSION = 3;
+const DATABASE_VERSION = 4;
 
 interface VersionResult {
   user_version: number;
@@ -31,6 +32,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 3) {
     await migrateToV3(db);
     currentVersion = 3;
+  }
+
+  if (currentVersion < 4) {
+    await migrateToV4(db);
+    currentVersion = 4;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -64,4 +70,14 @@ async function migrateToV2(db: SQLiteDatabase): Promise<void> {
 async function migrateToV3(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(CREATE_PLANIFICATIONS_TABLE);
   await db.execAsync(CREATE_PLANIFICATION_ITEMS_TABLE);
+}
+
+async function migrateToV4(db: SQLiteDatabase): Promise<void> {
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(planifications)"
+  );
+  const hasDeadline = tableInfo.some((col) => col.name === 'deadline');
+  if (!hasDeadline) {
+    await db.execAsync(ADD_DEADLINE_COLUMN);
+  }
 }

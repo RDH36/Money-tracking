@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -10,6 +11,14 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Input, InputField } from '@/components/ui/input';
 import { Center } from '@/components/ui/center';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications } from '@/hooks';
 import { useTheme } from '@/contexts';
@@ -20,20 +29,40 @@ function formatMGA(amountInCents: number): string {
   return amount.toLocaleString('fr-FR') + ' MGA';
 }
 
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function isExpired(deadline: string | null): boolean {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date();
+}
+
+type DialogConfig = {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText: string;
+  isDestructive: boolean;
+  onConfirm: () => void;
+};
+
 export default function PlanificationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useTheme();
-  const { balance } = useBalance();
+  const { balance, refresh: refreshBalance } = useBalance();
   const { categories } = useCategories();
-  const { validatePlanification } = usePlanifications();
+  const { validatePlanification, updateDeadline } = usePlanifications();
   const {
     planification,
     items,
     total,
     addItem,
     removeItem,
+    refresh: refreshDetail,
     isLoading,
     isFetching,
   } = usePlanificationDetail(id || null);
@@ -41,6 +70,32 @@ export default function PlanificationDetailScreen() {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dialog, setDialog] = useState<DialogConfig>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    isDestructive: false,
+    onConfirm: () => {},
+  });
+
+  const closeDialog = () => setDialog((prev) => ({ ...prev, isOpen: false }));
+
+  const handleDeadlineChange = async (_: unknown, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate && id && planification) {
+      await updateDeadline(id, planification.title, selectedDate);
+      await refreshDetail();
+    }
+  };
+
+  const handleRemoveDeadline = async () => {
+    if (id && planification) {
+      await updateDeadline(id, planification.title, null);
+      await refreshDetail();
+    }
+  };
 
   const formatAmount = (value: string) => {
     const cleaned = value.replace(/[^\d]/g, '');
@@ -64,40 +119,39 @@ export default function PlanificationDetailScreen() {
   };
 
   const handleRemoveItem = (itemId: string) => {
-    Alert.alert(
-      'Supprimer',
-      'Voulez-vous supprimer cet achat ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => removeItem(itemId),
-        },
-      ]
-    );
+    setDialog({
+      isOpen: true,
+      title: 'Supprimer',
+      message: 'Voulez-vous supprimer cet achat ?',
+      confirmText: 'Supprimer',
+      isDestructive: true,
+      onConfirm: async () => {
+        await removeItem(itemId);
+        closeDialog();
+      },
+    });
   };
 
   const handleValidate = () => {
     if (!id) return;
-    Alert.alert(
-      'Valider la planification',
-      `Cela va déduire ${formatMGA(total)} de votre solde actuel. Continuer ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Valider',
-          onPress: async () => {
-            await validatePlanification(id);
-            router.back();
-          },
-        },
-      ]
-    );
+    setDialog({
+      isOpen: true,
+      title: 'Valider la planification',
+      message: `Cela va déduire ${formatMGA(total)} de votre solde actuel. Continuer ?`,
+      confirmText: 'Valider',
+      isDestructive: false,
+      onConfirm: async () => {
+        await validatePlanification(id);
+        await refreshBalance();
+        closeDialog();
+        router.back();
+      },
+    });
   };
 
   const isValid = amount && parseInt(amount.replace(/\s/g, ''), 10) > 0;
   const isPending = planification?.status === 'pending';
+  const expired = isPending && isExpired(planification?.deadline || null);
   const projectedBalance = balance - total;
   const isNegative = projectedBalance < 0;
 
@@ -131,11 +185,64 @@ export default function PlanificationDetailScreen() {
               </Heading>
             </HStack>
 
+            {isPending && (
+              <Box className="p-3 rounded-xl bg-background-50">
+                <HStack className="justify-between items-center">
+                  <HStack space="sm" className="items-center flex-1">
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={expired ? '#DC2626' : theme.colors.primary}
+                    />
+                    <VStack>
+                      <Text className="text-typography-600 text-sm">Date butoir</Text>
+                      {planification?.deadline ? (
+                        <Text
+                          className="font-semibold"
+                          style={{ color: expired ? '#DC2626' : theme.colors.primary }}
+                        >
+                          {formatDate(planification.deadline)}
+                          {expired && ' (Expiré)'}
+                        </Text>
+                      ) : (
+                        <Text className="text-typography-500">Non définie</Text>
+                      )}
+                    </VStack>
+                  </HStack>
+                  <HStack space="sm">
+                    <Pressable
+                      onPress={() => setShowDatePicker(true)}
+                      className="p-2 rounded-lg bg-background-100"
+                    >
+                      <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
+                    </Pressable>
+                    {planification?.deadline && (
+                      <Pressable
+                        onPress={handleRemoveDeadline}
+                        className="p-2 rounded-lg bg-background-100"
+                      >
+                        <Ionicons name="close" size={20} color="#9CA3AF" />
+                      </Pressable>
+                    )}
+                  </HStack>
+                </HStack>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={planification?.deadline ? new Date(planification.deadline) : new Date()}
+                    mode="date"
+                    display="default"
+                    minimumDate={new Date()}
+                    onChange={handleDeadlineChange}
+                  />
+                )}
+              </Box>
+            )}
+
             {!isPending && (
               <Box className="p-3 rounded-xl bg-background-100">
-                <HStack space="sm" className="items-center">
+                <HStack space="sm" className="items-start">
                   <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  <Text className="text-typography-600">
+                  <Text className="text-typography-600 flex-1">
                     Cette planification a été validée et les achats ont été déduits du solde.
                   </Text>
                 </HStack>
@@ -335,6 +442,33 @@ export default function PlanificationDetailScreen() {
           </Box>
         )}
       </KeyboardAvoidingView>
+
+      <AlertDialog isOpen={dialog.isOpen} onClose={closeDialog}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Heading size="md" className="text-typography-900">
+              {dialog.title}
+            </Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody className="mt-3 mb-4">
+            <Text className="text-typography-700">{dialog.message}</Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button variant="outline" onPress={closeDialog}>
+              <ButtonText>Annuler</ButtonText>
+            </Button>
+            <Button
+              style={{
+                backgroundColor: dialog.isDestructive ? '#DC2626' : theme.colors.primary,
+              }}
+              onPress={dialog.onConfirm}
+            >
+              <ButtonText className="text-white">{dialog.confirmText}</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </View>
   );
 }

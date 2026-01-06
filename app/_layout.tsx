@@ -22,7 +22,12 @@ export default function RootLayout() {
       <Suspense fallback={<LoadingFallback />}>
         <DatabaseProvider>
           <ThemeProvider>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'slide_from_right',
+              }}
+            >
               <Stack.Screen name="index" />
               <Stack.Screen name="onboarding" />
               <Stack.Screen name="(tabs)" />

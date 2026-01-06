@@ -89,3 +89,73 @@ export async function scheduleReminders(frequency: ReminderFrequency): Promise<v
 export async function getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
   return await Notifications.getAllScheduledNotificationsAsync();
 }
+
+export async function schedulePlanificationDeadlineReminders(
+  planificationId: string,
+  title: string,
+  deadline: Date
+): Promise<void> {
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  const now = new Date();
+  const deadlineDate = new Date(deadline);
+  deadlineDate.setHours(9, 0, 0, 0);
+
+  const oneDayBefore = new Date(deadlineDate);
+  oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+
+  if (oneDayBefore > now) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '📅 Rappel planification',
+        body: `"${title}" arrive à échéance demain !`,
+        data: { planificationId, type: 'planification_reminder' },
+      },
+      identifier: `planif-reminder-${planificationId}`,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: oneDayBefore,
+      },
+    });
+  }
+
+  if (deadlineDate > now) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '⏰ Échéance aujourd\'hui',
+        body: `"${title}" arrive à échéance aujourd'hui !`,
+        data: { planificationId, type: 'planification_deadline' },
+      },
+      identifier: `planif-deadline-${planificationId}`,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: deadlineDate,
+      },
+    });
+  }
+}
+
+export async function cancelPlanificationReminders(planificationId: string): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(`planif-reminder-${planificationId}`);
+  await Notifications.cancelScheduledNotificationAsync(`planif-deadline-${planificationId}`);
+  await Notifications.cancelScheduledNotificationAsync(`planif-expired-${planificationId}`);
+}
+
+export async function sendExpiredPlanificationNotification(
+  planificationId: string,
+  title: string
+): Promise<void> {
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '🚨 Planification expirée',
+      body: `"${title}" a dépassé sa date butoir !`,
+      data: { planificationId, type: 'planification_expired' },
+    },
+    identifier: `planif-expired-${planificationId}`,
+    trigger: null,
+  });
+}
