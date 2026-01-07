@@ -16,7 +16,7 @@ export default function CategoriesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { balance } = useLocalSearchParams<{ balance: string }>();
+  const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
 
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
@@ -35,7 +35,8 @@ export default function CategoriesScreen() {
 
   const handleFinish = async () => {
     const success = await saveOnboardingData({
-      balance: balance || '0',
+      bankBalance: bankBalance || '0',
+      cashBalance: cashBalance || '0',
       selectedCategories,
     });
 

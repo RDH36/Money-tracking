@@ -1,9 +1,18 @@
 import { useState, useCallback } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { DEFAULT_CATEGORIES, DefaultCategory } from '@/constants/categories';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
+
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 interface SaveOnboardingParams {
-  balance: string;
+  bankBalance: string;
+  cashBalance: string;
   selectedCategories: Set<string>;
 }
 
@@ -13,16 +22,25 @@ export function useOnboarding() {
   const [error, setError] = useState<string | null>(null);
 
   const saveOnboardingData = useCallback(
-    async ({ balance, selectedCategories }: SaveOnboardingParams) => {
+    async ({ bankBalance, cashBalance, selectedCategories }: SaveOnboardingParams) => {
       setIsLoading(true);
       setError(null);
 
       try {
         const now = new Date().toISOString();
 
+        const bankId = generateId();
         await db.runAsync(
-          'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)',
-          ['initial_balance', balance || '0', now]
+          `INSERT INTO accounts (id, name, type, initial_balance, icon, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [bankId, 'Banque', 'bank', parseInt(bankBalance || '0', 10), 'card', now, now]
+        );
+
+        const cashId = generateId();
+        await db.runAsync(
+          `INSERT INTO accounts (id, name, type, initial_balance, icon, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [cashId, 'Espèce', 'cash', parseInt(cashBalance || '0', 10), 'cash', now, now]
         );
 
         await db.runAsync(

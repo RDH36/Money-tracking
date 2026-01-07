@@ -85,6 +85,38 @@ CREATE INDEX IF NOT EXISTS idx_transactions_deleted_at ON transactions(deleted_a
 CREATE INDEX IF NOT EXISTS idx_categories_sync_status ON categories(sync_status);
 `;
 
+export const CREATE_ACCOUNTS_TABLE = `
+CREATE TABLE IF NOT EXISTS accounts (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('bank', 'cash')),
+  initial_balance INTEGER NOT NULL DEFAULT 0,
+  icon TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+`;
+
+export const ADD_ACCOUNT_ID_TO_TRANSACTIONS = `
+ALTER TABLE transactions ADD COLUMN account_id TEXT REFERENCES accounts(id);
+`;
+
+export const ADD_TRANSFER_ID_TO_TRANSACTIONS = `
+ALTER TABLE transactions ADD COLUMN transfer_id TEXT;
+`;
+
+export const CREATE_ACCOUNTS_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
+`;
+
+export const ADD_CATEGORY_TYPE_TO_CATEGORIES = `
+ALTER TABLE categories ADD COLUMN category_type TEXT DEFAULT 'expense' CHECK (category_type IN ('expense', 'income', 'transfer', 'system'));
+`;
+
+export const SYSTEM_CATEGORY_TRANSFER_ID = 'system-transfer';
+export const SYSTEM_CATEGORY_INCOME_ID = 'system-income';
+
 export const INITIAL_SCHEMA = `
 ${PRAGMAS}
 ${CREATE_CATEGORIES_TABLE}

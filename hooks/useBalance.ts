@@ -12,13 +12,12 @@ export function useBalance() {
     try {
       setIsLoading(true);
 
-      const initialBalanceRow = await db.getFirstAsync<{ value: string }>(
-        'SELECT value FROM settings WHERE key = ?',
-        ['initial_balance']
+      const accountsResult = await db.getFirstAsync<{ total_initial: number }>(
+        `SELECT COALESCE(SUM(initial_balance), 0) as total_initial
+         FROM accounts
+         WHERE deleted_at IS NULL`
       );
-      const initialBalance = initialBalanceRow
-        ? parseInt(initialBalanceRow.value, 10)
-        : 0;
+      const totalInitial = accountsResult?.total_initial || 0;
 
       const result = await db.getFirstAsync<{
         total_income: number;
@@ -33,7 +32,7 @@ export function useBalance() {
 
       const income = result?.total_income || 0;
       const expense = result?.total_expense || 0;
-      const currentBalance = initialBalance + income - expense;
+      const currentBalance = totalInitial + income - expense;
 
       setTotalIncome(income);
       setTotalExpense(expense);

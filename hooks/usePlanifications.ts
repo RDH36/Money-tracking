@@ -144,7 +144,7 @@ export function usePlanifications() {
   }, [db]);
 
   const validatePlanification = useCallback(
-    async (id: string) => {
+    async (id: string, accountId: string) => {
       setIsLoading(true);
       try {
         const items = await db.getAllAsync<PlanificationItemWithCategory>(
@@ -160,9 +160,9 @@ export function usePlanifications() {
         for (const item of items) {
           const transactionId = generateId();
           await db.runAsync(
-            `INSERT INTO transactions (id, type, amount, category_id, note, created_at, updated_at, sync_status)
-             VALUES (?, 'expense', ?, ?, ?, ?, ?, 'pending')`,
-            [transactionId, item.amount, item.category_id, item.note, now, now]
+            `INSERT INTO transactions (id, type, amount, category_id, account_id, note, created_at, updated_at, sync_status)
+             VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, 'pending')`,
+            [transactionId, item.amount, item.category_id, accountId, item.note, now, now]
           );
         }
 

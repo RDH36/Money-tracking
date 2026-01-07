@@ -26,7 +26,7 @@ export function useExpensesByCategory() {
           SUM(t.amount) as total
         FROM transactions t
         LEFT JOIN categories c ON t.category_id = c.id
-        WHERE t.type = 'expense' AND t.deleted_at IS NULL
+        WHERE t.type = 'expense' AND t.deleted_at IS NULL AND t.transfer_id IS NULL
         GROUP BY t.category_id
         ORDER BY total DESC`
       );

@@ -6,6 +6,7 @@ interface CreateTransactionParams {
   type: TransactionType;
   amount: number;
   categoryId: string | null;
+  accountId: string | null;
   note: string | null;
 }
 
@@ -13,6 +14,9 @@ export interface TransactionWithCategory extends Transaction {
   category_name: string | null;
   category_icon: string | null;
   category_color: string | null;
+  account_name: string | null;
+  account_type: string | null;
+  account_icon: string | null;
 }
 
 function generateId(): string {
@@ -34,9 +38,12 @@ export function useTransactions() {
     try {
       setIsFetching(true);
       const result = await db.getAllAsync<TransactionWithCategory>(
-        `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color
+        `SELECT t.*,
+          c.name as category_name, c.icon as category_icon, c.color as category_color,
+          a.name as account_name, a.type as account_type, a.icon as account_icon
          FROM transactions t
          LEFT JOIN categories c ON t.category_id = c.id
+         LEFT JOIN accounts a ON t.account_id = a.id
          WHERE t.deleted_at IS NULL
          ORDER BY t.created_at DESC`
       );
@@ -53,7 +60,7 @@ export function useTransactions() {
   }, [fetchTransactions]);
 
   const createTransaction = useCallback(
-    async ({ type, amount, categoryId, note }: CreateTransactionParams) => {
+    async ({ type, amount, categoryId, accountId, note }: CreateTransactionParams) => {
       setIsLoading(true);
       setError(null);
 
@@ -62,9 +69,9 @@ export function useTransactions() {
         const id = generateId();
 
         await db.runAsync(
-          `INSERT INTO transactions (id, type, amount, category_id, note, created_at, updated_at, sync_status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
-          [id, type, amount, categoryId, note, now, now]
+          `INSERT INTO transactions (id, type, amount, category_id, account_id, note, created_at, updated_at, sync_status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+          [id, type, amount, categoryId, accountId, note, now, now]
         );
 
         await fetchTransactions();

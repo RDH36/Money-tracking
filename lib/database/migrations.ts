@@ -5,9 +5,16 @@ import {
   CREATE_PLANIFICATIONS_TABLE,
   CREATE_PLANIFICATION_ITEMS_TABLE,
   ADD_DEADLINE_COLUMN,
+  CREATE_ACCOUNTS_TABLE,
+  ADD_ACCOUNT_ID_TO_TRANSACTIONS,
+  ADD_TRANSFER_ID_TO_TRANSACTIONS,
+  CREATE_ACCOUNTS_INDEX,
+  ADD_CATEGORY_TYPE_TO_CATEGORIES,
+  SYSTEM_CATEGORY_TRANSFER_ID,
+  SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 6;
 
 interface VersionResult {
   user_version: number;
@@ -37,6 +44,16 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 4) {
     await migrateToV4(db);
     currentVersion = 4;
+  }
+
+  if (currentVersion < 5) {
+    await migrateToV5(db);
+    currentVersion = 5;
+  }
+
+  if (currentVersion < 6) {
+    await migrateToV6(db);
+    currentVersion = 6;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -79,5 +96,63 @@ async function migrateToV4(db: SQLiteDatabase): Promise<void> {
   const hasDeadline = tableInfo.some((col) => col.name === 'deadline');
   if (!hasDeadline) {
     await db.execAsync(ADD_DEADLINE_COLUMN);
+  }
+}
+
+async function migrateToV5(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(CREATE_ACCOUNTS_TABLE);
+
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(transactions)"
+  );
+  const hasAccountId = tableInfo.some((col) => col.name === 'account_id');
+  const hasTransferId = tableInfo.some((col) => col.name === 'transfer_id');
+
+  if (!hasAccountId) {
+    await db.execAsync(ADD_ACCOUNT_ID_TO_TRANSACTIONS);
+  }
+  if (!hasTransferId) {
+    await db.execAsync(ADD_TRANSFER_ID_TO_TRANSACTIONS);
+  }
+
+  await db.execAsync(CREATE_ACCOUNTS_INDEX);
+}
+
+async function migrateToV6(db: SQLiteDatabase): Promise<void> {
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(categories)"
+  );
+  const hasCategoryType = tableInfo.some((col) => col.name === 'category_type');
+
+  if (!hasCategoryType) {
+    await db.execAsync(ADD_CATEGORY_TYPE_TO_CATEGORIES);
+  }
+
+  const now = new Date().toISOString();
+
+  // Create system category for transfers
+  const transferExists = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM categories WHERE id = ?',
+    [SYSTEM_CATEGORY_TRANSFER_ID]
+  );
+  if (!transferExists) {
+    await db.runAsync(
+      `INSERT INTO categories (id, name, icon, color, is_default, category_type, created_at, sync_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [SYSTEM_CATEGORY_TRANSFER_ID, 'Transfert', 'swap-horizontal', '#6366F1', 1, 'transfer', now, 'synced']
+    );
+  }
+
+  // Create system category for income
+  const incomeExists = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM categories WHERE id = ?',
+    [SYSTEM_CATEGORY_INCOME_ID]
+  );
+  if (!incomeExists) {
+    await db.runAsync(
+      `INSERT INTO categories (id, name, icon, color, is_default, category_type, created_at, sync_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [SYSTEM_CATEGORY_INCOME_ID, 'Revenu', 'trending-up', '#22C55E', 1, 'income', now, 'synced']
+    );
   }
 }

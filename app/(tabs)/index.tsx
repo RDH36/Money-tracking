@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
@@ -9,85 +9,94 @@ import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
-import { useBalance, useTransactions, useSettings, useExpensesByCategory } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useExpensesByCategory } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
 import { ExpenseChart } from '@/components/ExpenseChart';
+import { AddAccountModal } from '@/components/AddAccountModal';
 import { useTheme } from '@/contexts';
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { formatted, formattedIncome, formattedExpense, refresh: refreshBalance, isLoading: balanceLoading } = useBalance();
+  const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount } = useAccounts();
   const { transactions, refresh: refreshTransactions, isFetching } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
   const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
+  const [showAddAccount, setShowAddAccount] = useState(false);
 
   const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
 
-  // Auto-refresh when screen is focused
   useFocusEffect(
     useCallback(() => {
-      refreshBalance();
+      refreshAccounts();
       refreshTransactions();
       refreshExpenses();
-    }, [refreshBalance, refreshTransactions, refreshExpenses])
+    }, [refreshAccounts, refreshTransactions, refreshExpenses])
   );
 
   const handleRefresh = async () => {
-    await Promise.all([refreshBalance(), refreshTransactions(), refreshExpenses()]);
+    await Promise.all([refreshAccounts(), refreshTransactions(), refreshExpenses()]);
+  };
+
+  const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
+    await createAccount(params);
+    setShowAddAccount(false);
   };
 
   const hiddenAmount = '••••••';
+  const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : '#22c55e');
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isFetching || balanceLoading}
-            onRefresh={handleRefresh}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={isFetching || accountsLoading} onRefresh={handleRefresh} />}
       >
         <VStack className="p-6" space="lg">
-          <Heading size="xl" className="text-typography-900">
-            Dashboard
-          </Heading>
+          <Heading size="xl" className="text-typography-900">Dashboard</Heading>
 
           <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
             <HStack className="justify-between items-start">
               <VStack>
-                <Text className="text-white text-sm mb-1">Solde actuel</Text>
-                <Heading size="2xl" className="text-white">
-                  {balanceHidden ? hiddenAmount : formatted}
-                </Heading>
+                <Text className="text-white text-sm mb-1">Solde total</Text>
+                <Heading size="2xl" className="text-white">{balanceHidden ? hiddenAmount : formattedTotal}</Heading>
               </VStack>
               <Pressable onPress={toggleBalanceVisibility} className="p-2">
-                <Ionicons
-                  name={balanceHidden ? 'eye-off' : 'eye'}
-                  size={24}
-                  color="white"
-                />
+                <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
               </Pressable>
             </HStack>
           </Box>
 
-          <HStack space="md">
-            <Box className="flex-1 bg-success-50 p-4 rounded-xl border border-success-200">
-              <Text className="text-success-700 text-xs mb-1">Revenus</Text>
-              <Text className="text-success-800 font-bold text-lg">
-                +{formattedIncome}
-              </Text>
-            </Box>
-            <Box className="flex-1 bg-error-50 p-4 rounded-xl border border-error-200">
-              <Text className="text-error-700 text-xs mb-1">Dépenses</Text>
-              <Text className="text-error-800 font-bold text-lg">
-                -{formattedExpense}
-              </Text>
-            </Box>
-          </HStack>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+            {accounts.map((account) => (
+              <Box
+                key={account.id}
+                className="p-4 rounded-xl border"
+                style={{
+                  borderColor: getAccountColor(account.type) + '40',
+                  backgroundColor: getAccountColor(account.type) + '10',
+                  minWidth: 150,
+                }}
+              >
+                <HStack space="sm" className="items-center mb-2">
+                  <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} color={getAccountColor(account.type)} />
+                  <Text className="text-xs font-medium" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
+                    {account.name}
+                  </Text>
+                </HStack>
+                <Text className="font-bold text-base" style={{ color: getAccountColor(account.type) }}>
+                  {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
+                </Text>
+              </Box>
+            ))}
+            <Pressable onPress={() => setShowAddAccount(true)}>
+              <Box className="p-4 rounded-xl border-2 border-dashed border-outline-300 items-center justify-center" style={{ minWidth: 100, minHeight: 80 }}>
+                <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+                <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>Ajouter</Text>
+              </Box>
+            </Pressable>
+          </ScrollView>
 
           {expenses.length > 0 && (
             <Box className="bg-background-0 p-4 rounded-xl border border-outline-100">
@@ -96,16 +105,11 @@ export default function DashboardScreen() {
           )}
 
           <VStack space="md">
-            <Text className="text-typography-700 font-semibold">
-              Transactions récentes
-            </Text>
-
+            <Text className="text-typography-700 font-semibold">Transactions récentes</Text>
             {recentTransactions.length === 0 ? (
               <Center className="py-8 bg-background-0 rounded-xl border border-outline-100">
                 <Text className="text-4xl mb-2">📭</Text>
-                <Text className="text-typography-500 text-center text-sm">
-                  Aucune transaction
-                </Text>
+                <Text className="text-typography-500 text-center text-sm">Aucune transaction</Text>
               </Center>
             ) : (
               <VStack space="sm">
@@ -113,15 +117,9 @@ export default function DashboardScreen() {
                   <TransactionCard key={transaction.id} transaction={transaction} />
                 ))}
                 {transactions.length > 5 && (
-                  <Pressable
-                    onPress={() => router.push('/history')}
-                    className="py-3 px-4 rounded-xl"
-                    style={{ backgroundColor: theme.colors.primary }}
-                  >
+                  <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.primary }}>
                     <HStack className="justify-center items-center" space="sm">
-                      <Text className="text-white font-semibold">
-                        Voir plus
-                      </Text>
+                      <Text className="text-white font-semibold">Voir plus</Text>
                       <Ionicons name="arrow-forward" size={18} color="white" />
                     </HStack>
                   </Pressable>
@@ -131,6 +129,8 @@ export default function DashboardScreen() {
           </VStack>
         </VStack>
       </ScrollView>
+
+      <AddAccountModal isOpen={showAddAccount} onClose={() => setShowAddAccount(false)} onCreateAccount={handleCreateAccount} />
     </View>
   );
 }

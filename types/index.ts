@@ -1,11 +1,30 @@
 export type TransactionType = 'expense' | 'income';
 export type SyncStatus = 'pending' | 'synced';
+export type AccountType = 'bank' | 'cash';
+export type CategoryType = 'expense' | 'income' | 'transfer' | 'system';
+
+export interface Account {
+  id: string;
+  name: string;
+  type: AccountType;
+  initial_balance: number;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface AccountWithBalance extends Account {
+  current_balance: number;
+}
 
 export interface Transaction {
   id: string;
   type: TransactionType;
   amount: number;
   category_id: string | null;
+  account_id: string | null;
+  transfer_id: string | null;
   note: string | null;
   created_at: string;
   updated_at: string;
@@ -19,6 +38,7 @@ export interface Category {
   icon: string | null;
   color: string | null;
   is_default: number;
+  category_type: CategoryType;
   created_at: string;
   sync_status: SyncStatus;
 }
