@@ -14,7 +14,7 @@ import {
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 6;
+const DATABASE_VERSION = 7;
 
 interface VersionResult {
   user_version: number;
@@ -54,6 +54,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 6) {
     await migrateToV6(db);
     currentVersion = 6;
+  }
+
+  if (currentVersion < 7) {
+    await migrateToV7(db);
+    currentVersion = 7;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -153,6 +158,22 @@ async function migrateToV6(db: SQLiteDatabase): Promise<void> {
       `INSERT INTO categories (id, name, icon, color, is_default, category_type, created_at, sync_status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [SYSTEM_CATEGORY_INCOME_ID, 'Revenu', 'trending-up', '#22C55E', 1, 'income', now, 'synced']
+    );
+  }
+}
+
+async function migrateToV7(db: SQLiteDatabase): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Set default reminder frequency to '1h' if not already set
+  const reminderExists = await db.getFirstAsync<{ value: string }>(
+    'SELECT value FROM settings WHERE key = ?',
+    ['reminder_frequency']
+  );
+  if (!reminderExists) {
+    await db.runAsync(
+      `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)`,
+      ['reminder_frequency', '1h', now]
     );
   }
 }

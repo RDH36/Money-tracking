@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -71,15 +72,16 @@ export default function BalanceScreen() {
   return (
     <View
       className="flex-1 bg-background-0"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+      style={{ paddingTop: insets.top }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAwareScrollView
         className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        bottomOffset={20}
       >
-        <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-          <Box className="flex-1 p-6">
-            <VStack className="flex-1" space="xl">
+        <Box className="flex-1 p-6">
+          <VStack className="flex-1" space="xl">
               <VStack space="sm">
                 <Text className="text-typography-500">Étape 1/2</Text>
                 <Heading size="xl" className="text-typography-900">
@@ -166,32 +168,31 @@ export default function BalanceScreen() {
                 </FormControl>
               )}
 
-              <Text className="text-center text-typography-400 text-sm">
-                Vous pourrez modifier ces montants plus tard
-              </Text>
-            </VStack>
-          </Box>
-        </ScrollView>
+            <Text className="text-center text-typography-400 text-sm">
+              Vous pourrez modifier ces montants plus tard
+            </Text>
 
-        <HStack space="md" className="p-6 pt-0">
-          <Button
-            variant="outline"
-            size="xl"
-            className="flex-1"
-            onPress={() => router.back()}
-          >
-            <ButtonText>Retour</ButtonText>
-          </Button>
-          <Button
-            size="xl"
-            className="flex-1"
-            style={{ backgroundColor: theme.colors.primary }}
-            onPress={handleNext}
-          >
-            <ButtonText className="text-white">Suivant</ButtonText>
-          </Button>
-        </HStack>
-      </KeyboardAvoidingView>
+            <HStack space="md" className="mt-4">
+              <Button
+                variant="outline"
+                size="xl"
+                className="flex-1"
+                onPress={() => router.back()}
+              >
+                <ButtonText>Retour</ButtonText>
+              </Button>
+              <Button
+                size="xl"
+                className="flex-1"
+                style={{ backgroundColor: theme.colors.primary }}
+                onPress={handleNext}
+              >
+                <ButtonText className="text-white">Suivant</ButtonText>
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

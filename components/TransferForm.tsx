@@ -1,5 +1,5 @@
+import { ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
@@ -38,8 +38,7 @@ export function TransferForm({
         variant={isSelected ? 'solid' : 'outline'}
         onPress={onPress}
         isDisabled={isDisabled}
-        className="flex-1"
-        style={isSelected ? { backgroundColor: color } : {}}
+        style={isSelected ? { backgroundColor: color, minWidth: 120 } : { minWidth: 120 }}
       >
         <HStack space="sm" className="items-center">
           <Ionicons
@@ -59,30 +58,34 @@ export function TransferForm({
     <>
       <VStack space="sm">
         <Text className="text-typography-700 font-medium">De</Text>
-        <HStack space="md">
-          {accounts.map((account) =>
-            renderAccountButton(
-              account,
-              fromAccountId === account.id,
-              toAccountId === account.id,
-              () => onFromChange(account.id)
-            )
-          )}
-        </HStack>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <HStack space="md">
+            {accounts.map((account) =>
+              renderAccountButton(
+                account,
+                fromAccountId === account.id,
+                toAccountId === account.id,
+                () => onFromChange(account.id)
+              )
+            )}
+          </HStack>
+        </ScrollView>
       </VStack>
 
       <VStack space="sm">
         <Text className="text-typography-700 font-medium">Vers</Text>
-        <HStack space="md">
-          {accounts.map((account) =>
-            renderAccountButton(
-              account,
-              toAccountId === account.id,
-              fromAccountId === account.id,
-              () => onToChange(account.id)
-            )
-          )}
-        </HStack>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <HStack space="md">
+            {accounts.map((account) =>
+              renderAccountButton(
+                account,
+                toAccountId === account.id,
+                fromAccountId === account.id,
+                () => onToChange(account.id)
+              )
+            )}
+          </HStack>
+        </ScrollView>
       </VStack>
     </>
   );

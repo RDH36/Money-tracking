@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -114,9 +115,13 @@ export default function PlanificationDetailScreen() {
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
-          <VStack className="p-6" space="xl">
+      <KeyboardAwareScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        bottomOffset={20}
+      >
+        <VStack className="p-6" space="xl">
             <HStack className="justify-between items-center">
               <Pressable onPress={() => router.back()} className="p-2 -ml-2">
                 <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
@@ -248,28 +253,25 @@ export default function PlanificationDetailScreen() {
                 <Text className="text-typography-500 text-center mt-4">Ajoutez des achats à votre planification</Text>
               </Center>
             )}
-          </VStack>
-        </ScrollView>
 
-        {isPending && items.length > 0 && (
-          <Box className="px-6 py-4 border-t border-outline-100 bg-background-0" style={{ paddingBottom: insets.bottom + 16 }}>
-            <VStack space="sm">
-              <Button size="lg" variant="outline" className="w-full" onPress={() => router.back()}>
-                <HStack space="sm" className="items-center">
-                  <Ionicons name="save-outline" size={20} color={theme.colors.primary} />
-                  <ButtonText style={{ color: theme.colors.primary }}>Sauvegarder</ButtonText>
-                </HStack>
-              </Button>
-              <Button size="lg" className="w-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowValidateDialog(true)}>
-                <HStack space="sm" className="items-center">
-                  <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                  <ButtonText className="text-white font-semibold">Valider et déduire du solde</ButtonText>
-                </HStack>
-              </Button>
-            </VStack>
-          </Box>
-        )}
-      </KeyboardAvoidingView>
+            {isPending && items.length > 0 && (
+              <VStack space="sm" className="mt-4">
+                <Button size="lg" variant="outline" className="w-full" onPress={() => router.back()}>
+                  <HStack space="sm" className="items-center">
+                    <Ionicons name="save-outline" size={20} color={theme.colors.primary} />
+                    <ButtonText style={{ color: theme.colors.primary }}>Sauvegarder</ButtonText>
+                  </HStack>
+                </Button>
+                <Button size="lg" className="w-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowValidateDialog(true)}>
+                  <HStack space="sm" className="items-center">
+                    <Ionicons name="checkmark-circle-outline" size={20} color="white" />
+                    <ButtonText className="text-white font-semibold">Valider et déduire du solde</ButtonText>
+                  </HStack>
+                </Button>
+              </VStack>
+            )}
+        </VStack>
+      </KeyboardAwareScrollView>
 
       <ConfirmDialog isOpen={!!deleteItemId} title="Supprimer" message="Voulez-vous supprimer cet achat ?" confirmText="Supprimer" isDestructive onClose={() => setDeleteItemId(null)} onConfirm={handleDeleteConfirm} />
 

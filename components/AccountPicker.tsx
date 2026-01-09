@@ -1,4 +1,4 @@
-import { Pressable } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -31,49 +31,51 @@ export function AccountPicker({
   };
 
   return (
-    <HStack space="md">
-      {accounts.map((account) => {
-        const isSelected = selectedId === account.id;
-        const color = getAccountColor(account.type);
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <HStack space="md">
+        {accounts.map((account) => {
+          const isSelected = selectedId === account.id;
+          const color = getAccountColor(account.type);
 
-        return (
-          <Pressable
-            key={account.id}
-            onPress={() => onSelect(isSelected ? null : account.id)}
-            className="flex-1"
-          >
-            <Box
-              className="p-4 rounded-xl border-2"
-              style={{
-                backgroundColor: isSelected ? color + '15' : '#F5F5F5',
-                borderColor: isSelected ? color : 'transparent',
-              }}
+          return (
+            <Pressable
+              key={account.id}
+              onPress={() => onSelect(isSelected ? null : account.id)}
+              style={{ minWidth: 140 }}
             >
-              <VStack space="sm">
-                <HStack space="sm" className="items-center">
-                  <Ionicons
-                    name={getAccountIcon(account.type) as keyof typeof Ionicons.glyphMap}
-                    size={20}
-                    color={isSelected ? color : '#666'}
-                  />
+              <Box
+                className="p-4 rounded-xl border-2"
+                style={{
+                  backgroundColor: isSelected ? color + '15' : '#F5F5F5',
+                  borderColor: isSelected ? color : 'transparent',
+                }}
+              >
+                <VStack space="sm">
+                  <HStack space="sm" className="items-center">
+                    <Ionicons
+                      name={getAccountIcon(account.type) as keyof typeof Ionicons.glyphMap}
+                      size={20}
+                      color={isSelected ? color : '#666'}
+                    />
+                    <Text
+                      className="font-semibold"
+                      style={{ color: isSelected ? color : '#666' }}
+                    >
+                      {account.name}
+                    </Text>
+                  </HStack>
                   <Text
-                    className="font-semibold"
-                    style={{ color: isSelected ? color : '#666' }}
+                    className="text-xs"
+                    style={{ color: isSelected ? color : '#999' }}
                   >
-                    {account.name}
+                    {formatMoney(account.current_balance)}
                   </Text>
-                </HStack>
-                <Text
-                  className="text-xs"
-                  style={{ color: isSelected ? color : '#999' }}
-                >
-                  {formatMoney(account.current_balance)}
-                </Text>
-              </VStack>
-            </Box>
-          </Pressable>
-        );
-      })}
-    </HStack>
+                </VStack>
+              </Box>
+            </Pressable>
+          );
+        })}
+      </HStack>
+    </ScrollView>
   );
 }

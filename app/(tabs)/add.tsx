@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
+import { useState, useCallback } from 'react';
+import { View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -35,6 +37,12 @@ export default function AddTransactionScreen() {
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [success, setSuccess] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshAccounts();
+    }, [refreshAccounts])
+  );
 
   const formatAmount = (value: string) => {
     const cleaned = value.replace(/[^\d]/g, '');
@@ -96,8 +104,12 @@ export default function AddTransactionScreen() {
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }}>
+      <KeyboardAwareScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        bottomOffset={20}
+      >
           <Box className="flex-1 p-6 pb-4">
             <VStack className="flex-1" space="xl">
               <Heading size="xl" className="text-typography-900">
@@ -277,8 +289,7 @@ export default function AddTransactionScreen() {
               </ButtonText>
             </Button>
           </Box>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

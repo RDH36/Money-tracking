@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -87,6 +88,12 @@ export function AddAccountModal({ isOpen, onClose, onCreateAccount }: AddAccount
           <Heading size="md" className="text-typography-900">Nouveau compte</Heading>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bottomOffset={20}
+            style={{ maxHeight: 400 }}
+          >
           <VStack space="lg">
             <VStack space="sm">
               <Text className="text-typography-700 font-medium">Nom du compte</Text>
@@ -182,6 +189,7 @@ export function AddAccountModal({ isOpen, onClose, onCreateAccount }: AddAccount
               </Input>
             </VStack>
           </VStack>
+          </KeyboardAwareScrollView>
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={handleClose} isDisabled={isCreating}>
