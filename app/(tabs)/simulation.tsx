@@ -187,6 +187,7 @@ export default function PlanificationScreen() {
                   onPress={() => router.push(`/planification/${p.id}` as Href)}
                   onLongPress={() => setDeleteTarget(p)}
                   onValidate={() => setValidateTarget(p)}
+                  onDelete={() => setDeleteTarget(p)}
                 />
               ))}
             </VStack>

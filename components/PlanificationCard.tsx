@@ -12,6 +12,7 @@ interface PlanificationCardProps {
   onPress: () => void;
   onLongPress?: () => void;
   onValidate?: () => void;
+  onDelete?: () => void;
 }
 
 function formatMGA(amountInCents: number): string {
@@ -34,6 +35,7 @@ export function PlanificationCard({
   onPress,
   onLongPress,
   onValidate,
+  onDelete,
 }: PlanificationCardProps) {
   const { theme } = useTheme();
   const isPending = planification.status === 'pending';
@@ -92,14 +94,23 @@ export function PlanificationCard({
             <Text className="text-typography-900 font-bold text-lg">
               {formatMGA(planification.total)}
             </Text>
-            {isPending && planification.item_count > 0 && onValidate && (
-              <Pressable
-                onPress={onValidate}
-                className="px-3 py-1 rounded-full"
-                style={{ backgroundColor: theme.colors.primary }}
-              >
-                <Text className="text-white text-xs font-medium">Valider</Text>
-              </Pressable>
+            {isPending && (
+              <HStack space="sm" className="items-center">
+                {onDelete && (
+                  <Pressable onPress={onDelete} className="p-1">
+                    <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                  </Pressable>
+                )}
+                {planification.item_count > 0 && onValidate && (
+                  <Pressable
+                    onPress={onValidate}
+                    className="px-3 py-1 rounded-full"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  >
+                    <Text className="text-white text-xs font-medium">Valider</Text>
+                  </Pressable>
+                )}
+              </HStack>
             )}
           </VStack>
         </HStack>

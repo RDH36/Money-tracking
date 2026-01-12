@@ -13,10 +13,18 @@ interface TransactionCardProps {
 
 export function TransactionCard({ transaction, onPress }: TransactionCardProps) {
   const isExpense = transaction.type === 'expense';
+  const isTransfer = !!transaction.transfer_id;
   const amountInMGA = transaction.amount / 100;
   const formattedAmount = amountInMGA.toLocaleString('fr-FR');
   const sign = isExpense ? '-' : '+';
   const iconColor = transaction.category_color || '#95A5A6';
+
+  const getTransferLabel = () => {
+    if (!isTransfer) return null;
+    const from = transaction.account_name || 'Compte';
+    const to = transaction.linked_account_name || 'Compte';
+    return `${from} → ${to}`;
+  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -49,7 +57,17 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
           <Text className="font-semibold text-typography-900">
             {transaction.category_name || 'Sans catégorie'}
           </Text>
-          {transaction.note && (
+          {isTransfer && getTransferLabel() && (
+            <Text className="text-primary-600 text-sm font-medium">
+              {getTransferLabel()}
+            </Text>
+          )}
+          {!isTransfer && !isExpense && transaction.account_name && (
+            <Text className="text-success-600 text-sm font-medium">
+              → {transaction.account_name}
+            </Text>
+          )}
+          {transaction.note && !isTransfer && (
             <Text className="text-typography-500 text-sm" numberOfLines={1}>
               {transaction.note}
             </Text>
@@ -61,10 +79,10 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
 
         <Text
           className={`font-bold text-lg ${
-            isExpense ? 'text-error-600' : 'text-success-600'
+            isTransfer ? 'text-primary-600' : isExpense ? 'text-error-600' : 'text-success-600'
           }`}
         >
-          {sign}{formattedAmount}
+          {isTransfer ? '' : sign}{formattedAmount}
         </Text>
       </HStack>
     </Pressable>

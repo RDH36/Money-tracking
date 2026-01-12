@@ -65,7 +65,7 @@ export function TransferForm({
                 account,
                 fromAccountId === account.id,
                 toAccountId === account.id,
-                () => onFromChange(account.id)
+                () => onFromChange(fromAccountId === account.id ? null : account.id)
               )
             )}
           </HStack>
@@ -81,7 +81,7 @@ export function TransferForm({
                 account,
                 toAccountId === account.id,
                 fromAccountId === account.id,
-                () => onToChange(account.id)
+                () => onToChange(toAccountId === account.id ? null : account.id)
               )
             )}
           </HStack>

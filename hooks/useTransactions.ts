@@ -17,6 +17,7 @@ export interface TransactionWithCategory extends Transaction {
   account_name: string | null;
   account_type: string | null;
   account_icon: string | null;
+  linked_account_name: string | null;
 }
 
 function generateId(): string {
@@ -40,11 +41,15 @@ export function useTransactions() {
       const result = await db.getAllAsync<TransactionWithCategory>(
         `SELECT t.*,
           c.name as category_name, c.icon as category_icon, c.color as category_color,
-          a.name as account_name, a.type as account_type, a.icon as account_icon
+          a.name as account_name, a.type as account_type, a.icon as account_icon,
+          la.name as linked_account_name
          FROM transactions t
          LEFT JOIN categories c ON t.category_id = c.id
          LEFT JOIN accounts a ON t.account_id = a.id
+         LEFT JOIN transactions lt ON lt.transfer_id = t.transfer_id AND lt.id != t.id AND lt.deleted_at IS NULL
+         LEFT JOIN accounts la ON la.id = lt.account_id
          WHERE t.deleted_at IS NULL
+           AND NOT (t.transfer_id IS NOT NULL AND t.type = 'income')
          ORDER BY t.created_at DESC`
       );
       setTransactions(result);
