@@ -10,11 +10,12 @@ import {
   ADD_TRANSFER_ID_TO_TRANSACTIONS,
   CREATE_ACCOUNTS_INDEX,
   ADD_CATEGORY_TYPE_TO_CATEGORIES,
+  ADD_IS_DEFAULT_TO_ACCOUNTS,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 7;
+const DATABASE_VERSION = 8;
 
 interface VersionResult {
   user_version: number;
@@ -59,6 +60,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 7) {
     await migrateToV7(db);
     currentVersion = 7;
+  }
+
+  if (currentVersion < 8) {
+    await migrateToV8(db);
+    currentVersion = 8;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -176,4 +182,28 @@ async function migrateToV7(db: SQLiteDatabase): Promise<void> {
       ['reminder_frequency', '1h', now]
     );
   }
+}
+
+async function migrateToV8(db: SQLiteDatabase): Promise<void> {
+  // Add is_default column to accounts table
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(accounts)"
+  );
+  const hasIsDefault = tableInfo.some((col) => col.name === 'is_default');
+
+  if (!hasIsDefault) {
+    await db.execAsync(ADD_IS_DEFAULT_TO_ACCOUNTS);
+  }
+
+  // Mark the first 2 accounts (by creation date) as default
+  // These are the accounts created during onboarding (Banque and Espèce)
+  await db.runAsync(
+    `UPDATE accounts SET is_default = 1
+     WHERE id IN (
+       SELECT id FROM accounts
+       WHERE deleted_at IS NULL
+       ORDER BY created_at ASC
+       LIMIT 2
+     )`
+  );
 }

@@ -37,10 +37,20 @@ interface AddAccountModalProps {
     type: AccountType;
     initialBalance: number;
     icon: string;
-  }) => Promise<void>;
+  }) => Promise<{ success: boolean; limitReached: boolean } | void>;
+  canCreateAccount: boolean;
+  customAccountsCount: number;
+  maxCustomAccounts: number;
 }
 
-export function AddAccountModal({ isOpen, onClose, onCreateAccount }: AddAccountModalProps) {
+export function AddAccountModal({
+  isOpen,
+  onClose,
+  onCreateAccount,
+  canCreateAccount,
+  customAccountsCount,
+  maxCustomAccounts,
+}: AddAccountModalProps) {
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
@@ -80,12 +90,52 @@ export function AddAccountModal({ isOpen, onClose, onCreateAccount }: AddAccount
     onClose();
   };
 
+  // Show limit reached view
+  if (!canCreateAccount) {
+    return (
+      <AlertDialog isOpen={isOpen} onClose={handleClose}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <HStack space="sm" className="items-center">
+              <Box
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: '#FEE2E2' }}
+              >
+                <Ionicons name="alert-circle" size={24} color="#EF4444" />
+              </Box>
+              <Heading size="md" className="text-typography-900">Limite atteinte</Heading>
+            </HStack>
+          </AlertDialogHeader>
+          <AlertDialogBody className="mt-3 mb-4">
+            <Text className="text-typography-600">
+              Vous avez atteint la limite de {maxCustomAccounts} comptes personnalisés.
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              style={{ backgroundColor: theme.colors.primary }}
+              onPress={handleClose}
+            >
+              <ButtonText className="text-white">Compris</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
+
   return (
     <AlertDialog isOpen={isOpen} onClose={handleClose}>
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <Heading size="md" className="text-typography-900">Nouveau compte</Heading>
+          <HStack className="items-center justify-between w-full">
+            <Heading size="md" className="text-typography-900">Nouveau compte</Heading>
+            <Text className="text-typography-500 text-sm">
+              {customAccountsCount}/{maxCustomAccounts}
+            </Text>
+          </HStack>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView

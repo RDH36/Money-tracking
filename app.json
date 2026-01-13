@@ -2,7 +2,7 @@
   "expo": {
     "name": "Money tracker",
     "slug": "money-tracking",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "moneytracking",
@@ -43,7 +43,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo-2.png",
+          "icon": "./assets/images/adaptive-icon.png",
           "color": "#14B8A6"
         }
       ]

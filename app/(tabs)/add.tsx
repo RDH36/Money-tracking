@@ -24,7 +24,7 @@ type ScreenMode = 'transaction' | 'transfer';
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { expenseCategories, incomeCategory } = useCategories();
+  const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { createTransaction, isLoading } = useTransactions();
   const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
 
@@ -41,7 +41,8 @@ export default function AddTransactionScreen() {
   useFocusEffect(
     useCallback(() => {
       refreshAccounts();
-    }, [refreshAccounts])
+      refreshCategories();
+    }, [refreshAccounts, refreshCategories])
   );
 
   const formatAmount = (value: string) => {

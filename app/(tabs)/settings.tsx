@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, useFocusEffect } from 'expo-router';
@@ -10,9 +10,10 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { THEMES } from '@/constants/colors';
 import { useTheme } from '@/contexts';
-import { useSettings, useAccounts } from '@/hooks';
+import { useSettings, useAccounts, useCategories } from '@/hooks';
 import { ReminderFrequency } from '@/lib/notifications';
 import { AccountList } from '@/components/AccountList';
+import { AddCategoryModal } from '@/components/AddCategoryModal';
 
 const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
   { value: '1h', label: 'Chaque heure' },
@@ -33,12 +34,30 @@ export default function SettingsScreen() {
   const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency } =
     useSettings();
   const { accounts, formatMoney, refresh: refreshAccounts } = useAccounts();
+  const {
+    expenseCategories,
+    refresh: refreshCategories,
+    createCategory,
+    canCreateCategory,
+    customCategoriesCount,
+    maxCustomCategories,
+  } = useCategories();
+  const [showAddCategory, setShowAddCategory] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       refreshAccounts();
-    }, [refreshAccounts])
+      refreshCategories();
+    }, [refreshAccounts, refreshCategories])
   );
+
+  const handleCreateCategory = async (params: { name: string; icon: string; color: string }) => {
+    const result = await createCategory(params);
+    if (result.success) {
+      setShowAddCategory(false);
+    }
+    return result;
+  };
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
@@ -47,6 +66,58 @@ export default function SettingsScreen() {
           <Heading size="xl" className="text-typography-900">Paramètres</Heading>
 
           <AccountList accounts={accounts} formatMoney={formatMoney} />
+
+          <VStack space="md">
+            <HStack className="justify-between items-center">
+              <Text className="text-typography-700 font-semibold text-lg">Catégories</Text>
+              <Text className="text-typography-500 text-sm">
+                {customCategoriesCount}/{maxCustomCategories} personnalisées
+              </Text>
+            </HStack>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+              {expenseCategories.map((category) => (
+                <Box
+                  key={category.id}
+                  className="p-3 rounded-xl items-center"
+                  style={{
+                    backgroundColor: `${category.color}20`,
+                    minWidth: 80,
+                  }}
+                >
+                  <Box
+                    className="w-10 h-10 rounded-full items-center justify-center mb-2"
+                    style={{ backgroundColor: category.color || '#666' }}
+                  >
+                    <Ionicons
+                      name={(category.icon || 'cube') as keyof typeof Ionicons.glyphMap}
+                      size={20}
+                      color="#FFF"
+                    />
+                  </Box>
+                  <Text className="text-xs font-medium text-center" style={{ color: category.color || '#666' }} numberOfLines={1}>
+                    {category.name}
+                  </Text>
+                  {category.is_default === 0 && (
+                    <Box
+                      className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
+                      style={{ backgroundColor: theme.colors.primary }}
+                    >
+                      <Text className="text-white text-[10px]">Custom</Text>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+              <Pressable onPress={() => setShowAddCategory(true)}>
+                <Box
+                  className="p-3 rounded-xl border-2 border-dashed border-outline-300 items-center justify-center"
+                  style={{ minWidth: 80, minHeight: 90 }}
+                >
+                  <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+                  <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>Ajouter</Text>
+                </Box>
+              </Pressable>
+            </ScrollView>
+          </VStack>
 
           <VStack space="md">
             <Text className="text-typography-700 font-semibold text-lg">Thème de couleur</Text>
@@ -169,7 +240,7 @@ export default function SettingsScreen() {
               <VStack space="sm">
                 <HStack className="justify-between">
                   <Text className="text-typography-500">Version</Text>
-                  <Text className="text-typography-900">1.0.0</Text>
+                  <Text className="text-typography-900">1.0.2</Text>
                 </HStack>
                 <HStack className="justify-between">
                   <Text className="text-typography-500">Développeur</Text>
@@ -182,6 +253,15 @@ export default function SettingsScreen() {
           </VStack>
         </VStack>
       </ScrollView>
+
+      <AddCategoryModal
+        isOpen={showAddCategory}
+        onClose={() => setShowAddCategory(false)}
+        onCreateCategory={handleCreateCategory}
+        canCreateCategory={canCreateCategory}
+        customCategoriesCount={customCategoriesCount}
+        maxCustomCategories={maxCustomCategories}
+      />
     </View>
   );
 }

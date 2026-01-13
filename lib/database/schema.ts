@@ -114,6 +114,13 @@ export const ADD_CATEGORY_TYPE_TO_CATEGORIES = `
 ALTER TABLE categories ADD COLUMN category_type TEXT DEFAULT 'expense' CHECK (category_type IN ('expense', 'income', 'transfer', 'system'));
 `;
 
+export const ADD_IS_DEFAULT_TO_ACCOUNTS = `
+ALTER TABLE accounts ADD COLUMN is_default INTEGER DEFAULT 0;
+`;
+
+export const MAX_CUSTOM_CATEGORIES = 3;
+export const MAX_CUSTOM_ACCOUNTS = 2;
+
 export const SYSTEM_CATEGORY_TRANSFER_ID = 'system-transfer';
 export const SYSTEM_CATEGORY_INCOME_ID = 'system-income';
 

@@ -18,7 +18,7 @@ import { useTheme } from '@/contexts';
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount } = useAccounts();
+  const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
   const { transactions, refresh: refreshTransactions, isFetching } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
   const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
@@ -39,8 +39,11 @@ export default function DashboardScreen() {
   };
 
   const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
-    await createAccount(params);
-    setShowAddAccount(false);
+    const result = await createAccount(params);
+    if (result.success) {
+      setShowAddAccount(false);
+    }
+    return result;
   };
 
   const hiddenAmount = '••••••';
@@ -130,7 +133,14 @@ export default function DashboardScreen() {
         </VStack>
       </ScrollView>
 
-      <AddAccountModal isOpen={showAddAccount} onClose={() => setShowAddAccount(false)} onCreateAccount={handleCreateAccount} />
+      <AddAccountModal
+        isOpen={showAddAccount}
+        onClose={() => setShowAddAccount(false)}
+        onCreateAccount={handleCreateAccount}
+        canCreateAccount={canCreateAccount}
+        customAccountsCount={customAccountsCount}
+        maxCustomAccounts={maxCustomAccounts}
+      />
     </View>
   );
 }

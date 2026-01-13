@@ -9,6 +9,7 @@ export interface Account {
   type: AccountType;
   initial_balance: number;
   icon: string;
+  is_default: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

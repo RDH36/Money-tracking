@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { SYSTEM_CATEGORY_TRANSFER_ID } from '@/lib/database/schema';
+import { SYSTEM_CATEGORY_TRANSFER_ID, MAX_CUSTOM_ACCOUNTS } from '@/lib/database/schema';
 import type { Account, AccountWithBalance, AccountType } from '@/types';
+
+export { MAX_CUSTOM_ACCOUNTS };
 
 interface CreateAccountParams {
   name: string;
@@ -62,26 +64,39 @@ export function useAccounts() {
     fetchAccounts();
   }, [fetchAccounts]);
 
+  // Custom accounts are those with is_default = 0
+  const customAccounts = useMemo(
+    () => accounts.filter((acc) => acc.is_default === 0),
+    [accounts]
+  );
+
+  const customAccountsCount = customAccounts.length;
+  const canCreateAccount = customAccountsCount < MAX_CUSTOM_ACCOUNTS;
+
   const createAccount = useCallback(
     async ({ name, type, initialBalance, icon }: CreateAccountParams) => {
+      if (!canCreateAccount) {
+        return { success: false, id: null, limitReached: true };
+      }
+
       try {
         const now = new Date().toISOString();
         const id = generateId();
 
         await db.runAsync(
-          `INSERT INTO accounts (id, name, type, initial_balance, icon, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO accounts (id, name, type, initial_balance, icon, is_default, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
           [id, name, type, initialBalance, icon, now, now]
         );
 
         await fetchAccounts();
-        return { success: true, id };
+        return { success: true, id, limitReached: false };
       } catch (error) {
         console.error('Error creating account:', error);
-        return { success: false, id: null };
+        return { success: false, id: null, limitReached: false };
       }
     },
-    [db, fetchAccounts]
+    [db, fetchAccounts, canCreateAccount]
   );
 
   const createTransfer = useCallback(
@@ -130,6 +145,7 @@ export function useAccounts() {
 
   return {
     accounts,
+    customAccounts,
     isLoading,
     refresh: fetchAccounts,
     createAccount,
@@ -138,5 +154,8 @@ export function useAccounts() {
     getAccountById,
     formatMoney,
     formattedTotal: formatMoney(getTotalBalance()),
+    customAccountsCount,
+    canCreateAccount,
+    maxCustomAccounts: MAX_CUSTOM_ACCOUNTS,
   };
 }

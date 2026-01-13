@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
@@ -41,9 +41,15 @@ export default function PlanificationDetailScreen() {
   const { theme } = useTheme();
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
-  const { categories } = useCategories();
+  const { categories, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
   const { planification, items, total, addItem, removeItem, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshCategories();
+    }, [refreshCategories])
+  );
 
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
