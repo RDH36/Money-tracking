@@ -11,11 +11,12 @@ import {
   CREATE_ACCOUNTS_INDEX,
   ADD_CATEGORY_TYPE_TO_CATEGORIES,
   ADD_IS_DEFAULT_TO_ACCOUNTS,
+  ADD_DELETED_AT_TO_CATEGORIES,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 8;
+const DATABASE_VERSION = 10;
 
 interface VersionResult {
   user_version: number;
@@ -65,6 +66,16 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 8) {
     await migrateToV8(db);
     currentVersion = 8;
+  }
+
+  if (currentVersion < 9) {
+    await migrateToV9(db);
+    currentVersion = 9;
+  }
+
+  if (currentVersion < 10) {
+    await migrateToV10(db);
+    currentVersion = 10;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -206,4 +217,32 @@ async function migrateToV8(db: SQLiteDatabase): Promise<void> {
        LIMIT 2
      )`
   );
+}
+
+async function migrateToV9(db: SQLiteDatabase): Promise<void> {
+  // Add deleted_at column to categories table for soft delete support
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(categories)"
+  );
+  const hasDeletedAt = tableInfo.some((col) => col.name === 'deleted_at');
+
+  if (!hasDeletedAt) {
+    await db.execAsync(ADD_DELETED_AT_TO_CATEGORIES);
+  }
+}
+
+async function migrateToV10(db: SQLiteDatabase): Promise<void> {
+  // Add default currency setting (MGA for existing users)
+  const now = new Date().toISOString();
+
+  const currencyExists = await db.getFirstAsync<{ value: string }>(
+    'SELECT value FROM settings WHERE key = ?',
+    ['currency']
+  );
+  if (!currencyExists) {
+    await db.runAsync(
+      `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)`,
+      ['currency', 'MGA', now]
+    );
+  }
 }

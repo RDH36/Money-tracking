@@ -9,11 +9,14 @@ import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { THEMES } from '@/constants/colors';
+import { CURRENCIES } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
 import { useSettings, useAccounts, useCategories } from '@/hooks';
 import { ReminderFrequency } from '@/lib/notifications';
 import { AccountList } from '@/components/AccountList';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import type { Category, AccountWithBalance } from '@/types';
 
 const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
   { value: '1h', label: 'Chaque heure' },
@@ -31,18 +34,21 @@ const PLANIF_REMINDERS = [
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, themeId, setTheme } = useTheme();
-  const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency } =
+  const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency, currencyCode, setCurrency } =
     useSettings();
-  const { accounts, formatMoney, refresh: refreshAccounts } = useAccounts();
+  const { accounts, formatMoney, refresh: refreshAccounts, deleteAccount } = useAccounts();
   const {
     expenseCategories,
     refresh: refreshCategories,
     createCategory,
+    deleteCategory,
     canCreateCategory,
     customCategoriesCount,
     maxCustomCategories,
   } = useCategories();
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null);
+  const [deleteAccountTarget, setDeleteAccountTarget] = useState<AccountWithBalance | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,13 +65,27 @@ export default function SettingsScreen() {
     return result;
   };
 
+  const handleDeleteCategory = async () => {
+    if (deleteCategoryTarget) {
+      await deleteCategory(deleteCategoryTarget.id);
+      setDeleteCategoryTarget(null);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteAccountTarget) {
+      await deleteAccount(deleteAccountTarget.id);
+      setDeleteAccountTarget(null);
+    }
+  };
+
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
         <VStack className="p-6" space="xl">
           <Heading size="xl" className="text-typography-900">Paramètres</Heading>
 
-          <AccountList accounts={accounts} formatMoney={formatMoney} />
+          <AccountList accounts={accounts} formatMoney={formatMoney} onDelete={setDeleteAccountTarget} />
 
           <VStack space="md">
             <HStack className="justify-between items-center">
@@ -98,12 +118,25 @@ export default function SettingsScreen() {
                     {category.name}
                   </Text>
                   {category.is_default === 0 && (
-                    <Box
-                      className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
-                      style={{ backgroundColor: theme.colors.primary }}
-                    >
-                      <Text className="text-white text-[10px]">Custom</Text>
-                    </Box>
+                    <>
+                      <Box
+                        className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
+                        style={{ backgroundColor: theme.colors.primary }}
+                      >
+                        <Text className="text-white text-[10px]">Custom</Text>
+                      </Box>
+                      <Pressable
+                        className="absolute -bottom-1 -right-1"
+                        onPress={() => setDeleteCategoryTarget(category)}
+                      >
+                        <Box
+                          className="w-6 h-6 rounded-full items-center justify-center"
+                          style={{ backgroundColor: '#DC2626' }}
+                        >
+                          <Ionicons name="trash-outline" size={12} color="#FFF" />
+                        </Box>
+                      </Pressable>
+                    </>
                   )}
                 </Box>
               ))}
@@ -116,6 +149,62 @@ export default function SettingsScreen() {
                   <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>Ajouter</Text>
                 </Box>
               </Pressable>
+            </ScrollView>
+          </VStack>
+
+          <VStack space="md">
+            <Text className="text-typography-700 font-semibold text-lg">Devise</Text>
+            <Text className="text-typography-500 text-sm">
+              Choisissez la devise pour afficher vos montants
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+              {CURRENCIES.map((currency) => {
+                const isSelected = currencyCode === currency.code;
+                return (
+                  <Pressable key={currency.code} onPress={() => setCurrency(currency.code)}>
+                    <HStack
+                      className="px-4 py-3 rounded-xl border-2 items-center"
+                      style={{
+                        borderColor: isSelected ? theme.colors.primary : '#E5E5E5',
+                        backgroundColor: isSelected ? theme.colors.primaryLight : '#FFFFFF',
+                        width: 140,
+                        height: 70,
+                      }}
+                      space="md"
+                    >
+                      <Text
+                        className="text-2xl font-bold"
+                        style={{ color: isSelected ? theme.colors.primary : '#666' }}
+                      >
+                        {currency.symbol}
+                      </Text>
+                      <VStack className="flex-1">
+                        <Text
+                          className="text-sm font-semibold"
+                          style={{ color: isSelected ? theme.colors.primary : '#666' }}
+                        >
+                          {currency.code}
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{ color: isSelected ? theme.colors.primary : '#999' }}
+                          numberOfLines={1}
+                        >
+                          {currency.name}
+                        </Text>
+                      </VStack>
+                      {isSelected && (
+                        <Box
+                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center"
+                          style={{ backgroundColor: theme.colors.primary }}
+                        >
+                          <Ionicons name="checkmark" size={12} color="white" />
+                        </Box>
+                      )}
+                    </HStack>
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </VStack>
 
@@ -261,6 +350,26 @@ export default function SettingsScreen() {
         canCreateCategory={canCreateCategory}
         customCategoriesCount={customCategoriesCount}
         maxCustomCategories={maxCustomCategories}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteCategoryTarget}
+        title="Supprimer la catégorie"
+        message={`Voulez-vous vraiment supprimer la catégorie "${deleteCategoryTarget?.name}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        isDestructive
+        onClose={() => setDeleteCategoryTarget(null)}
+        onConfirm={handleDeleteCategory}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteAccountTarget}
+        title="Supprimer le compte"
+        message={`Voulez-vous vraiment supprimer le compte "${deleteAccountTarget?.name}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        isDestructive
+        onClose={() => setDeleteAccountTarget(null)}
+        onConfirm={handleDeleteAccount}
       />
     </View>
   );

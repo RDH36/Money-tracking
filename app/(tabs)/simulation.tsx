@@ -19,11 +19,6 @@ import { usePlanifications, useBalance, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
 import type { PlanificationWithTotal } from '@/types';
 
-function formatMGA(amountInCents: number): string {
-  const amount = amountInCents / 100;
-  return amount.toLocaleString('fr-FR') + ' MGA';
-}
-
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
@@ -110,13 +105,13 @@ export default function PlanificationScreen() {
             <VStack space="md">
               <HStack className="justify-between">
                 <Text className="text-typography-600">Solde actuel</Text>
-                <Text className="text-typography-900 font-semibold">{formatMGA(balance)}</Text>
+                <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
               </HStack>
               {totalPending > 0 && (
                 <>
                   <HStack className="justify-between">
                     <Text className="text-typography-600">Total planifié</Text>
-                    <Text className="text-error-600 font-semibold">- {formatMGA(totalPending)}</Text>
+                    <Text className="text-error-600 font-semibold">- {formatMoney(totalPending)}</Text>
                   </HStack>
                   <Box className="h-px bg-outline-200" />
                   <HStack className="justify-between items-center">
@@ -125,7 +120,7 @@ export default function PlanificationScreen() {
                       className="text-2xl font-bold"
                       style={{ color: balance - totalPending < 0 ? '#DC2626' : theme.colors.primary }}
                     >
-                      {formatMGA(balance - totalPending)}
+                      {formatMoney(balance - totalPending)}
                     </Text>
                   </HStack>
                 </>
@@ -188,6 +183,7 @@ export default function PlanificationScreen() {
                   onLongPress={() => setDeleteTarget(p)}
                   onValidate={() => setValidateTarget(p)}
                   onDelete={() => setDeleteTarget(p)}
+                  formatMoney={formatMoney}
                 />
               ))}
             </VStack>
@@ -197,7 +193,7 @@ export default function PlanificationScreen() {
             <VStack space="md">
               <Text className="text-typography-500 font-semibold text-lg">Terminées ({completedPlanifications.length})</Text>
               {completedPlanifications.map((p) => (
-                <PlanificationCard key={p.id} planification={p} onPress={() => router.push(`/planification/${p.id}` as Href)} />
+                <PlanificationCard key={p.id} planification={p} onPress={() => router.push(`/planification/${p.id}` as Href)} formatMoney={formatMoney} />
               ))}
             </VStack>
           )}

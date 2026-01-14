@@ -1,0 +1,136 @@
+import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { View, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Box } from '@/components/ui/box';
+import { VStack } from '@/components/ui/vstack';
+import { HStack } from '@/components/ui/hstack';
+import { Heading } from '@/components/ui/heading';
+import { Text } from '@/components/ui/text';
+import { Button, ButtonText } from '@/components/ui/button';
+import { useTheme } from '@/contexts';
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
+import { useSettings } from '@/hooks';
+
+export default function CurrencyScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const { setCurrency } = useSettings();
+  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleNext = async () => {
+    setIsLoading(true);
+    await setCurrency(selectedCurrency);
+    setIsLoading(false);
+    router.push('/onboarding/balance');
+  };
+
+  return (
+    <View
+      className="flex-1 bg-background-0"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+    >
+      <Box className="flex-1 p-6">
+        <VStack space="md" className="mb-6">
+          <Text className="text-typography-500">Configuration</Text>
+          <Heading size="xl" className="text-typography-900">
+            Choisissez votre devise
+          </Heading>
+          <Text className="text-typography-600">
+            Sélectionnez la devise que vous utiliserez pour suivre vos dépenses
+          </Text>
+        </VStack>
+
+        <VStack space="md" className="flex-1">
+          {CURRENCIES.map((currency) => {
+            const isSelected = selectedCurrency === currency.code;
+            return (
+              <Pressable
+                key={currency.code}
+                onPress={() => setSelectedCurrency(currency.code)}
+              >
+                <HStack
+                  className="p-4 rounded-xl border-2"
+                  style={{
+                    backgroundColor: isSelected ? theme.colors.primaryLight : '#FFFFFF',
+                    borderColor: isSelected ? theme.colors.primary : '#E5E5E5',
+                  }}
+                  space="md"
+                >
+                  <Box
+                    className="w-14 h-14 rounded-full items-center justify-center"
+                    style={{
+                      backgroundColor: isSelected ? theme.colors.primary : '#F5F5F5',
+                    }}
+                  >
+                    <Text
+                      className="text-2xl font-bold"
+                      style={{ color: isSelected ? '#FFFFFF' : '#666' }}
+                    >
+                      {currency.symbol}
+                    </Text>
+                  </Box>
+                  <VStack className="flex-1 justify-center">
+                    <Text
+                      className="font-bold text-lg"
+                      style={{ color: isSelected ? '#333' : '#555' }}
+                    >
+                      {currency.code}
+                    </Text>
+                    <Text
+                      className="text-sm"
+                      style={{ color: isSelected ? '#555' : '#888' }}
+                    >
+                      {currency.name}
+                    </Text>
+                  </VStack>
+                  <Box
+                    className="w-6 h-6 rounded-full border-2 items-center justify-center"
+                    style={{
+                      backgroundColor: isSelected ? theme.colors.primary : 'transparent',
+                      borderColor: isSelected ? theme.colors.primary : '#CCC',
+                    }}
+                  >
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={14} color="white" />
+                    )}
+                  </Box>
+                </HStack>
+              </Pressable>
+            );
+          })}
+        </VStack>
+
+        <Text className="text-center text-typography-400 text-sm mb-4">
+          Vous pourrez changer de devise dans les paramètres
+        </Text>
+
+        <HStack space="md">
+          <Button
+            variant="outline"
+            size="xl"
+            className="flex-1"
+            onPress={() => router.back()}
+            isDisabled={isLoading}
+          >
+            <ButtonText>Retour</ButtonText>
+          </Button>
+          <Button
+            size="xl"
+            className="flex-1"
+            style={{ backgroundColor: theme.colors.primary }}
+            onPress={handleNext}
+            isDisabled={isLoading}
+          >
+            <ButtonText className="text-white">
+              {isLoading ? 'Chargement...' : 'Suivant'}
+            </ButtonText>
+          </Button>
+        </HStack>
+      </Box>
+    </View>
+  );
+}

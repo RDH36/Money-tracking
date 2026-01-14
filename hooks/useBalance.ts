@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSQLiteContext } from '@/lib/database';
+import { formatCurrency } from '@/lib/currency';
+import { useCurrencyCode } from '@/stores/settingsStore';
 
 export function useBalance() {
   const db = useSQLiteContext();
+  const currencyCode = useCurrencyCode();
   const [balance, setBalance] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
@@ -48,10 +51,9 @@ export function useBalance() {
     loadBalance();
   }, [loadBalance]);
 
-  const formatMoney = (amount: number) => {
-    const mga = amount / 100;
-    return mga.toLocaleString('fr-FR') + ' MGA';
-  };
+  const formatMoney = useCallback((amount: number) => {
+    return formatCurrency(amount, currencyCode);
+  }, [currencyCode]);
 
   return {
     balance,
@@ -59,8 +61,9 @@ export function useBalance() {
     totalExpense,
     isLoading,
     refresh: loadBalance,
-    formatted: formatMoney(balance),
-    formattedIncome: formatMoney(totalIncome),
-    formattedExpense: formatMoney(totalExpense),
+    formatMoney,
+    formatted: formatCurrency(balance, currencyCode),
+    formattedIncome: formatCurrency(totalIncome, currencyCode),
+    formattedExpense: formatCurrency(totalExpense, currencyCode),
   };
 }

@@ -19,11 +19,13 @@ import {
   FormControlErrorText,
 } from '@/components/ui/form-control';
 import { useTheme } from '@/contexts';
+import { useCurrency } from '@/stores/settingsStore';
 
 export default function BalanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const currency = useCurrency();
   const [bankBalance, setBankBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [error, setError] = useState('');
@@ -83,7 +85,7 @@ export default function BalanceScreen() {
         <Box className="flex-1 p-6">
           <VStack className="flex-1" space="xl">
               <VStack space="sm">
-                <Text className="text-typography-500">Étape 1/2</Text>
+                <Text className="text-typography-500">Étape 2/3</Text>
                 <Heading size="xl" className="text-typography-900">
                   Configurez vos comptes
                 </Heading>
@@ -112,7 +114,7 @@ export default function BalanceScreen() {
 
                   <FormControl>
                     <FormControlLabel>
-                      <FormControlLabelText>Solde en banque (MGA)</FormControlLabelText>
+                      <FormControlLabelText>Solde en banque ({currency.code})</FormControlLabelText>
                     </FormControlLabel>
                     <Input size="xl" className="mt-2">
                       <InputField
@@ -145,7 +147,7 @@ export default function BalanceScreen() {
 
                   <FormControl>
                     <FormControlLabel>
-                      <FormControlLabelText>Solde en espèce (MGA)</FormControlLabelText>
+                      <FormControlLabelText>Solde en espèce ({currency.code})</FormControlLabelText>
                     </FormControlLabel>
                     <Input size="xl" className="mt-2">
                       <InputField

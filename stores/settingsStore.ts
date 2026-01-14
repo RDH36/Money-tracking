@@ -1,21 +1,25 @@
 import { create } from 'zustand';
 import { Theme, THEMES, DEFAULT_THEME_ID, getThemeById } from '@/constants/colors';
 import { ReminderFrequency } from '@/lib/notifications';
+import { CURRENCIES, DEFAULT_CURRENCY, getCurrencyByCode, Currency } from '@/constants/currencies';
 
 interface SettingsState {
   balanceHidden: boolean;
   themeId: string;
   reminderFrequency: ReminderFrequency;
+  currencyCode: string;
   isLoading: boolean;
   isInitialized: boolean;
 
   theme: Theme;
+  currency: Currency;
 
   setBalanceHidden: (hidden: boolean) => void;
   toggleBalanceVisibility: () => void;
   setThemeId: (id: string) => void;
   setReminderFrequency: (frequency: ReminderFrequency) => void;
-  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency) => void;
+  setCurrencyCode: (code: string) => void;
+  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency, currencyCode: string) => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -23,11 +27,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   balanceHidden: false,
   themeId: DEFAULT_THEME_ID,
   reminderFrequency: '1h' as ReminderFrequency,
+  currencyCode: DEFAULT_CURRENCY,
   isLoading: true,
   isInitialized: false,
 
   get theme() {
     return getThemeById(get().themeId);
+  },
+
+  get currency() {
+    return getCurrencyByCode(get().currencyCode);
   },
 
   setBalanceHidden: (hidden) => set({ balanceHidden: hidden }),
@@ -42,11 +51,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setReminderFrequency: (frequency) => set({ reminderFrequency: frequency }),
 
-  initialize: (balanceHidden, themeId, reminderFrequency) => {
+  setCurrencyCode: (code) => {
+    if (CURRENCIES.some((c) => c.code === code)) {
+      set({ currencyCode: code });
+    }
+  },
+
+  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode) => {
     set({
       balanceHidden,
       themeId: THEMES.some((t) => t.id === themeId) ? themeId : DEFAULT_THEME_ID,
       reminderFrequency: reminderFrequency || '1h',
+      currencyCode: CURRENCIES.some((c) => c.code === currencyCode) ? currencyCode : DEFAULT_CURRENCY,
       isLoading: false,
       isInitialized: true,
     });
@@ -59,3 +75,5 @@ export const useBalanceHidden = () => useSettingsStore((state) => state.balanceH
 export const useTheme = () => useSettingsStore((state) => getThemeById(state.themeId));
 export const useThemeId = () => useSettingsStore((state) => state.themeId);
 export const useReminderFrequency = () => useSettingsStore((state) => state.reminderFrequency);
+export const useCurrencyCode = () => useSettingsStore((state) => state.currencyCode);
+export const useCurrency = () => useSettingsStore((state) => getCurrencyByCode(state.currencyCode));

@@ -54,7 +54,7 @@ export default function WelcomeScreen() {
           size="xl"
           className="w-full"
           style={{ backgroundColor: theme.colors.primary }}
-          onPress={() => router.push('/onboarding/balance' as const)}
+          onPress={() => router.push('/onboarding/currency' as const)}
         >
           <ButtonText className="text-white">Commencer</ButtonText>
         </Button>

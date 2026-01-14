@@ -52,7 +52,7 @@ export default function CategoriesScreen() {
     >
       <Box className="flex-1 p-6">
         <VStack space="md" className="mb-4">
-          <Text className="text-typography-500">Étape 2/2</Text>
+          <Text className="text-typography-500">Étape 3/3</Text>
           <Heading size="xl" className="text-typography-900">
             Choisissez vos catégories
           </Heading>

@@ -4,6 +4,8 @@ import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
+import { formatCurrency } from '@/lib/currency';
+import { useCurrencyCode } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
 interface TransactionCardProps {
@@ -12,10 +14,10 @@ interface TransactionCardProps {
 }
 
 export function TransactionCard({ transaction, onPress }: TransactionCardProps) {
+  const currencyCode = useCurrencyCode();
   const isExpense = transaction.type === 'expense';
   const isTransfer = !!transaction.transfer_id;
-  const amountInMGA = transaction.amount / 100;
-  const formattedAmount = amountInMGA.toLocaleString('fr-FR');
+  const formattedAmount = formatCurrency(transaction.amount, currencyCode);
   const sign = isExpense ? '-' : '+';
   const iconColor = transaction.category_color || '#95A5A6';
 

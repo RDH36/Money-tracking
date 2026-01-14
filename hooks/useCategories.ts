@@ -22,7 +22,7 @@ export function useCategories() {
     try {
       setIsLoading(true);
       const result = await db.getAllAsync<Category>(
-        'SELECT * FROM categories ORDER BY name ASC'
+        'SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY name ASC'
       );
       setCategories(result);
     } catch (error) {
@@ -87,6 +87,24 @@ export function useCategories() {
     [db, loadCategories, canCreateCategory]
   );
 
+  const deleteCategory = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const now = new Date().toISOString();
+        await db.runAsync(
+          'UPDATE categories SET deleted_at = ? WHERE id = ? AND is_default = 0',
+          [now, id]
+        );
+        await loadCategories();
+        return true;
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        return false;
+      }
+    },
+    [db, loadCategories]
+  );
+
   return {
     categories,
     expenseCategories,
@@ -96,6 +114,7 @@ export function useCategories() {
     isLoading,
     refresh: loadCategories,
     createCategory,
+    deleteCategory,
     customCategoriesCount,
     canCreateCategory,
     maxCustomCategories: MAX_CUSTOM_CATEGORIES,

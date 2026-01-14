@@ -17,6 +17,7 @@ import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
 import { useCategories, useTransactions, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionType } from '@/types';
 
 type ScreenMode = 'transaction' | 'transfer';
@@ -24,6 +25,7 @@ type ScreenMode = 'transaction' | 'transfer';
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const currency = useCurrency();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { createTransaction, isLoading } = useTransactions();
   const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
@@ -214,7 +216,7 @@ export default function AddTransactionScreen() {
               )}
 
               <Center className="py-4">
-                <Text className="text-typography-500 text-sm mb-2">Montant (MGA)</Text>
+                <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
                 <Input size="xl" variant="underlined" className="w-full max-w-[250px]">
                   <InputField
                     placeholder="0"

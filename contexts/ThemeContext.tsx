@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { Theme, getThemeById } from '@/constants/colors';
+import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { useSettingsStore } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 
@@ -26,7 +27,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -36,17 +37,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'reminder_frequency',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'currency',
+          ]),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency);
+        const currency = currencyResult?.value || DEFAULT_CURRENCY;
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency);
 
         if (frequency !== 'off') {
           scheduleReminders(frequency);
         }
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', 'off');
+        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY);
       }
     };
 

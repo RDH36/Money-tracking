@@ -18,11 +18,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
-
-function formatMGA(amountInCents: number): string {
-  const amount = amountInCents / 100;
-  return amount.toLocaleString('fr-FR') + ' MGA';
-}
+import { useCurrency } from '@/stores/settingsStore';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -39,6 +35,7 @@ export default function PlanificationDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useTheme();
+  const currency = useCurrency();
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
   const { categories, refresh: refreshCategories } = useCategories();
@@ -183,18 +180,18 @@ export default function PlanificationDetailScreen() {
               <VStack space="md">
                 <HStack className="justify-between">
                   <Text className="text-typography-600">Solde actuel</Text>
-                  <Text className="text-typography-900 font-semibold">{formatMGA(balance)}</Text>
+                  <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
                 </HStack>
                 {total > 0 && isPending && (
                   <>
                     <HStack className="justify-between">
                       <Text className="text-typography-600">Total planifié</Text>
-                      <Text className="text-error-600 font-semibold">- {formatMGA(total)}</Text>
+                      <Text className="text-error-600 font-semibold">- {formatMoney(total)}</Text>
                     </HStack>
                     <Box className="h-px bg-outline-200" />
                     <HStack className="justify-between items-center">
                       <Text className="text-typography-700 font-medium">Solde après</Text>
-                      <Text className="text-2xl font-bold" style={{ color: isNegative ? '#DC2626' : theme.colors.primary }}>{formatMGA(projectedBalance)}</Text>
+                      <Text className="text-2xl font-bold" style={{ color: isNegative ? '#DC2626' : theme.colors.primary }}>{formatMoney(projectedBalance)}</Text>
                     </HStack>
                     {isNegative && (
                       <HStack space="xs" className="items-center">
@@ -211,7 +208,7 @@ export default function PlanificationDetailScreen() {
               <VStack space="md">
                 <Text className="text-typography-700 font-semibold text-lg">Ajouter un achat</Text>
                 <Center>
-                  <Text className="text-typography-500 text-sm mb-2">Montant (MGA)</Text>
+                  <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
                   <Input size="xl" variant="underlined" className="w-full max-w-[200px]">
                     <InputField placeholder="0" keyboardType="numeric" value={amount} onChangeText={(t) => setAmount(formatAmount(t))} className="text-3xl text-center font-bold" textAlign="center" />
                   </Input>
@@ -245,7 +242,7 @@ export default function PlanificationDetailScreen() {
                       </VStack>
                     </HStack>
                     <HStack space="md" className="items-center">
-                      <Text className="text-typography-900 font-semibold">{formatMGA(item.amount)}</Text>
+                      <Text className="text-typography-900 font-semibold">{formatMoney(item.amount)}</Text>
                       {isPending && <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>}
                     </HStack>
                   </HStack>

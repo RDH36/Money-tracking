@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { SYSTEM_CATEGORY_TRANSFER_ID, MAX_CUSTOM_ACCOUNTS } from '@/lib/database/schema';
+import { formatCurrency } from '@/lib/currency';
+import { useCurrencyCode } from '@/stores/settingsStore';
 import type { Account, AccountWithBalance, AccountType } from '@/types';
 
 export { MAX_CUSTOM_ACCOUNTS };
@@ -29,6 +31,7 @@ function generateId(): string {
 
 export function useAccounts() {
   const db = useSQLiteContext();
+  const currencyCode = useCurrencyCode();
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -129,6 +132,24 @@ export function useAccounts() {
     [db, fetchAccounts]
   );
 
+  const deleteAccount = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const now = new Date().toISOString();
+        await db.runAsync(
+          'UPDATE accounts SET deleted_at = ?, updated_at = ? WHERE id = ? AND is_default = 0',
+          [now, now, id]
+        );
+        await fetchAccounts();
+        return true;
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        return false;
+      }
+    },
+    [db, fetchAccounts]
+  );
+
   const getTotalBalance = useCallback(() => {
     return accounts.reduce((sum, acc) => sum + acc.current_balance, 0);
   }, [accounts]);
@@ -138,10 +159,9 @@ export function useAccounts() {
     [accounts]
   );
 
-  const formatMoney = (amount: number) => {
-    const mga = amount / 100;
-    return mga.toLocaleString('fr-FR') + ' MGA';
-  };
+  const formatMoney = useCallback((amount: number) => {
+    return formatCurrency(amount, currencyCode);
+  }, [currencyCode]);
 
   return {
     accounts,
@@ -149,11 +169,12 @@ export function useAccounts() {
     isLoading,
     refresh: fetchAccounts,
     createAccount,
+    deleteAccount,
     createTransfer,
     getTotalBalance,
     getAccountById,
     formatMoney,
-    formattedTotal: formatMoney(getTotalBalance()),
+    formattedTotal: formatCurrency(getTotalBalance(), currencyCode),
     customAccountsCount,
     canCreateAccount,
     maxCustomAccounts: MAX_CUSTOM_ACCOUNTS,

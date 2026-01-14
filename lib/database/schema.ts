@@ -118,6 +118,10 @@ export const ADD_IS_DEFAULT_TO_ACCOUNTS = `
 ALTER TABLE accounts ADD COLUMN is_default INTEGER DEFAULT 0;
 `;
 
+export const ADD_DELETED_AT_TO_CATEGORIES = `
+ALTER TABLE categories ADD COLUMN deleted_at TEXT;
+`;
+
 export const MAX_CUSTOM_CATEGORIES = 3;
 export const MAX_CUSTOM_ACCOUNTS = 2;
 

@@ -13,11 +13,7 @@ interface PlanificationCardProps {
   onLongPress?: () => void;
   onValidate?: () => void;
   onDelete?: () => void;
-}
-
-function formatMGA(amountInCents: number): string {
-  const amount = amountInCents / 100;
-  return amount.toLocaleString('fr-FR') + ' MGA';
+  formatMoney: (amount: number) => string;
 }
 
 function formatDate(dateStr: string): string {
@@ -36,6 +32,7 @@ export function PlanificationCard({
   onLongPress,
   onValidate,
   onDelete,
+  formatMoney,
 }: PlanificationCardProps) {
   const { theme } = useTheme();
   const isPending = planification.status === 'pending';
@@ -92,7 +89,7 @@ export function PlanificationCard({
           </VStack>
           <VStack className="items-end" space="xs">
             <Text className="text-typography-900 font-bold text-lg">
-              {formatMGA(planification.total)}
+              {formatMoney(planification.total)}
             </Text>
             {isPending && (
               <HStack space="sm" className="items-center">

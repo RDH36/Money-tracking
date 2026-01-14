@@ -18,6 +18,7 @@ import {
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 import { useTheme } from '@/contexts';
+import { useCurrency } from '@/stores/settingsStore';
 import type { AccountType } from '@/types';
 
 const ACCOUNT_ICONS = [
@@ -52,6 +53,7 @@ export function AddAccountModal({
   maxCustomAccounts,
 }: AddAccountModalProps) {
   const { theme } = useTheme();
+  const currency = useCurrency();
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [icon, setIcon] = useState('wallet');
@@ -228,7 +230,7 @@ export function AddAccountModal({
             </VStack>
 
             <VStack space="sm">
-              <Text className="text-typography-700 font-medium">Solde initial (MGA)</Text>
+              <Text className="text-typography-700 font-medium">Solde initial ({currency.code})</Text>
               <Input size="md">
                 <InputField
                   placeholder="0"

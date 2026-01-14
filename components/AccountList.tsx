@@ -1,3 +1,4 @@
+import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -9,9 +10,10 @@ import type { AccountWithBalance } from '@/types';
 interface AccountListProps {
   accounts: AccountWithBalance[];
   formatMoney: (amount: number) => string;
+  onDelete?: (account: AccountWithBalance) => void;
 }
 
-export function AccountList({ accounts, formatMoney }: AccountListProps) {
+export function AccountList({ accounts, formatMoney, onDelete }: AccountListProps) {
   const { theme } = useTheme();
 
   const getAccountColor = (type: string) => {
@@ -50,9 +52,16 @@ export function AccountList({ accounts, formatMoney }: AccountListProps) {
                   </Text>
                 </VStack>
               </HStack>
-              <Text className="font-bold" style={{ color: getAccountColor(account.type) }}>
-                {formatMoney(account.current_balance)}
-              </Text>
+              <HStack space="md" className="items-center">
+                <Text className="font-bold" style={{ color: getAccountColor(account.type) }}>
+                  {formatMoney(account.current_balance)}
+                </Text>
+                {account.is_default === 0 && onDelete && (
+                  <Pressable onPress={() => onDelete(account)}>
+                    <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                  </Pressable>
+                )}
+              </HStack>
             </HStack>
           </Box>
         ))}

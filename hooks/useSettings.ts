@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { useSettingsStore } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
+import { DEFAULT_CURRENCY } from '@/constants/currencies';
 
 export function useSettings() {
   const db = useSQLiteContext();
@@ -9,11 +10,13 @@ export function useSettings() {
     balanceHidden,
     themeId,
     reminderFrequency,
+    currencyCode,
     isInitialized,
     initialize,
     setBalanceHidden,
     setThemeId,
     setReminderFrequency: setStoreReminderFrequency,
+    setCurrencyCode: setStoreCurrencyCode,
   } = useSettingsStore();
 
   useEffect(() => {
@@ -21,7 +24,7 @@ export function useSettings() {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -31,14 +34,18 @@ export function useSettings() {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'reminder_frequency',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'currency',
+          ]),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency);
+        const currency = currencyResult?.value || DEFAULT_CURRENCY;
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency);
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', '1h');
+        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY);
         scheduleReminders('1h');
       }
     };
@@ -105,13 +112,35 @@ export function useSettings() {
     [db, setStoreReminderFrequency]
   );
 
+  const setCurrency = useCallback(
+    async (code: string) => {
+      try {
+        const now = new Date().toISOString();
+
+        await db.runAsync(
+          `INSERT INTO settings (key, value, updated_at)
+           VALUES (?, ?, ?)
+           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
+          ['currency', code, now, code, now]
+        );
+
+        setStoreCurrencyCode(code);
+      } catch (error) {
+        console.error('Error saving currency:', error);
+      }
+    },
+    [db, setStoreCurrencyCode]
+  );
+
   return {
     balanceHidden,
     themeId,
     reminderFrequency,
+    currencyCode,
     toggleBalanceVisibility,
     setTheme,
     setReminderFrequency,
+    setCurrency,
     isLoading: !isInitialized,
   };
 }
