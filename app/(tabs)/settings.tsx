@@ -9,13 +9,16 @@ import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { THEMES } from '@/constants/colors';
-import { CURRENCIES } from '@/constants/currencies';
+import { CURRENCIES, getCurrencyByCode } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
 import { useSettings, useAccounts, useCategories } from '@/hooks';
 import { ReminderFrequency } from '@/lib/notifications';
 import { AccountList } from '@/components/AccountList';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { CurrencyConversionDialog } from '@/components/CurrencyConversionDialog';
+import { fetchExchangeRate } from '@/lib/exchangeRate';
+import { checkInternetConnection } from '@/lib/network';
 import type { Category, AccountWithBalance } from '@/types';
 
 const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
@@ -34,9 +37,9 @@ const PLANIF_REMINDERS = [
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, themeId, setTheme } = useTheme();
-  const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency, currencyCode, setCurrency } =
+  const { balanceHidden, toggleBalanceVisibility, reminderFrequency, setReminderFrequency, currencyCode, changeCurrencyWithConversion } =
     useSettings();
-  const { accounts, formatMoney, refresh: refreshAccounts, deleteAccount } = useAccounts();
+  const { accounts, formatMoney, refresh: refreshAccounts, deleteAccount, convertAllBalances } = useAccounts();
   const {
     expenseCategories,
     refresh: refreshCategories,
@@ -49,6 +52,11 @@ export default function SettingsScreen() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null);
   const [deleteAccountTarget, setDeleteAccountTarget] = useState<AccountWithBalance | null>(null);
+  const [pendingCurrencyCode, setPendingCurrencyCode] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [isFetchingRate, setIsFetchingRate] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | undefined>();
+  const [conversionError, setConversionError] = useState<string | undefined>();
 
   useFocusEffect(
     useCallback(() => {
@@ -77,6 +85,62 @@ export default function SettingsScreen() {
       await deleteAccount(deleteAccountTarget.id);
       setDeleteAccountTarget(null);
     }
+  };
+
+  const handleCurrencyPress = async (code: string) => {
+    if (code === currencyCode) return;
+    setConversionError(undefined);
+    setExchangeRate(undefined);
+    setPendingCurrencyCode(code);
+    setIsFetchingRate(true);
+
+    const isConnected = await checkInternetConnection();
+    if (!isConnected) {
+      setIsFetchingRate(false);
+      setConversionError('Pas de connexion internet');
+      return;
+    }
+
+    try {
+      const rate = await fetchExchangeRate(currencyCode, code);
+      setExchangeRate(rate);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      setConversionError(message);
+    } finally {
+      setIsFetchingRate(false);
+    }
+  };
+
+  const handleCurrencyConversion = async () => {
+    if (!pendingCurrencyCode || !exchangeRate) return;
+    setIsConverting(true);
+    setConversionError(undefined);
+
+    try {
+      const success = await convertAllBalances(exchangeRate);
+      if (!success) {
+        setConversionError('Erreur lors de la conversion des soldes');
+        setIsConverting(false);
+        return;
+      }
+
+      await changeCurrencyWithConversion(pendingCurrencyCode, async () => true);
+      setPendingCurrencyCode(null);
+      setExchangeRate(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      setConversionError(message);
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  const handleCloseConversionDialog = () => {
+    if (isConverting || isFetchingRate) return;
+    setPendingCurrencyCode(null);
+    setExchangeRate(undefined);
+    setConversionError(undefined);
   };
 
   return (
@@ -161,7 +225,7 @@ export default function SettingsScreen() {
               {CURRENCIES.map((currency) => {
                 const isSelected = currencyCode === currency.code;
                 return (
-                  <Pressable key={currency.code} onPress={() => setCurrency(currency.code)}>
+                  <Pressable key={currency.code} onPress={() => handleCurrencyPress(currency.code)}>
                     <HStack
                       className="px-4 py-3 rounded-xl border-2 items-center"
                       style={{
@@ -370,6 +434,18 @@ export default function SettingsScreen() {
         isDestructive
         onClose={() => setDeleteAccountTarget(null)}
         onConfirm={handleDeleteAccount}
+      />
+
+      <CurrencyConversionDialog
+        isOpen={!!pendingCurrencyCode}
+        fromCurrency={getCurrencyByCode(currencyCode)}
+        toCurrency={getCurrencyByCode(pendingCurrencyCode || currencyCode)}
+        isLoading={isConverting}
+        isFetchingRate={isFetchingRate}
+        exchangeRate={exchangeRate}
+        error={conversionError}
+        onClose={handleCloseConversionDialog}
+        onConfirm={handleCurrencyConversion}
       />
     </View>
   );

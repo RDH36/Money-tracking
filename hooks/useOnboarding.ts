@@ -31,15 +31,15 @@ export function useOnboarding() {
 
         const bankId = generateId();
         await db.runAsync(
-          `INSERT INTO accounts (id, name, type, initial_balance, icon, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO accounts (id, name, type, initial_balance, icon, is_default, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
           [bankId, 'Banque', 'bank', parseInt(bankBalance || '0', 10), 'card', now, now]
         );
 
         const cashId = generateId();
         await db.runAsync(
-          `INSERT INTO accounts (id, name, type, initial_balance, icon, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO accounts (id, name, type, initial_balance, icon, is_default, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
           [cashId, 'Espèce', 'cash', parseInt(cashBalance || '0', 10), 'cash', now, now]
         );
 

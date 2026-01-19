@@ -154,6 +154,60 @@ export function useAccounts() {
     return accounts.reduce((sum, acc) => sum + acc.current_balance, 0);
   }, [accounts]);
 
+  const convertAllBalances = useCallback(
+    async (rate: number): Promise<boolean> => {
+      try {
+        const now = new Date().toISOString();
+
+        // Convert initial_balance in accounts
+        const accountsToConvert = await db.getAllAsync<{ id: string; initial_balance: number }>(
+          'SELECT id, initial_balance FROM accounts WHERE deleted_at IS NULL'
+        );
+
+        for (const account of accountsToConvert) {
+          const newBalance = Math.round(account.initial_balance * rate);
+          await db.runAsync(
+            'UPDATE accounts SET initial_balance = ?, updated_at = ? WHERE id = ?',
+            [newBalance, now, account.id]
+          );
+        }
+
+        // Convert amount in all transactions
+        const transactionsToConvert = await db.getAllAsync<{ id: string; amount: number }>(
+          'SELECT id, amount FROM transactions WHERE deleted_at IS NULL'
+        );
+
+        for (const transaction of transactionsToConvert) {
+          const newAmount = Math.round(transaction.amount * rate);
+          await db.runAsync(
+            'UPDATE transactions SET amount = ?, updated_at = ? WHERE id = ?',
+            [newAmount, now, transaction.id]
+          );
+        }
+
+        // Convert amount in planification_items
+        const planificationItemsToConvert = await db.getAllAsync<{ id: string; amount: number }>(
+          'SELECT id, amount FROM planification_items'
+        );
+
+        for (const item of planificationItemsToConvert) {
+          const newAmount = Math.round(item.amount * rate);
+          await db.runAsync(
+            'UPDATE planification_items SET amount = ? WHERE id = ?',
+            [newAmount, item.id]
+          );
+        }
+
+        await fetchAccounts();
+        return true;
+      } catch (error) {
+        console.error('Error converting balances:', error);
+        return false;
+      }
+    },
+    [db, fetchAccounts]
+  );
+
   const getAccountById = useCallback(
     (id: string) => accounts.find((acc) => acc.id === id),
     [accounts]
@@ -178,5 +232,6 @@ export function useAccounts() {
     customAccountsCount,
     canCreateAccount,
     maxCustomAccounts: MAX_CUSTOM_ACCOUNTS,
+    convertAllBalances,
   };
 }

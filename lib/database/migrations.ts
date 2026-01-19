@@ -16,7 +16,7 @@ import {
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 10;
+const DATABASE_VERSION = 11;
 
 interface VersionResult {
   user_version: number;
@@ -76,6 +76,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 10) {
     await migrateToV10(db);
     currentVersion = 10;
+  }
+
+  if (currentVersion < 11) {
+    await migrateToV11(db);
+    currentVersion = 11;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -245,4 +250,11 @@ async function migrateToV10(db: SQLiteDatabase): Promise<void> {
       ['currency', 'MGA', now]
     );
   }
+}
+
+async function migrateToV11(db: SQLiteDatabase): Promise<void> {
+  // Fix default accounts: mark "Banque" and "Espèce" as is_default = 1
+  await db.runAsync(
+    `UPDATE accounts SET is_default = 1 WHERE name IN ('Banque', 'Espèce') AND deleted_at IS NULL`
+  );
 }

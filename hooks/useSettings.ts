@@ -3,6 +3,8 @@ import { useSQLiteContext } from '@/lib/database';
 import { useSettingsStore } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
+import { checkInternetConnection } from '@/lib/network';
+import { fetchExchangeRate } from '@/lib/exchangeRate';
 
 export function useSettings() {
   const db = useSQLiteContext();
@@ -132,6 +134,33 @@ export function useSettings() {
     [db, setStoreCurrencyCode]
   );
 
+  const changeCurrencyWithConversion = useCallback(
+    async (
+      newCode: string,
+      convertBalances: (rate: number) => Promise<boolean>
+    ): Promise<{ success: boolean; error?: string }> => {
+      const isConnected = await checkInternetConnection();
+      if (!isConnected) {
+        return { success: false, error: 'Pas de connexion internet' };
+      }
+
+      try {
+        const rate = await fetchExchangeRate(currencyCode, newCode);
+        const converted = await convertBalances(rate);
+        if (!converted) {
+          return { success: false, error: 'Erreur lors de la conversion des soldes' };
+        }
+
+        await setCurrency(newCode);
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Erreur inconnue';
+        return { success: false, error: message };
+      }
+    },
+    [currencyCode, setCurrency]
+  );
+
   return {
     balanceHidden,
     themeId,
@@ -141,6 +170,7 @@ export function useSettings() {
     setTheme,
     setReminderFrequency,
     setCurrency,
+    changeCurrencyWithConversion,
     isLoading: !isInitialized,
   };
 }
