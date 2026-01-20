@@ -42,6 +42,10 @@
 9. **CTA Final** - Appel à l'action de téléchargement
 10. **Footer** - Liens légaux et réseaux sociaux
 
+### Pages Légales (Séparées)
+11. **Privacy Policy** - Politique de confidentialité (RGPD/GDPR)
+12. **Terms of Service** - Conditions d'utilisation
+
 **Principes de design :**
 - Design épuré et minimaliste
 - Icônes uniquement pour les fonctionnalités principales (max 8)
@@ -2294,6 +2298,841 @@ export function GoogleAnalytics({ GA_MEASUREMENT_ID }) {
 - [ ] Cache HTTP headers configurés
 - [ ] Animations utilisent transform/opacity uniquement
 - [ ] Pas de layout shifts pendant le chargement
+
+---
+
+## 11. Privacy Policy (Politique de Confidentialité)
+
+### Introduction
+
+Chez **Money Tracker**, nous respectons votre vie privée et nous nous engageons à protéger vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, et protégeons vos informations conformément au **RGPD** (Règlement Général sur la Protection des Données) et aux lois applicables.
+
+**Dernière mise à jour :** 19 janvier 2026
+
+---
+
+### 1. Responsable du Traitement
+
+**Nom de l'organisation :** Money Tracker
+**Email de contact :** privacy@moneytracker.mg
+**Adresse :** [À compléter]
+**Délégué à la Protection des Données (DPO) :** dpo@moneytracker.mg
+
+---
+
+### 2. Données Collectées
+
+#### 2.1 Sur la Landing Page
+
+**Données collectées via le formulaire Newsletter :**
+- Adresse email
+- Prénom (optionnel)
+- Date d'inscription
+- Adresse IP (pour des raisons de sécurité)
+- User Agent (navigateur et appareil)
+
+**Données analytiques (Google Analytics / Vercel Analytics) :**
+- Pages visitées
+- Durée de session
+- Origine du trafic (référent)
+- Données démographiques agrégées (pays, langue)
+- Interactions avec les boutons (téléchargements, clics CTA)
+
+**Cookies utilisés :**
+| Cookie | Type | Durée | Objectif |
+|--------|------|-------|----------|
+| `_ga` | Analytique | 2 ans | Google Analytics - suivi utilisateur |
+| `_ga_*` | Analytique | 2 ans | Google Analytics - mesure engagement |
+| `newsletter_consent` | Fonctionnel | 1 an | Consentement newsletter |
+| `cookie_consent` | Essentiel | 1 an | Bannière cookies acceptée |
+
+#### 2.2 Dans l'Application Mobile
+
+**L'application Money Tracker est conçue pour fonctionner 100% offline.**
+
+**Données stockées localement sur votre appareil :**
+- Transactions et dépenses enregistrées
+- Catégories personnalisées
+- Budgets configurés
+- Préférences utilisateur (devise, langue)
+
+**Aucune donnée personnelle n'est transmise à nos serveurs.** Toutes vos données financières restent uniquement sur votre appareil.
+
+---
+
+### 3. Base Légale du Traitement
+
+Nous traitons vos données personnelles sur les bases légales suivantes :
+
+| Donnée | Base Légale (RGPD) |
+|--------|-------------------|
+| Email newsletter | **Consentement** (Art. 6(1)(a)) |
+| Analytics | **Intérêt légitime** (Art. 6(1)(f)) - améliorer notre site |
+| Cookies essentiels | **Nécessité contractuelle** (Art. 6(1)(b)) |
+
+Vous pouvez retirer votre consentement à tout moment via le lien de désinscription dans nos emails.
+
+---
+
+### 4. Utilisation des Données
+
+**Nous utilisons vos données pour :**
+
+✅ **Newsletter :**
+- Vous envoyer des mises à jour sur Money Tracker
+- Annoncer de nouvelles fonctionnalités
+- Partager des conseils de gestion financière
+- Informer des promotions ou événements
+
+✅ **Analytics :**
+- Comprendre comment les utilisateurs naviguent sur notre site
+- Identifier les pages populaires
+- Optimiser l'expérience utilisateur
+- Mesurer l'efficacité de nos campagnes marketing
+
+✅ **Amélioration du produit :**
+- Analyser les tendances d'utilisation
+- Corriger les bugs
+- Développer de nouvelles fonctionnalités
+
+**Nous ne vendons JAMAIS vos données à des tiers.**
+
+---
+
+### 5. Partage des Données avec des Tiers
+
+Nous partageons vos données uniquement avec des prestataires de confiance :
+
+| Service | Objectif | Données Partagées | Localisation |
+|---------|----------|-------------------|--------------|
+| **Resend/Mailchimp** | Envoi d'emails newsletter | Email, prénom | UE/USA (Privacy Shield) |
+| **Google Analytics** | Analyse du trafic | Données anonymisées | USA (consentement RGPD) |
+| **Vercel** | Hébergement du site | Logs serveur (IP) | USA/UE |
+| **Cloudflare** | CDN et sécurité | IP, User Agent | Global |
+
+**Tous nos prestataires sont conformes au RGPD** et signent des accords de traitement des données (DPA).
+
+---
+
+### 6. Vos Droits (RGPD/CCPA)
+
+En tant qu'utilisateur dans l'UE ou en France, vous disposez des droits suivants :
+
+| Droit | Description | Comment l'exercer |
+|-------|-------------|-------------------|
+| **Accès** | Obtenir une copie de vos données | Envoyer un email à privacy@moneytracker.mg |
+| **Rectification** | Corriger des données inexactes | Mettre à jour vos préférences newsletter |
+| **Suppression** | Supprimer vos données ("droit à l'oubli") | Cliquer sur "Se désinscrire" dans l'email |
+| **Portabilité** | Recevoir vos données dans un format lisible | Demander un export JSON/CSV |
+| **Opposition** | Refuser certains traitements | Désactiver les cookies analytics |
+| **Limitation** | Restreindre le traitement | Contacter privacy@moneytracker.mg |
+
+**Délai de réponse :** Nous répondons à toutes les demandes sous **30 jours** maximum.
+
+**Réclamation :** Si vous estimez que vos droits ne sont pas respectés, vous pouvez déposer une plainte auprès de la **CNIL** (France) ou votre autorité locale de protection des données.
+
+---
+
+### 7. Sécurité des Données
+
+Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos données :
+
+**Mesures techniques :**
+- Chiffrement HTTPS (TLS 1.3) sur toutes les pages
+- Chiffrement des emails en transit (TLS)
+- Stockage sécurisé des emails (chiffrement au repos)
+- Pare-feu et protection DDoS (Cloudflare)
+- Authentification à deux facteurs (2FA) pour les administrateurs
+
+**Mesures organisationnelles :**
+- Accès aux données limité aux employés autorisés
+- Audits de sécurité réguliers
+- Politique de mots de passe forts
+- Formation RGPD pour l'équipe
+
+**En cas de violation de données :** Nous vous notifierons sous **72 heures** et informerons les autorités compétentes conformément au RGPD.
+
+---
+
+### 8. Conservation des Données
+
+| Donnée | Durée de Conservation |
+|--------|----------------------|
+| Emails newsletter | Jusqu'à désinscription + 30 jours |
+| Analytics (Google) | 26 mois (par défaut) |
+| Logs serveur | 90 jours |
+| Cookies analytics | 2 ans |
+
+**Après suppression :** Les données sont définitivement effacées de nos systèmes et de ceux de nos prestataires sous **30 jours**.
+
+---
+
+### 9. Cookies et Technologies Similaires
+
+#### 9.1 Bannière de Consentement
+
+Lors de votre première visite, une bannière s'affiche pour recueillir votre consentement :
+
+```
+🍪 Nous utilisons des cookies pour améliorer votre expérience.
+[Tout accepter] [Personnaliser] [Tout refuser]
+```
+
+#### 9.2 Gestion des Cookies
+
+Vous pouvez gérer vos préférences à tout moment :
+- **Via notre page :** [moneytracker.mg/cookies](#)
+- **Via votre navigateur :** Paramètres > Confidentialité > Cookies
+
+**Désactiver Google Analytics :**
+- Installer l'extension [Google Analytics Opt-out](https://tools.google.com/dlpage/gaoptout)
+- Activer "Do Not Track" dans votre navigateur
+
+---
+
+### 10. Transferts Internationaux
+
+Certaines données peuvent être transférées hors de l'UE (notamment vers les USA pour Google Analytics et Vercel).
+
+**Garanties mises en place :**
+- Clauses Contractuelles Types (SCC) approuvées par la Commission Européenne
+- Certification Privacy Shield (quand applicable)
+- Évaluation des risques selon l'arrêt Schrems II
+
+**Vous pouvez demander plus d'informations** sur ces transferts à privacy@moneytracker.mg.
+
+---
+
+### 11. Droits des Utilisateurs Hors UE
+
+**Pour les résidents de Californie (CCPA) :**
+- Droit de savoir quelles données sont collectées
+- Droit de supprimer vos données
+- Droit de refuser la vente de données (nous ne vendons jamais vos données)
+
+**Pour les résidents du Brésil (LGPD) :** Mêmes droits que le RGPD.
+
+**Pour Madagascar :** Nous respectons les lois locales sur la protection des données.
+
+---
+
+### 12. Mineurs
+
+Money Tracker est destiné aux **adultes de 18 ans et plus**. Nous ne collectons pas intentionnellement de données d'enfants de moins de 16 ans.
+
+**Si vous êtes parent :** Contactez-nous à privacy@moneytracker.mg si vous pensez que votre enfant nous a fourni des données.
+
+---
+
+### 13. Modifications de cette Politique
+
+Nous pouvons mettre à jour cette politique de temps en temps. Toute modification sera publiée sur cette page avec une date de mise à jour.
+
+**Modifications importantes :** Nous vous notifierons par email (si vous êtes abonné à la newsletter) au moins **30 jours avant** l'entrée en vigueur.
+
+---
+
+### 14. Contact
+
+Pour toute question concernant vos données personnelles :
+
+**Email :** privacy@moneytracker.mg
+**Délégué à la Protection des Données (DPO) :** dpo@moneytracker.mg
+**Adresse postale :** [À compléter]
+
+**Temps de réponse :** Sous 5 jours ouvrés.
+
+---
+
+## 12. Terms of Service (Conditions d'Utilisation)
+
+### Introduction
+
+Bienvenue sur **Money Tracker**. En utilisant notre site web ou notre application mobile, vous acceptez les présentes conditions d'utilisation.
+
+**Dernière mise à jour :** 19 janvier 2026
+
+---
+
+### 1. Acceptation des Conditions
+
+En accédant à notre site [moneytracker.mg](#) ou en téléchargeant notre application, vous acceptez d'être lié par ces conditions. **Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.**
+
+---
+
+### 2. Description du Service
+
+**Money Tracker** est une application mobile gratuite de suivi des dépenses qui fonctionne offline. Nos services incluent :
+
+✅ Application mobile (iOS/Android)
+✅ Site web informatif et landing page
+✅ Newsletter par email (optionnelle)
+✅ Support client par email
+
+**Disponibilité :** Nous faisons de notre mieux pour assurer une disponibilité 24/7, mais nous ne garantissons pas un service ininterrompu.
+
+---
+
+### 3. Utilisation Autorisée
+
+Vous pouvez utiliser Money Tracker pour :
+- Suivre vos dépenses personnelles
+- Gérer vos budgets
+- Analyser vos habitudes financières
+- Exporter vos données
+
+**Utilisations interdites :**
+❌ Utilisation commerciale sans autorisation
+❌ Reverse engineering de l'application
+❌ Tentatives de piratage ou d'intrusion
+❌ Spam ou abus de la newsletter
+❌ Violation des lois locales
+
+---
+
+### 4. Propriété Intellectuelle
+
+**Money Tracker**, son logo, son design, et son code source sont protégés par le droit d'auteur.
+
+**Vous ne pouvez pas :**
+- Copier ou redistribuer l'application
+- Utiliser notre nom ou logo sans permission
+- Créer des œuvres dérivées
+
+**Open Source :** Si nous publions du code en open source, les conditions de la licence (MIT, GPL, etc.) s'appliquent.
+
+---
+
+### 5. Vos Données
+
+**Vous conservez tous les droits sur vos données financières.**
+
+- Vos transactions restent sur votre appareil
+- Vous pouvez exporter vos données à tout moment
+- Vous pouvez supprimer l'app et toutes vos données
+
+**Nous ne revendiquons aucun droit** sur vos données personnelles.
+
+Consultez notre [Privacy Policy](#11-privacy-policy-politique-de-confidentialité) pour plus de détails.
+
+---
+
+### 6. Exactitude des Informations
+
+Nous faisons de notre mieux pour fournir des informations précises sur notre site et dans l'app, mais :
+
+⚠️ **Nous ne garantissons pas** l'exactitude des taux de change
+⚠️ **Nous ne sommes pas responsables** des décisions financières que vous prenez basées sur l'app
+⚠️ **Money Tracker est un outil de suivi**, pas un conseil financier
+
+**Recommandation :** Consultez un conseiller financier pour des décisions importantes.
+
+---
+
+### 7. Limitation de Responsabilité
+
+**Dans les limites autorisées par la loi :**
+
+Money Tracker est fourni "TEL QUEL" sans garantie d'aucune sorte. Nous ne sommes pas responsables de :
+- Pertes de données (faites des sauvegardes régulières)
+- Bugs ou erreurs dans l'application
+- Indisponibilité du service
+- Dommages indirects ou conséquentiels
+
+**Votre responsabilité :** Utiliser l'app de manière raisonnable et sauvegarder vos données.
+
+---
+
+### 8. Indemnisation
+
+Vous acceptez de nous indemniser contre toute réclamation résultant de :
+- Votre violation de ces conditions
+- Votre utilisation inappropriée de l'app
+- Votre violation des droits de tiers
+
+---
+
+### 9. Résiliation
+
+**Vous pouvez arrêter d'utiliser Money Tracker à tout moment** en :
+- Désinstallant l'application
+- Vous désinscrivant de la newsletter
+- Supprimant vos données
+
+**Nous pouvons suspendre votre accès** si :
+- Vous violez ces conditions
+- Vous utilisez l'app de manière frauduleuse
+- Requis par la loi
+
+---
+
+### 10. Modifications des Conditions
+
+Nous pouvons modifier ces conditions à tout moment. Les modifications seront publiées sur cette page.
+
+**Modifications importantes :** Notification par email 30 jours avant.
+
+**Usage continu :** En continuant à utiliser l'app après modification, vous acceptez les nouvelles conditions.
+
+---
+
+### 11. Droit Applicable
+
+Ces conditions sont régies par le **droit français** et les lois de **Madagascar**.
+
+**Règlement des litiges :**
+1. **Médiation amiable :** Nous privilégions le dialogue (contact : legal@moneytracker.mg)
+2. **Arbitrage :** Si médiation échoue, arbitrage selon les règles de [institution d'arbitrage]
+3. **Tribunaux compétents :** Tribunaux de [ville], France ou Madagascar
+
+**Pour les consommateurs UE :** Vous conservez vos droits de consommateur selon les lois européennes.
+
+---
+
+### 12. Dispositions Générales
+
+**Intégralité de l'accord :** Ces conditions constituent l'intégralité de l'accord entre vous et Money Tracker.
+
+**Divisibilité :** Si une clause est invalide, les autres restent en vigueur.
+
+**Renonciation :** Le fait de ne pas faire respecter une clause ne constitue pas une renonciation.
+
+**Cession :** Vous ne pouvez pas céder ces conditions. Nous pouvons les céder en cas de vente de l'entreprise.
+
+---
+
+### 13. Contact
+
+Pour toute question concernant ces conditions :
+
+**Email :** legal@moneytracker.mg
+**Support :** support@moneytracker.mg
+**Adresse :** [À compléter]
+
+---
+
+## Code Exemple : Page Privacy Policy Next.js
+
+### Structure de la Page
+
+```tsx
+// app/privacy/page.tsx
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Money Tracker',
+  description: 'Politique de confidentialité de Money Tracker - RGPD, cookies, données personnelles',
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+export default function PrivacyPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-200">
+        <div className="container mx-auto px-4 py-6">
+          <a href="/" className="text-primary font-bold text-xl">
+            ← Retour à l'accueil
+          </a>
+        </div>
+      </header>
+
+      {/* Contenu */}
+      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <h1 className="text-4xl font-bold mb-4">Politique de Confidentialité</h1>
+        <p className="text-gray-600 mb-8">
+          Dernière mise à jour : 19 janvier 2026
+        </p>
+
+        {/* Table des matières */}
+        <nav className="bg-gray-50 p-6 rounded-lg mb-12">
+          <h2 className="font-bold text-lg mb-4">Table des Matières</h2>
+          <ol className="list-decimal list-inside space-y-2 text-primary">
+            <li><a href="#responsable" className="hover:underline">Responsable du Traitement</a></li>
+            <li><a href="#donnees" className="hover:underline">Données Collectées</a></li>
+            <li><a href="#utilisation" className="hover:underline">Utilisation des Données</a></li>
+            <li><a href="#droits" className="hover:underline">Vos Droits (RGPD)</a></li>
+            <li><a href="#securite" className="hover:underline">Sécurité des Données</a></li>
+            <li><a href="#cookies" className="hover:underline">Cookies</a></li>
+            <li><a href="#contact" className="hover:underline">Contact</a></li>
+          </ol>
+        </nav>
+
+        {/* Sections */}
+        <article className="prose prose-lg max-w-none">
+          <section id="responsable" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">1. Responsable du Traitement</h2>
+            <p className="text-gray-700 mb-4">
+              <strong>Nom de l'organisation :</strong> Money Tracker<br />
+              <strong>Email de contact :</strong> privacy@moneytracker.mg<br />
+              <strong>DPO :</strong> dpo@moneytracker.mg
+            </p>
+          </section>
+
+          <section id="donnees" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">2. Données Collectées</h2>
+
+            <h3 className="text-xl font-semibold mb-3">2.1 Sur la Landing Page</h3>
+            <p className="text-gray-700 mb-4">
+              Données collectées via le formulaire Newsletter :
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
+              <li>Adresse email</li>
+              <li>Prénom (optionnel)</li>
+              <li>Date d'inscription</li>
+              <li>Adresse IP (sécurité)</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mb-3">2.2 Dans l'Application Mobile</h3>
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+              <p className="text-green-800 font-semibold">
+                ✅ L'application Money Tracker fonctionne 100% offline.
+              </p>
+              <p className="text-green-700 mt-2">
+                Aucune donnée personnelle n'est transmise à nos serveurs.
+                Toutes vos données financières restent uniquement sur votre appareil.
+              </p>
+            </div>
+          </section>
+
+          <section id="droits" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">6. Vos Droits (RGPD)</h2>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-300 mb-6">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Droit</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Comment l'exercer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2 font-semibold">Accès</td>
+                    <td className="border border-gray-300 px-4 py-2">Obtenir une copie de vos données</td>
+                    <td className="border border-gray-300 px-4 py-2">privacy@moneytracker.mg</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2 font-semibold">Suppression</td>
+                    <td className="border border-gray-300 px-4 py-2">Supprimer vos données</td>
+                    <td className="border border-gray-300 px-4 py-2">Cliquer sur "Se désinscrire"</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2 font-semibold">Portabilité</td>
+                    <td className="border border-gray-300 px-4 py-2">Recevoir vos données (JSON/CSV)</td>
+                    <td className="border border-gray-300 px-4 py-2">privacy@moneytracker.mg</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-gray-700">
+              <strong>Délai de réponse :</strong> 30 jours maximum<br />
+              <strong>Réclamation :</strong> Vous pouvez contacter la <a href="https://www.cnil.fr" target="_blank" className="text-primary hover:underline">CNIL</a> (France)
+            </p>
+          </section>
+
+          <section id="contact" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">14. Contact</h2>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <p className="text-gray-700 mb-2">
+                <strong>Email :</strong> <a href="mailto:privacy@moneytracker.mg" className="text-primary hover:underline">privacy@moneytracker.mg</a>
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>DPO :</strong> <a href="mailto:dpo@moneytracker.mg" className="text-primary hover:underline">dpo@moneytracker.mg</a>
+              </p>
+              <p className="text-gray-700">
+                <strong>Temps de réponse :</strong> Sous 5 jours ouvrés
+              </p>
+            </div>
+          </section>
+        </article>
+
+        {/* CTA */}
+        <div className="mt-16 pt-8 border-t border-gray-200 text-center">
+          <h3 className="text-2xl font-bold mb-4">Des questions ?</h3>
+          <p className="text-gray-600 mb-6">
+            Notre équipe est là pour répondre à toutes vos questions sur la confidentialité.
+          </p>
+          <a
+            href="mailto:privacy@moneytracker.mg"
+            className="inline-block bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+          >
+            Nous contacter
+          </a>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8 mt-20">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-gray-400">
+            © 2026 Money Tracker. Tous droits réservés.
+          </p>
+          <div className="mt-4 space-x-6">
+            <a href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</a>
+            <a href="/terms" className="text-gray-400 hover:text-white">Terms of Service</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+```
+
+### Bannière de Cookies
+
+```tsx
+// app/components/CookieBanner.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Cookie, X } from 'lucide-react'
+
+export function CookieBanner() {
+  const [showBanner, setShowBanner] = useState(false)
+  const [showPreferences, setShowPreferences] = useState(false)
+  const [preferences, setPreferences] = useState({
+    essential: true, // Toujours activé
+    analytics: false,
+    marketing: false,
+  })
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur a déjà donné son consentement
+    const consent = localStorage.getItem('cookie_consent')
+    if (!consent) {
+      setShowBanner(true)
+    } else {
+      // Charger les préférences sauvegardées
+      const saved = JSON.parse(consent)
+      setPreferences(saved)
+
+      // Activer Google Analytics si consentement donné
+      if (saved.analytics) {
+        initGoogleAnalytics()
+      }
+    }
+  }, [])
+
+  const acceptAll = () => {
+    const allAccepted = { essential: true, analytics: true, marketing: true }
+    savePreferences(allAccepted)
+    setShowBanner(false)
+  }
+
+  const rejectAll = () => {
+    const essentialOnly = { essential: true, analytics: false, marketing: false }
+    savePreferences(essentialOnly)
+    setShowBanner(false)
+  }
+
+  const savePreferences = (prefs: typeof preferences) => {
+    localStorage.setItem('cookie_consent', JSON.stringify(prefs))
+    localStorage.setItem('cookie_consent_date', new Date().toISOString())
+    setPreferences(prefs)
+
+    // Activer/désactiver les trackers selon les préférences
+    if (prefs.analytics) {
+      initGoogleAnalytics()
+    } else {
+      disableGoogleAnalytics()
+    }
+  }
+
+  const initGoogleAnalytics = () => {
+    // Initialiser Google Analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        'analytics_storage': 'granted'
+      })
+    }
+  }
+
+  const disableGoogleAnalytics = () => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        'analytics_storage': 'denied'
+      })
+    }
+  }
+
+  return (
+    <AnimatePresence>
+      {showBanner && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          className="fixed bottom-0 left-0 right-0 z-50 p-4"
+        >
+          <Card className="max-w-4xl mx-auto bg-white shadow-2xl border-2 border-gray-200">
+            <div className="p-6">
+              {!showPreferences ? (
+                <>
+                  {/* Bannière simple */}
+                  <div className="flex items-start gap-4">
+                    <Cookie className="w-8 h-8 text-primary flex-shrink-0" />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-2">
+                        🍪 Nous utilisons des cookies
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Nous utilisons des cookies pour améliorer votre expérience sur notre site.
+                        Certains sont essentiels au fonctionnement du site, d'autres nous aident à
+                        analyser le trafic et améliorer nos services.
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <Button onClick={acceptAll} className="bg-primary text-white">
+                          Tout accepter
+                        </Button>
+                        <Button onClick={rejectAll} variant="outline">
+                          Tout refuser
+                        </Button>
+                        <Button
+                          onClick={() => setShowPreferences(true)}
+                          variant="ghost"
+                        >
+                          Personnaliser
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">
+                        En savoir plus sur notre{' '}
+                        <a href="/privacy" className="text-primary hover:underline">
+                          Politique de Confidentialité
+                        </a>
+                      </p>
+                    </div>
+                    <button
+                      onClick={rejectAll}
+                      className="text-gray-400 hover:text-gray-600"
+                      aria-label="Fermer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Préférences détaillées */}
+                  <div>
+                    <h3 className="font-bold text-lg mb-4">Préférences de cookies</h3>
+
+                    <div className="space-y-4 mb-6">
+                      {/* Cookies essentiels */}
+                      <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">Cookies Essentiels</h4>
+                          <p className="text-sm text-gray-600">
+                            Nécessaires au fonctionnement du site (navigation, sécurité)
+                          </p>
+                        </div>
+                        <div className="ml-4">
+                          <input
+                            type="checkbox"
+                            checked={true}
+                            disabled
+                            className="w-5 h-5"
+                          />
+                          <span className="ml-2 text-sm text-gray-500">Toujours activé</span>
+                        </div>
+                      </div>
+
+                      {/* Cookies analytiques */}
+                      <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">Cookies Analytiques</h4>
+                          <p className="text-sm text-gray-600">
+                            Nous aident à comprendre comment vous utilisez notre site (Google Analytics)
+                          </p>
+                        </div>
+                        <div className="ml-4">
+                          <input
+                            type="checkbox"
+                            checked={preferences.analytics}
+                            onChange={(e) =>
+                              setPreferences({ ...preferences, analytics: e.target.checked })
+                            }
+                            className="w-5 h-5"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Cookies marketing */}
+                      <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">Cookies Marketing</h4>
+                          <p className="text-sm text-gray-600">
+                            Utilisés pour afficher des publicités pertinentes (actuellement désactivé)
+                          </p>
+                        </div>
+                        <div className="ml-4">
+                          <input
+                            type="checkbox"
+                            checked={preferences.marketing}
+                            onChange={(e) =>
+                              setPreferences({ ...preferences, marketing: e.target.checked })
+                            }
+                            className="w-5 h-5"
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => {
+                          savePreferences(preferences)
+                          setShowBanner(false)
+                        }}
+                        className="bg-primary text-white"
+                      >
+                        Enregistrer mes préférences
+                      </Button>
+                      <Button
+                        onClick={() => setShowPreferences(false)}
+                        variant="outline"
+                      >
+                        Retour
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+```
+
+### Intégration dans le Layout
+
+```tsx
+// app/layout.tsx
+import { CookieBanner } from '@/components/CookieBanner'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="fr">
+      <body>
+        {children}
+        <CookieBanner />
+      </body>
+    </html>
+  )
+}
+```
 
 ---
 
