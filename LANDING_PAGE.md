@@ -33,7 +33,7 @@
 ### Sections Principales
 1. **Hero Section** - Première impression et CTA principal
 2. **Problème/Solution** - Contexte et positionnement
-3. **Fonctionnalités Clés** - Grid des features principales
+3. **Fonctionnalités Clés** - Grid des features principales (max 6-8)
 4. **Screenshots/Démo** - Aperçu visuel de l'app
 5. **Avantages** - Bénéfices pour l'utilisateur
 6. **Témoignages** - Social proof (à venir)
@@ -41,6 +41,12 @@
 8. **FAQ** - Questions fréquentes
 9. **CTA Final** - Appel à l'action de téléchargement
 10. **Footer** - Liens légaux et réseaux sociaux
+
+**Principes de design :**
+- Design épuré et minimaliste
+- Icônes uniquement pour les fonctionnalités principales (max 8)
+- Couleurs solides sans dégradés
+- Focus sur la lisibilité et la performance
 
 ---
 
@@ -731,24 +737,10 @@ const config: Config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-        shimmer: {
-          '0%': { backgroundPosition: '-1000px 0' },
-          '100%': { backgroundPosition: '1000px 0' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-20px)' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        shimmer: 'shimmer 2s infinite linear',
-        float: 'float 3s ease-in-out infinite',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
     },
   },
@@ -772,27 +764,50 @@ export default config
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 174 72% 56%; /* Teal */
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+  }
+
+  /* Reset focus-visible pour meilleure accessibilité */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
+/* Utility pour skip link accessibilité */
 @layer utilities {
-  /* Gradient animé pour le hero */
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 8s ease infinite;
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
-  @keyframes gradient {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+  .sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
   }
+}
 
-  /* Glass morphism effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+/* Respecter les préférences de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 ```
@@ -830,154 +845,65 @@ export const metadata: Metadata = {
 'use client'
 
 import { motion } from 'framer-motion'
-import { Sparkles, PlayCircle, Zap, Shield, Globe } from 'lucide-react'
 import { DownloadButtons } from '../DownloadButtons'
-import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background animé avec dégradé */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 animate-gradient" />
-
-      {/* Pattern de fond */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
-
-      {/* Orbes flottants (effets visuels) */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-
-      <div className="container relative mx-auto px-4 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+    <section className="relative min-h-screen flex items-center justify-center bg-white">
+      <div className="container mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           {/* Contenu texte */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="z-10"
-          >
-            {/* Badge "Nouveau" ou "100% Gratuit" */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mb-6"
-            >
-              <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2 text-sm font-medium">
-                <Sparkles className="w-4 h-4 mr-2 inline" />
-                100% Gratuit · Offline-First · Madagascar
-              </Badge>
-            </motion.div>
-
-            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+          <div>
+            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Prenez le Contrôle de Vos Finances en{' '}
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                10 Secondes
-              </span>
+              <span className="text-primary">10 Secondes</span>
             </h1>
 
-            <p className="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Money Tracker est l'application mobile qui vous permet de suivre chaque Ariary dépensé,
-              <span className="font-semibold text-gray-900"> même sans connexion internet</span>.
-              Conçue pour Madagascar, adaptée au monde entier.
+              même sans connexion internet. Conçue pour Madagascar, adaptée au monde entier.
             </p>
 
-            {/* Points clés */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <div className="flex items-center gap-2 text-gray-700">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-primary" />
-                </div>
-                <span className="font-medium">Ultra-rapide</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-secondary" />
-                </div>
-                <span className="font-medium">100% Offline</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-accent" />
-                </div>
-                <span className="font-medium">Multi-devises</span>
-              </div>
-            </div>
+            {/* Points clés - texte simple */}
+            <ul className="space-y-3 mb-8 text-lg text-gray-700">
+              <li className="flex items-start">
+                <span className="mr-3">✓</span>
+                <span>Enregistrez une dépense en moins de 10 secondes</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-3">✓</span>
+                <span>Fonctionne 100% hors ligne</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-3">✓</span>
+                <span>Support multi-devises (MGA, EUR, USD)</span>
+              </li>
+            </ul>
 
             <DownloadButtons />
 
-            <button className="mt-6 flex items-center gap-2 text-gray-600 hover:text-primary transition group">
-              <PlayCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Voir la démo (30 sec)</span>
-            </button>
-
-            {/* Social proof */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="mt-8 flex items-center gap-6 text-sm text-gray-600"
-            >
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-500">★★★★★</span>
-                <span className="ml-2">4.8/5</span>
-              </div>
-              <div className="h-4 w-px bg-gray-300" />
+            {/* Social proof - simple */}
+            <div className="mt-8 flex items-center gap-6 text-sm text-gray-600">
+              <span>★★★★★ 4.8/5</span>
+              <span className="text-gray-300">|</span>
               <span>10 000+ téléchargements</span>
-              <div className="h-4 w-px bg-gray-300" />
-              <span>🇲🇬 Made in Madagascar</span>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
-          {/* Visuel avec effet 3D */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative z-10"
-          >
-            {/* Glow effect derrière l'image */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 rounded-3xl blur-2xl opacity-50" />
-
-            {/* Screenshot de l'app avec bordure et ombre */}
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white/50 backdrop-blur">
+          {/* Screenshot de l'app */}
+          <div className="relative">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <Image
                 src="/screenshots/dashboard.png"
-                alt="Money Tracker Dashboard"
+                alt="Capture d'écran de Money Tracker montrant le tableau de bord avec le solde et les dépenses"
                 width={600}
                 height={1200}
-                className="w-full h-auto animate-float"
+                className="w-full h-auto"
                 priority
               />
             </div>
-
-            {/* Badges flottants autour du screenshot */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 }}
-              className="absolute -left-4 top-20 glass rounded-2xl p-4 shadow-lg"
-            >
-              <div className="text-sm font-semibold text-gray-900">⚡ Entrée en 10s</div>
-              <div className="text-xs text-gray-600">Le plus rapide du marché</div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1 }}
-              className="absolute -right-4 bottom-32 glass rounded-2xl p-4 shadow-lg"
-            >
-              <div className="text-sm font-semibold text-gray-900">📊 Analytics</div>
-              <div className="text-xs text-gray-600">Graphiques temps réel</div>
-            </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -1083,61 +1009,25 @@ export function Newsletter() {
     }
   }
 
-  const benefits = [
-    { icon: '🎯', text: 'Nouveautés en avant-première' },
-    { icon: '💡', text: 'Conseils budgétaires exclusifs' },
-    { icon: '🎁', text: 'Accès anticipé aux nouvelles fonctionnalités' },
-    { icon: '📊', text: 'Guides et tutoriels gratuits' },
-  ]
-
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background avec dégradé */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5" />
-
-      {/* Pattern de fond */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
-          backgroundSize: '24px 24px'
-        }} />
-      </div>
-
-      <div className="container relative mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+    <section className="py-24 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
-              <Mail className="w-4 h-4 mr-2" />
-              Newsletter
-            </Badge>
-
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Ne Manquez Aucune{' '}
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Mise à Jour
-              </span>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Restez Informé
             </h2>
 
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Recevez les dernières fonctionnalités, conseils de gestion financière et offres exclusives
-              directement dans votre boîte mail.
+            <p className="text-lg text-gray-600">
+              Recevez les dernières fonctionnalités et conseils de gestion financière.
+              Zéro spam, 1 email par mois maximum.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Card du formulaire */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="p-8 lg:p-12 shadow-2xl border-0 bg-white/80 backdrop-blur">
+          {/* Formulaire */}
+          <div>
+            <Card className="p-8 shadow-lg bg-white border border-gray-200">
               {!isSuccess ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
@@ -1195,11 +1085,10 @@ export function Newsletter() {
                     )}
                   </Button>
 
-                  {/* Badge "Zéro spam" */}
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span>Zéro spam, promis ! · 1 email par mois maximum</span>
-                  </div>
+                  {/* Info */}
+                  <p className="text-center text-sm text-gray-500">
+                    Désabonnement en un clic. Aucune donnée partagée.
+                  </p>
                 </form>
               ) : (
                 /* Message de succès */
@@ -1216,26 +1105,7 @@ export function Newsletter() {
                 </motion.div>
               )}
             </Card>
-          </motion.div>
-
-          {/* Avantages */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8"
-          >
-            {benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3 p-4 rounded-lg bg-white/50 backdrop-blur border border-gray-200/50"
-              >
-                <span className="text-2xl">{benefit.icon}</span>
-                <span className="text-sm font-medium text-gray-700">{benefit.text}</span>
-              </div>
-            ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -1381,72 +1251,33 @@ vercel --prod
 
 ---
 
-## Design Attractif - Recommandations
+## Design Épuré et Performant
 
-### Principes de Design Moderne
+### Principes de Design Minimaliste
 
-**1. Hiérarchie Visuelle Claire**
-- Titres en dégradé de couleur (gradient text)
-- Tailles de police importantes (72px+ pour H1)
-- Espacement généreux entre sections (80-120px)
-- Utiliser des poids de police variés (400, 500, 700, 900)
+**1. Hiérarchie Visuelle Clara**
+- Titres en couleur solide (pas de dégradés)
+- Tailles de police importantes mais lisibles
+- Espacement généreux entre sections (60-80px)
+- Poids de police limités (400, 600, 700)
 
-**2. Micro-animations**
-- Hover effects sur tous les boutons et cartes
-- Animations d'entrée pour les sections (fade-in, slide-up)
-- Transitions fluides (300-600ms)
-- Parallax scrolling subtil
-
-**3. Éléments Visuels Attractifs**
-
-#### Dégradés et Couleurs
+**2. Couleurs Simples**
 ```css
-/* Dégradé de texte */
-.gradient-text {
-  background: linear-gradient(135deg, #14b8a6 0%, #3b82f6 50%, #a855f7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Couleur primaire */
+.text-primary {
+  color: #14b8a6; /* Teal */
 }
 
-/* Dégradé de fond animé */
-.gradient-bg {
-  background: linear-gradient(135deg, #14b8a6, #3b82f6, #a855f7);
-  background-size: 200% 200%;
-  animation: gradient 8s ease infinite;
+.bg-primary {
+  background-color: #14b8a6;
 }
 
-@keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
+/* Backgrounds alternés */
+.bg-white { background: white; }
+.bg-gray-50 { background: #f9fafb; }
 ```
 
-#### Glass Morphism (Effet de verre)
-```css
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-}
-```
-
-#### Orbes Flottants (Background)
-```tsx
-<div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
-<div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-```
-
-#### Effet de Glow (Lueur)
-```css
-.glow {
-  box-shadow: 0 0 60px rgba(20, 184, 166, 0.5);
-  filter: drop-shadow(0 0 30px rgba(20, 184, 166, 0.3));
-}
-```
-
-**4. Typographie Impactante**
+**3. Typographie**
 
 ```tsx
 // Utiliser Inter avec next/font
@@ -1454,19 +1285,20 @@ import { Inter } from 'next/font/google'
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '900'],
+  weight: ['400', '600', '700'],
+  display: 'swap', // Important pour la performance
   variable: '--font-inter',
 })
 ```
 
 **Échelle typographique :**
-- H1 Hero : 64-72px (mobile), 96-108px (desktop)
-- H2 Sections : 36-48px
-- H3 Features : 24-32px
-- Body : 16-18px
+- H1 Hero : 48px (mobile), 60px (desktop)
+- H2 Sections : 36px (mobile), 48px (desktop)
+- H3 Sous-titres : 24px
+- Body : 18px
 - Small : 14px
 
-**5. Espacements et Layout**
+**4. Espacements et Layout**
 
 ```tsx
 // Container responsive
@@ -1474,162 +1306,536 @@ const inter = Inter({
   {/* Contenu */}
 </div>
 
-// Sections avec padding généreux
-<section className="py-16 sm:py-20 lg:py-32">
+// Sections avec padding
+<section className="py-16 sm:py-20 lg:py-24">
   {/* Contenu */}
 </section>
 
-// Grilles responsives
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+// Grilles simples
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
   {/* Items */}
 </div>
 ```
 
-**6. Composants avec Ombres Avancées**
-
-```css
-/* Ombre douce */
-.shadow-soft {
-  box-shadow: 0 2px 40px rgba(0, 0, 0, 0.08);
-}
-
-/* Ombre forte */
-.shadow-strong {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-}
-
-/* Ombre colorée */
-.shadow-primary {
-  box-shadow: 0 10px 40px rgba(20, 184, 166, 0.3);
-}
-```
-
-**7. États Interactifs**
+**5. Composants Simples**
 
 ```tsx
-// Boutons avec hover effects
-<Button className="
-  transform transition-all duration-300
-  hover:scale-105 hover:shadow-2xl
-  active:scale-95
-  group
-">
-  <span className="group-hover:translate-x-1 transition-transform">
-    Télécharger
-  </span>
+// Boutons avec transition simple
+<Button className="transition-colors duration-200 hover:bg-primary/90">
+  Télécharger
 </Button>
 
-// Cards avec lift effect
-<Card className="
-  transition-all duration-300
-  hover:-translate-y-2 hover:shadow-2xl
-  border-2 hover:border-primary
-">
+// Cards avec bordure
+<Card className="border border-gray-200 hover:border-primary transition-colors">
   {/* Contenu */}
 </Card>
 ```
 
-**8. Patterns de Fond**
+**6. Icônes Limitées**
+- Utiliser des icônes **uniquement** pour les fonctionnalités clés (max 6-8)
+- Préférer du texte simple avec checkmarks (✓) pour les listes
+- Éviter les icônes décoratives
+
+---
+
+## SEO (Référencement Naturel)
+
+### Métadonnées Complètes
+
+**app/layout.tsx :**
+```typescript
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://moneytracker.mg'),
+  title: {
+    default: 'Money Tracker - Suivi des Dépenses Offline | Madagascar',
+    template: '%s | Money Tracker'
+  },
+  description: 'Application mobile gratuite de suivi des dépenses pour Madagascar. Enregistrez vos dépenses en 10 secondes, fonctionnement 100% offline. Support MGA, EUR, USD.',
+  keywords: [
+    'money tracker',
+    'suivi dépenses',
+    'budget madagascar',
+    'offline app',
+    'ariary',
+    'gestion finances',
+    'expense tracker',
+    'planification budgétaire',
+    'multi-devises'
+  ],
+  authors: [{ name: 'Money Tracker Team' }],
+  creator: 'Money Tracker',
+  publisher: 'Money Tracker',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://moneytracker.mg',
+    title: 'Money Tracker - Suivi des Dépenses Offline pour Madagascar',
+    description: 'Application mobile gratuite de suivi des dépenses. 100% offline, multi-devises.',
+    siteName: 'Money Tracker',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Money Tracker - Application de suivi des dépenses',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Money Tracker - Suivi des Dépenses Offline',
+    description: 'Application mobile gratuite. 100% offline, multi-devises.',
+    images: ['/twitter-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'YOUR_GOOGLE_VERIFICATION_CODE',
+  },
+}
+```
+
+### Sitemap et Robots.txt
+
+**app/sitemap.ts :**
+```typescript
+import { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://moneytracker.mg',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 1,
+    },
+  ]
+}
+```
+
+**app/robots.ts :**
+```typescript
+import { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: '*',
+      allow: '/',
+    },
+    sitemap: 'https://moneytracker.mg/sitemap.xml',
+  }
+}
+```
+
+### Schema.org (Données Structurées)
+
+**components/StructuredData.tsx :**
+```typescript
+export function StructuredData() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'MobileApplication',
+    name: 'Money Tracker',
+    operatingSystem: 'Android, iOS',
+    applicationCategory: 'FinanceApplication',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '1250'
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'MGA'
+    },
+    description: 'Application mobile de suivi des dépenses offline-first pour Madagascar. Support multi-devises (MGA, EUR, USD).',
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+```
+
+### Checklist SEO
+
+- [ ] Balise title < 60 caractères
+- [ ] Meta description 150-160 caractères
+- [ ] H1 unique par page
+- [ ] Hiérarchie des titres logique (H1 → H2 → H3)
+- [ ] URLs descriptives et propres
+- [ ] Images avec attribut `alt` descriptif
+- [ ] Sitemap.xml généré
+- [ ] Robots.txt configuré
+- [ ] Schema.org/JSON-LD implémenté
+- [ ] Open Graph tags complets
+- [ ] Twitter Card tags
+- [ ] Liens internes cohérents
+- [ ] Temps de chargement < 3s
+- [ ] Mobile-friendly (responsive)
+
+---
+
+## Accessibilité (WCAG 2.1 AA)
+
+### Semantic HTML
 
 ```tsx
-// Grid pattern
-<div className="absolute inset-0 opacity-[0.02]">
-  <div className="absolute inset-0" style={{
-    backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
-    backgroundSize: '40px 40px'
-  }} />
+// Bonne structure sémantique
+<header>
+  <nav aria-label="Navigation principale">
+    {/* Navigation */}
+  </nav>
+</header>
+
+<main>
+  <section aria-labelledby="hero-heading">
+    <h1 id="hero-heading">Prenez le Contrôle...</h1>
+  </section>
+
+  <section aria-labelledby="features-heading">
+    <h2 id="features-heading">Fonctionnalités</h2>
+  </section>
+</main>
+
+<footer>
+  {/* Footer */}
+</footer>
+```
+
+### Navigation au Clavier
+
+```tsx
+// Tous les éléments interactifs doivent être accessibles au clavier
+<button
+  className="..."
+  aria-label="Télécharger Money Tracker sur Android"
+>
+  Télécharger sur Android
+</button>
+
+// Skip links pour navigation rapide
+<a href="#main-content" className="sr-only focus:not-sr-only">
+  Aller au contenu principal
+</a>
+```
+
+### Contraste des Couleurs
+
+```css
+/* WCAG AA : ratio minimum 4.5:1 pour texte normal */
+/* WCAG AAA : ratio minimum 7:1 pour texte normal */
+
+/* Exemples conformes */
+.text-primary {
+  color: #14b8a6; /* Teal sur fond blanc : 3.5:1 - NON CONFORME pour petit texte */
+}
+
+.text-gray-900 {
+  color: #111827; /* Sur fond blanc : 16.1:1 - CONFORME AAA */
+}
+
+/* Solution : utiliser teal uniquement pour grands titres ou avec fond adapté */
+```
+
+### Images et Alt Text
+
+```tsx
+<Image
+  src="/screenshots/dashboard.png"
+  alt="Capture d'écran de Money Tracker montrant le tableau de bord avec le solde de 150 000 Ar et la liste des dépenses récentes"
+  width={600}
+  height={1200}
+/>
+
+// Images décoratives
+<div aria-hidden="true">
+  <Image src="/decoration.svg" alt="" />
 </div>
-
-// Dots pattern
-<div className="absolute inset-0 opacity-[0.03]">
-  <div className="absolute inset-0" style={{
-    backgroundImage: 'radial-gradient(circle, rgb(0 0 0) 1px, transparent 1px)',
-    backgroundSize: '20px 20px'
-  }} />
-</div>
 ```
 
-**9. Badges et Pills**
+### Formulaires Accessibles
 
 ```tsx
-// Badge "Nouveau" ou "Gratuit"
-<Badge className="
-  bg-primary/10 text-primary border-primary/20
-  px-4 py-2 text-sm font-medium
-  animate-pulse
-">
-  <Sparkles className="w-4 h-4 mr-2 inline" />
-  100% Gratuit
-</Badge>
+<form onSubmit={handleSubmit}>
+  <div>
+    <Label htmlFor="email">
+      Email <span className="text-red-600" aria-label="requis">*</span>
+    </Label>
+    <Input
+      id="email"
+      type="email"
+      aria-required="true"
+      aria-describedby="email-error"
+    />
+    <span id="email-error" role="alert" className="text-red-600">
+      {error}
+    </span>
+  </div>
+</form>
 ```
 
-**10. Sections avec Backgrounds Variés**
+### ARIA Labels
 
 ```tsx
-// Background blanc
-<section className="bg-white">
+// Navigation
+<nav aria-label="Navigation principale">
+  <ul role="list">
+    <li><a href="#features">Fonctionnalités</a></li>
+  </ul>
+</nav>
 
-// Background gris clair
-<section className="bg-gray-50">
+// Boutons
+<button aria-label="Fermer la modal">
+  <X className="w-5 h-5" aria-hidden="true" />
+</button>
 
-// Background avec dégradé
-<section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
-
-// Background sombre (dark mode)
-<section className="bg-gray-900 text-white">
+// États de chargement
+<Button disabled={isLoading} aria-busy={isLoading}>
+  {isLoading ? 'Chargement...' : 'Envoyer'}
+</Button>
 ```
 
-### Inspiration Design
+### Checklist Accessibilité
 
-**Sites de référence pour le design :**
-- [Linear.app](https://linear.app) - Animations fluides, design épuré
-- [Vercel.com](https://vercel.com) - Typographie impactante, espacement
-- [Stripe.com](https://stripe.com) - Dégradés subtils, micro-interactions
-- [Framer.com](https://framer.com) - Animations avancées, effets visuels
-- [Resend.com](https://resend.com) - Glass morphism, design moderne
+- [ ] Structure HTML sémantique (header, nav, main, section, footer)
+- [ ] Skip links implémentés
+- [ ] Navigation au clavier fonctionnelle (Tab, Enter, Espace)
+- [ ] Focus visible sur tous les éléments interactifs
+- [ ] Contraste minimum 4.5:1 (WCAG AA)
+- [ ] Textes alt sur toutes les images
+- [ ] Labels sur tous les champs de formulaire
+- [ ] Messages d'erreur associés aux champs (aria-describedby)
+- [ ] États ARIA (aria-expanded, aria-current, etc.)
+- [ ] Langue du document (<html lang="fr">)
+- [ ] Headings hiérarchiques (pas de saut de niveau)
+- [ ] Liens descriptifs (éviter "cliquez ici")
+- [ ] Animations respectent prefers-reduced-motion
 
-**Outils de design :**
-- **Figma** : Prototypage et design
-- **Dribbble/Behance** : Inspiration
-- **Coolors.co** : Palettes de couleurs
-- **Hero Patterns** : Patterns SVG de fond
-- **uiGradients** : Dégradés prêts à l'emploi
+---
 
-### Checklist Design Attractif
+## Performance Web
 
-**Visual Polish :**
-- [ ] Dégradés sur les titres principaux
-- [ ] Animations d'entrée sur toutes les sections
-- [ ] Hover effects sur tous les éléments interactifs
-- [ ] Orbes flottants ou shapes en background
-- [ ] Glass morphism sur au moins 2 composants
-- [ ] Ombres colorées sur les CTA principaux
-- [ ] Patterns subtils en arrière-plan
-- [ ] Badges animés pour attirer l'attention
+### Core Web Vitals
 
-**Typography :**
-- [ ] Police moderne (Inter, Poppins, ou SF Pro)
-- [ ] Échelle typographique cohérente
-- [ ] Line-height généreux (1.6-1.8)
-- [ ] Poids de police variés (light, regular, bold, black)
+**Objectifs :**
+- **LCP (Largest Contentful Paint)** : < 2.5s
+- **FID (First Input Delay)** : < 100ms
+- **CLS (Cumulative Layout Shift)** : < 0.1
 
-**Colors :**
-- [ ] Palette cohérente avec l'app (teal, blue, purple)
-- [ ] Utilisation d'opacity pour les variants (primary/10, primary/20)
-- [ ] Contraste suffisant (WCAG AA minimum)
-- [ ] Mode sombre optionnel
+### Optimisation Images
 
-**Spacing :**
-- [ ] Espacement vertical généreux entre sections (80-120px)
-- [ ] Padding interne cohérent (16px, 24px, 32px, 48px)
-- [ ] Marges consistantes
-- [ ] Responsive breakpoints bien définis
+```tsx
+import Image from 'next/image'
 
-**Performance Visuelle :**
-- [ ] Images optimisées (WebP, lazy loading)
-- [ ] Animations fluides (60fps)
-- [ ] Transitions CSS plutôt que JavaScript
-- [ ] Utiliser `will-change` pour les animations complexes
+// Images responsives avec next/image
+<Image
+  src="/screenshots/dashboard.png"
+  alt="Dashboard Money Tracker"
+  width={600}
+  height={1200}
+  sizes="(max-width: 768px) 100vw, 50vw"
+  quality={85}
+  priority={false} // true uniquement pour LCP image
+  placeholder="blur"
+  blurDataURL="data:image/..." // Généré automatiquement
+/>
+
+// Format moderne (WebP/AVIF automatique avec next/image)
+// Lazy loading automatique sauf si priority={true}
+```
+
+### Optimisation Fonts
+
+```tsx
+// app/layout.tsx
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap', // Évite le FOIT (Flash of Invisible Text)
+  preload: true,
+  variable: '--font-inter',
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="fr" className={inter.variable}>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+### Code Splitting
+
+```tsx
+// Lazy loading des composants lourds
+import dynamic from 'next/dynamic'
+
+const Newsletter = dynamic(() => import('@/components/sections/Newsletter'), {
+  loading: () => <div>Chargement...</div>,
+  ssr: true, // Server-side rendering activé par défaut
+})
+
+const Screenshots = dynamic(() => import('@/components/sections/Screenshots'), {
+  ssr: false, // Désactiver SSR si pas critique
+})
+```
+
+### Preload/Prefetch Critiques
+
+```tsx
+// app/layout.tsx
+import Head from 'next/head'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="fr">
+      <head>
+        {/* Preload font critique */}
+        <link
+          rel="preload"
+          href="/fonts/inter-var.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+
+        {/* Preconnect aux domaines externes */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+### Minification et Compression
+
+**next.config.js :**
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Compression Gzip/Brotli (activée par défaut sur Vercel)
+  compress: true,
+
+  // Optimisation images
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // Minification CSS/JS (activée par défaut en prod)
+  swcMinify: true,
+
+  // Headers de performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+        ],
+      },
+    ]
+  },
+}
+
+module.exports = nextConfig
+```
+
+### Analytics Légers
+
+```tsx
+// Utiliser Vercel Analytics (ultra léger, <1KB)
+import { Analytics } from '@vercel/analytics/react'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="fr">
+      <body>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  )
+}
+
+// Alternative : Google Analytics chargé de façon asynchrone
+// app/components/GoogleAnalytics.tsx
+'use client'
+
+import Script from 'next/script'
+
+export function GoogleAnalytics({ GA_MEASUREMENT_ID }) {
+  return (
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}');
+        `}
+      </Script>
+    </>
+  )
+}
+```
+
+### Checklist Performance
+
+- [ ] Lighthouse score Performance > 90
+- [ ] LCP < 2.5s
+- [ ] FID < 100ms
+- [ ] CLS < 0.1
+- [ ] Images optimisées (WebP/AVIF)
+- [ ] Images avec attributs width/height (éviter CLS)
+- [ ] Lazy loading pour images below-the-fold
+- [ ] Fonts en display: swap
+- [ ] Code splitting implémenté
+- [ ] Bundle JavaScript < 200KB (gzipped)
+- [ ] CSS critique inline
+- [ ] Pas de render-blocking resources
+- [ ] Preload des ressources critiques
+- [ ] Compression Gzip/Brotli activée
+- [ ] Cache HTTP headers configurés
+- [ ] Animations utilisent transform/opacity uniquement
+- [ ] Pas de layout shifts pendant le chargement
 
 ---
 
