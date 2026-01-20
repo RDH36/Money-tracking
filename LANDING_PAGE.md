@@ -7,7 +7,7 @@
 4. [Éléments Visuels](#éléments-visuels)
 5. [Appels à l'Action](#appels-à-laction)
 6. [SEO et Métadonnées](#seo-et-métadonnées)
-7. [Technologies Recommandées](#technologies-recommandées)
+7. [Stack Technique Next.js](#stack-technique-nextjs)
 
 ---
 
@@ -27,7 +27,6 @@
 ├── Accueil
 ├── Fonctionnalités
 ├── Captures d'écran
-├── Tarifs
 └── Télécharger
 ```
 
@@ -38,10 +37,9 @@
 4. **Screenshots/Démo** - Aperçu visuel de l'app
 5. **Avantages** - Bénéfices pour l'utilisateur
 6. **Témoignages** - Social proof (à venir)
-7. **Tarification** - Modèle gratuit/freemium
-8. **FAQ** - Questions fréquentes
-9. **CTA Final** - Appel à l'action de téléchargement
-10. **Footer** - Liens légaux et réseaux sociaux
+7. **FAQ** - Questions fréquentes
+8. **CTA Final** - Appel à l'action de téléchargement
+9. **Footer** - Liens légaux et réseaux sociaux
 
 ---
 
@@ -264,44 +262,10 @@ L'interface est tellement rapide que je n'ai plus d'excuse pour ne pas enregistr
 
 ---
 
-### 7. Tarification
-
-**Section "Tarifs"**
-
-#### Plan Gratuit (Actuel)
-**Prix :** 0 Ar / Gratuit à vie
-
-**Inclus :**
-- ✅ Transactions illimitées
-- ✅ 8 catégories par défaut + 3 personnalisées (max)
-- ✅ Jusqu'à 3 comptes (1 principal + 2 personnalisés)
-- ✅ Support multi-devises (MGA, EUR, USD)
-- ✅ Planifications budgétaires
-- ✅ Graphiques et statistiques
-- ✅ Mode offline
-- ✅ 4 thèmes de couleur
-- ✅ Notifications configurables
-
-#### Plan Premium (À venir - v2.0)
-**Prix :** ~5 000 Ar/mois ou 50 000 Ar/an
-
-**Fonctionnalités additionnelles :**
-- ☁️ Synchronisation cloud (Supabase)
-- 📱 Multi-dispositifs (sync entre téléphones)
-- 🔐 Authentification par email/mot de passe + PIN offline
-- 💾 Sauvegarde automatique dans le cloud
-- 📈 Statistiques avancées
-- ∞ Comptes illimités
-- ∞ Catégories illimitées
-
-**CTA :** *Actuellement en développement. Inscrivez-vous à la liste d'attente !*
-
----
-
-### 8. FAQ
+### 7. FAQ
 
 #### Q1 : L'application est-elle vraiment gratuite ?
-**R :** Oui, la version actuelle (v1.0) est 100% gratuite sans publicité. Une version Premium avec synchronisation cloud sera proposée ultérieurement (v2.0).
+**R :** Oui, Money Tracker est 100% gratuite sans publicité. Toutes les fonctionnalités sont accessibles gratuitement.
 
 #### Q2 : Mes données sont-elles sécurisées ?
 **R :** Absolument. Toutes vos données sont stockées localement sur votre téléphone dans une base SQLite sécurisée. Aucune donnée n'est envoyée à des serveurs externes (pour l'instant).
@@ -332,7 +296,7 @@ L'interface est tellement rapide que je n'ai plus d'excuse pour ne pas enregistr
 
 ---
 
-### 9. CTA Final
+### 8. CTA Final
 
 **Section "Prêt à Reprendre le Contrôle ?"**
 
@@ -367,7 +331,7 @@ Gratuit. Sans Publicité. Fonctionne Hors Ligne. Conçu pour Madagascar.
 
 ---
 
-### 10. Footer
+### 9. Footer
 
 #### Colonnes
 
@@ -565,59 +529,297 @@ Gratuit. Sans Publicité. Fonctionne Hors Ligne. Conçu pour Madagascar.
 
 ---
 
-## Technologies Recommandées
+## Stack Technique Next.js
 
-### Option 1 : Next.js + Tailwind CSS (Recommandé)
-**Stack :**
-- **Framework** : Next.js 14+ (App Router)
+### Architecture de la Landing Page
+
+**Framework :** Next.js 15+ avec App Router
+
+**Stack Complet :**
+- **Framework** : Next.js 15+ (App Router)
+- **Langage** : TypeScript
 - **Styling** : Tailwind CSS v4
 - **Animations** : Framer Motion
-- **Icons** : Lucide React ou Heroicons
+- **Icons** : Lucide React
+- **Forms** : React Hook Form + Zod
+- **Analytics** : Vercel Analytics + Google Analytics 4
 - **Deployment** : Vercel (gratuit)
+- **SEO** : next-seo
 
-**Avantages :**
-- SEO excellent (SSR/SSG)
-- Performance optimale
-- Écosystème React (cohérent avec l'app mobile)
-- Déploiement en 1 clic
+### Structure du Projet
 
-### Option 2 : Astro + Tailwind (Ultra-rapide)
-**Stack :**
-- **Framework** : Astro v4
-- **Styling** : Tailwind CSS
-- **Interactivité** : Alpine.js ou React islands
-- **Deployment** : Netlify/Cloudflare Pages
+```
+landing-page/
+├── app/
+│   ├── layout.tsx              # Layout principal
+│   ├── page.tsx                # Page d'accueil
+│   ├── metadata.ts             # SEO metadata
+│   └── globals.css             # Styles globaux Tailwind
+├── components/
+│   ├── sections/
+│   │   ├── Hero.tsx           # Section hero
+│   │   ├── Problem.tsx        # Problème/Solution
+│   │   ├── Features.tsx       # Grille de fonctionnalités
+│   │   ├── Screenshots.tsx    # Carousel de screenshots
+│   │   ├── Benefits.tsx       # Avantages
+│   │   ├── Testimonials.tsx   # Témoignages
+│   │   ├── FAQ.tsx            # Questions fréquentes
+│   │   ├── CTAFinal.tsx       # CTA de téléchargement
+│   │   └── Footer.tsx         # Footer
+│   ├── ui/
+│   │   ├── Button.tsx         # Composant bouton
+│   │   ├── Card.tsx           # Composant carte
+│   │   └── Badge.tsx          # Composant badge
+│   └── DownloadButtons.tsx    # Boutons App Store/Play Store
+├── public/
+│   ├── screenshots/           # Screenshots de l'app
+│   ├── og-image.png          # Image Open Graph
+│   └── app-icon.png          # Icône de l'app
+├── lib/
+│   └── analytics.ts          # Helpers analytics
+└── constants/
+    └── content.ts            # Contenu texte de la landing page
+```
 
-**Avantages :**
-- Extrêmement rapide (site statique)
-- SEO parfait
-- Moins de JavaScript côté client
-- Idéal pour landing pages
+### Configuration Tailwind CSS
 
-### Option 3 : HTML/CSS/JS Pur (Simple)
-**Stack :**
-- **HTML5** + **CSS3** (Flexbox/Grid)
-- **Vanilla JavaScript** (ou Alpine.js)
-- **Deployment** : GitHub Pages, Netlify
+**tailwind.config.ts :**
+```typescript
+import type { Config } from 'tailwindcss'
 
-**Avantages :**
-- Aucune dépendance
-- Contrôle total
-- Performance maximale
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Couleurs de l'app Money Tracker
+        teal: {
+          DEFAULT: '#14b8a6',
+          dark: '#0d9488',
+        },
+        blue: {
+          DEFAULT: '#3b82f6',
+        },
+        purple: {
+          DEFAULT: '#a855f7',
+        },
+        orange: {
+          DEFAULT: '#f97316',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+}
+export default config
+```
 
-### Option 4 : Webflow / Framer (No-code)
-**Outils :**
-- **Webflow** : Builder visuel professionnel
-- **Framer** : Design interactif avec animations
+### SEO et Metadata
 
-**Avantages :**
-- Pas de code nécessaire
-- Design rapide
-- Responsive automatique
+**app/metadata.ts :**
+```typescript
+import { Metadata } from 'next'
 
-**Inconvénients :**
-- Coût mensuel ($12-23/mois)
-- Moins de flexibilité
+export const metadata: Metadata = {
+  title: 'Money Tracker - Suivi des Dépenses Offline pour Madagascar',
+  description: 'Prenez le contrôle de vos finances en 10 secondes. Money Tracker est l\'app mobile offline-first de suivi des dépenses. Support MGA, EUR, USD. 100% gratuit.',
+  keywords: ['money tracker', 'suivi dépenses', 'budget madagascar', 'offline app', 'ariary'],
+  authors: [{ name: 'Money Tracker Team' }],
+  openGraph: {
+    title: 'Money Tracker - Suivi des Dépenses Offline pour Madagascar',
+    description: 'Prenez le contrôle de vos finances en 10 secondes. App mobile gratuite et offline-first.',
+    images: ['/og-image.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Money Tracker - Suivi des Dépenses Offline pour Madagascar',
+    description: 'Prenez le contrôle de vos finances en 10 secondes.',
+    images: ['/twitter-image.png'],
+  },
+}
+```
+
+### Composants Clés
+
+**components/sections/Hero.tsx :**
+```typescript
+'use client'
+
+import { motion } from 'framer-motion'
+import { Download, PlayCircle } from 'lucide-react'
+import { DownloadButtons } from '../DownloadButtons'
+
+export function Hero() {
+  return (
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50 overflow-hidden">
+      <div className="container mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Contenu texte */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              Prenez le Contrôle de Vos Finances en{' '}
+              <span className="text-teal">10 Secondes</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Money Tracker est l'application mobile qui vous permet de suivre chaque Ariary dépensé,
+              même sans connexion internet. Conçue pour Madagascar, adaptée au monde entier.
+            </p>
+
+            <DownloadButtons />
+
+            <button className="mt-4 flex items-center gap-2 text-blue hover:text-blue-600 transition">
+              <PlayCircle size={24} />
+              <span>Voir la démo</span>
+            </button>
+          </motion.div>
+
+          {/* Visuel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative"
+          >
+            {/* Ajoutez votre screenshot d'app ici */}
+            <img
+              src="/screenshots/dashboard.png"
+              alt="Money Tracker Dashboard"
+              className="rounded-3xl shadow-2xl"
+            />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+**components/DownloadButtons.tsx :**
+```typescript
+import { Apple, Smartphone } from 'lucide-react'
+
+export function DownloadButtons() {
+  return (
+    <div className="flex flex-col sm:flex-row gap-4">
+      <a
+        href="https://play.google.com/store/apps/details?id=YOUR_APP_ID"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-3 bg-teal text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-dark transition shadow-lg"
+      >
+        <Smartphone size={24} />
+        Télécharger sur Android
+      </a>
+
+      <a
+        href="https://apps.apple.com/app/YOUR_APP_ID"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-3 bg-gray-900 text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition shadow-lg"
+      >
+        <Apple size={24} />
+        Télécharger sur iOS
+      </a>
+    </div>
+  )
+}
+```
+
+### Animations Framer Motion
+
+**Exemples d'animations :**
+```typescript
+// Fade in from bottom
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6 }
+}
+
+// Stagger children
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
+
+// Scale on hover
+const scaleOnHover = {
+  whileHover: { scale: 1.05 },
+  transition: { type: 'spring', stiffness: 300 }
+}
+```
+
+### Optimisations Performance
+
+**1. Images :**
+- Utiliser `next/image` pour l'optimisation automatique
+- Format WebP avec fallback
+- Lazy loading des screenshots
+
+**2. Fonts :**
+- Utiliser `next/font` pour optimiser le chargement
+- Précharger les polices critiques
+
+**3. Analytics :**
+- Charger Google Analytics de manière asynchrone
+- Utiliser Vercel Analytics (plus léger)
+
+**4. Build :**
+- Static Site Generation (SSG) pour toutes les pages
+- CDN Vercel Edge Network
+
+### Déploiement sur Vercel
+
+**Instructions :**
+```bash
+# 1. Installer Vercel CLI
+npm i -g vercel
+
+# 2. Se connecter
+vercel login
+
+# 3. Déployer
+vercel
+
+# 4. Production
+vercel --prod
+```
+
+**Configuration vercel.json :**
+```json
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["cdg1"]
+}
+```
+
+### Avantages de Next.js pour cette Landing Page
+
+✅ **SEO Excellent** : SSG/SSR, metadata optimisée, sitemap automatique
+✅ **Performance** : Optimisation images/fonts automatique, code splitting
+✅ **Écosystème React** : Cohérent avec l'app mobile React Native
+✅ **Déploiement Gratuit** : Vercel offre un plan gratuit généreux
+✅ **TypeScript** : Type safety et meilleure DX
+✅ **Analytics Intégré** : Vercel Analytics inclus gratuitement
+✅ **Edge Functions** : Pour les fonctionnalités serverless si nécessaire
 
 ---
 
