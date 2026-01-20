@@ -844,55 +844,119 @@ export const metadata: Metadata = {
 ```typescript
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { DownloadButtons } from '../DownloadButtons'
 import Image from 'next/image'
+import { useRef } from 'react'
 
 export function Hero() {
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"]
+  })
+
+  // Parallax effect: image bouge plus lentement que le scroll
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"])
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-white">
+    <section ref={ref} className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
       <div className="container mx-auto px-4 py-20">
         <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
-          {/* Contenu texte */}
-          <div>
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          {/* Contenu texte avec animations */}
+          <motion.div
+            style={{ y: textY }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <motion.h1
+              className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
               Prenez le Contrôle de Vos Finances en{' '}
               <span className="text-primary">10 Secondes</span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            <motion.p
+              className="text-xl text-gray-600 mb-8 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               Money Tracker est l'application mobile qui vous permet de suivre chaque Ariary dépensé,
               même sans connexion internet. Conçue pour Madagascar, adaptée au monde entier.
-            </p>
+            </motion.p>
 
-            {/* Points clés - texte simple */}
-            <ul className="space-y-3 mb-8 text-lg text-gray-700">
-              <li className="flex items-start">
-                <span className="mr-3">✓</span>
-                <span>Enregistrez une dépense en moins de 10 secondes</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-3">✓</span>
-                <span>Fonctionne 100% hors ligne</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-3">✓</span>
-                <span>Support multi-devises (MGA, EUR, USD)</span>
-              </li>
-            </ul>
+            {/* Points clés avec animation staggered */}
+            <motion.ul
+              className="space-y-3 mb-8 text-lg text-gray-700"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1,
+                    delayChildren: 0.3
+                  }
+                }
+              }}
+            >
+              {[
+                'Enregistrez une dépense en moins de 10 secondes',
+                'Fonctionne 100% hors ligne',
+                'Support multi-devises (MGA, EUR, USD)'
+              ].map((text, i) => (
+                <motion.li
+                  key={i}
+                  className="flex items-start"
+                  variants={{
+                    hidden: { opacity: 0, x: -20 },
+                    visible: { opacity: 1, x: 0 }
+                  }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="mr-3 text-primary font-bold">✓</span>
+                  <span>{text}</span>
+                </motion.li>
+              ))}
+            </motion.ul>
 
-            <DownloadButtons />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <DownloadButtons />
+            </motion.div>
 
-            {/* Social proof - simple */}
-            <div className="mt-8 flex items-center gap-6 text-sm text-gray-600">
-              <span>★★★★★ 4.8/5</span>
+            {/* Social proof avec animation */}
+            <motion.div
+              className="mt-8 flex items-center gap-6 text-sm text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+            >
+              <span className="flex items-center gap-1">
+                <span className="text-yellow-500">★★★★★</span>
+                <span>4.8/5</span>
+              </span>
               <span className="text-gray-300">|</span>
               <span>10 000+ téléchargements</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          {/* Screenshot de l'app */}
-          <div className="relative">
+          {/* Screenshot avec parallax et animation */}
+          <motion.div
+            className="relative"
+            style={{ y: imageY }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <Image
                 src="/screenshots/dashboard.png"
@@ -903,7 +967,7 @@ export function Hero() {
                 priority
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -1165,32 +1229,320 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-### Animations Framer Motion
+### Animations et Parallax
 
-**Exemples d'animations :**
+#### Installation
+```bash
+npm install framer-motion
+```
+
+#### Animations Recommandées
+
+**1. Fade In (Apparition Progressive)**
 ```typescript
-// Fade in from bottom
-const fadeInUp = {
+const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
+  transition: { duration: 0.6, ease: "easeOut" }
 }
 
-// Stagger children
+// Usage
+<motion.div {...fadeIn}>
+  <h2>Titre</h2>
+</motion.div>
+```
+
+**2. Stagger Children (Animation Échelonnée)**
+```typescript
 const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
+  initial: "hidden",
+  animate: "visible",
+  variants: {
+    visible: {
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
     }
   }
 }
 
-// Scale on hover
-const scaleOnHover = {
-  whileHover: { scale: 1.05 },
-  transition: { type: 'spring', stiffness: 300 }
+const staggerItem = {
+  variants: {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  }
+}
+
+// Usage
+<motion.ul {...staggerContainer}>
+  {items.map((item, i) => (
+    <motion.li key={i} {...staggerItem}>
+      {item}
+    </motion.li>
+  ))}
+</motion.ul>
+```
+
+**3. Parallax Scroll**
+```typescript
+import { useScroll, useTransform } from 'framer-motion'
+
+function ParallaxSection() {
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"]
+  })
+
+  // L'élément bouge moins vite que le scroll (effet parallax)
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.5, 0])
+
+  return (
+    <section ref={ref}>
+      <motion.div style={{ y, opacity }}>
+        {/* Contenu */}
+      </motion.div>
+    </section>
+  )
 }
 ```
+
+**4. Hover Effects (États Interactifs)**
+```typescript
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+>
+  Télécharger
+</motion.button>
+
+// Card avec lift effect
+<motion.div
+  whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+  transition={{ duration: 0.3 }}
+>
+  {/* Contenu card */}
+</motion.div>
+```
+
+**5. Scroll-triggered Animations (InView)**
+```typescript
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+
+function AnimatedSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <motion.section
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.6 }}
+    >
+      {/* Contenu */}
+    </motion.section>
+  )
+}
+```
+
+**6. Counter Animation (Compteur Animé)**
+```typescript
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { useEffect } from 'react'
+
+function Counter({ value }: { value: number }) {
+  const count = useMotionValue(0)
+  const rounded = useTransform(count, Math.round)
+
+  useEffect(() => {
+    const animation = animate(count, value, { duration: 2 })
+    return animation.stop
+  }, [value])
+
+  return <motion.span>{rounded}</motion.span>
+}
+
+// Usage: <Counter value={10000} /> pour "10 000+ téléchargements"
+```
+
+**7. Page Transitions**
+```typescript
+// app/template.tsx (pour transitions entre pages)
+'use client'
+
+import { motion } from 'framer-motion'
+
+export default function Template({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+#### Recommandations Performance pour Animations
+
+**1. Utiliser transform et opacity uniquement**
+```typescript
+// ✅ Bon - GPU accelerated
+<motion.div
+  animate={{ x: 100, opacity: 0.5 }}
+/>
+
+// ❌ Mauvais - Force reflow/repaint
+<motion.div
+  animate={{ left: 100, width: 200 }}
+/>
+```
+
+**2. Respecter prefers-reduced-motion**
+```typescript
+import { useReducedMotion } from 'framer-motion'
+
+function AnimatedComponent() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      animate={{
+        x: shouldReduceMotion ? 0 : 100,
+        transition: { duration: shouldReduceMotion ? 0 : 0.5 }
+      }}
+    >
+      {/* Contenu */}
+    </motion.div>
+  )
+}
+```
+
+**3. Lazy load Framer Motion**
+```typescript
+import dynamic from 'next/dynamic'
+
+const MotionDiv = dynamic(
+  () => import('framer-motion').then((mod) => mod.motion.div),
+  { ssr: false }
+)
+```
+
+**4. Limiter les animations simultanées**
+```typescript
+// Utiliser staggerChildren au lieu d'animer tous les éléments en même temps
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1 // Décalage de 0.1s entre chaque enfant
+    }
+  }
+}
+```
+
+#### Exemples Complets
+
+**Section Features avec Scroll Animation**
+```typescript
+'use client'
+
+import { motion } from 'framer-motion'
+import { useInView } from 'framer-motion'
+import { useRef } from 'react'
+
+const features = [
+  { icon: '⚡', title: 'Ultra-rapide', desc: 'Entrée en 10 secondes' },
+  { icon: '📱', title: '100% Offline', desc: 'Pas de connexion requise' },
+  { icon: '💱', title: 'Multi-devises', desc: 'MGA, EUR, USD' },
+]
+
+export function Features() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section ref={ref} className="py-24 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <motion.h2
+          className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          Fonctionnalités
+        </motion.h2>
+
+        <motion.div
+          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.15
+              }
+            }
+          }}
+        >
+          {features.map((feature, i) => (
+            <motion.div
+              key={i}
+              className="bg-white p-8 rounded-lg shadow-sm border border-gray-200"
+              variants={{
+                hidden: { opacity: 0, y: 30 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-4xl mb-4">{feature.icon}</div>
+              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <p className="text-gray-600">{feature.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+```
+
+**Newsletter avec Animation de Succès**
+```typescript
+// Déjà implémenté dans Newsletter.tsx ci-dessus
+// Animation du message de succès avec scale
+<motion.div
+  initial={{ opacity: 0, scale: 0.9 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.4, ease: "easeOut" }}
+>
+  <CheckCircle2 className="w-10 h-10 text-primary" />
+  <h3>Merci pour votre inscription !</h3>
+</motion.div>
+```
+
+#### Checklist Animations
+
+- [ ] Animations sur Hero (fade in, stagger)
+- [ ] Parallax scroll sur image principale
+- [ ] Scroll-triggered animations sur sections (Features, Testimonials)
+- [ ] Hover effects sur boutons et cards
+- [ ] Animation de succès sur formulaire newsletter
+- [ ] Counter animation pour statistiques (téléchargements)
+- [ ] Respecte prefers-reduced-motion
+- [ ] Utilise uniquement transform/opacity
+- [ ] Durée < 0.6s pour micro-interactions
+- [ ] Stagger pour listes d'éléments
 
 ### Optimisations Performance
 
@@ -1335,6 +1687,112 @@ const inter = Inter({
 - Utiliser des icônes **uniquement** pour les fonctionnalités clés (max 6-8)
 - Préférer du texte simple avec checkmarks (✓) pour les listes
 - Éviter les icônes décoratives
+
+**7. Animations Subtiles**
+- Fade in au scroll pour les sections
+- Parallax léger sur les images (mouvement 20-30% plus lent que le scroll)
+- Hover effects simples sur boutons/cards
+- Stagger animations pour les listes
+- Transitions de 0.3-0.6s maximum
+- Respecter `prefers-reduced-motion`
+
+### Parallax Scrolling
+
+**Effet Parallax Subtil**
+
+Le parallax crée une profondeur visuelle en faisant bouger les éléments à des vitesses différentes pendant le scroll.
+
+**Implémentation avec Framer Motion :**
+
+```typescript
+import { useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
+
+function ParallaxHero() {
+  const ref = useRef(null)
+
+  // Tracker le scroll de la section
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"]
+  })
+
+  // Image bouge de 0% à 30% (plus lent que le scroll)
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+
+  // Texte bouge de 0% à 15% (encore plus lent)
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"])
+
+  // Opacity qui diminue pendant le scroll
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.8, 0.3])
+
+  return (
+    <section ref={ref} className="relative min-h-screen">
+      {/* Texte avec parallax léger */}
+      <motion.div style={{ y: textY, opacity }}>
+        <h1>Titre</h1>
+      </motion.div>
+
+      {/* Image avec parallax plus prononcé */}
+      <motion.div style={{ y: imageY }}>
+        <Image src="..." alt="..." />
+      </motion.div>
+    </section>
+  )
+}
+```
+
+**Recommandations Parallax :**
+- ✅ Mouvement subtil (10-30% de décalage maximum)
+- ✅ Appliquer sur images et backgrounds
+- ✅ Désactiver sur mobile si performance affectée
+- ❌ Éviter sur texte important (lisibilité)
+- ❌ Ne pas combiner avec trop d'animations
+
+**Exemple Avancé - Sections Multiples :**
+
+```typescript
+function MultiLayerParallax() {
+  const { scrollY } = useScroll()
+
+  // Différentes vitesses pour créer la profondeur
+  const backgroundY = useTransform(scrollY, [0, 1000], [0, 300])  // Lent
+  const midgroundY = useTransform(scrollY, [0, 1000], [0, 150])   // Moyen
+  const foregroundY = useTransform(scrollY, [0, 1000], [0, 50])   // Rapide
+
+  return (
+    <div className="relative">
+      <motion.div style={{ y: backgroundY }} className="absolute inset-0">
+        {/* Background layer */}
+      </motion.div>
+
+      <motion.div style={{ y: midgroundY }}>
+        {/* Content layer */}
+      </motion.div>
+
+      <motion.div style={{ y: foregroundY }}>
+        {/* Foreground elements */}
+      </motion.div>
+    </div>
+  )
+}
+```
+
+**Performance Parallax :**
+```typescript
+// Désactiver sur mobile pour meilleures performances
+import { useMediaQuery } from 'react-responsive'
+
+function OptimizedParallax() {
+  const isDesktop = useMediaQuery({ minWidth: 1024 })
+
+  const y = isDesktop
+    ? useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+    : "0%" // Pas de parallax sur mobile
+
+  return <motion.div style={{ y }}>{/* ... */}</motion.div>
+}
+```
 
 ---
 
