@@ -37,9 +37,10 @@
 4. **Screenshots/Démo** - Aperçu visuel de l'app
 5. **Avantages** - Bénéfices pour l'utilisateur
 6. **Témoignages** - Social proof (à venir)
-7. **FAQ** - Questions fréquentes
-8. **CTA Final** - Appel à l'action de téléchargement
-9. **Footer** - Liens légaux et réseaux sociaux
+7. **Newsletter** - Inscription pour recevoir les mises à jour
+8. **FAQ** - Questions fréquentes
+9. **CTA Final** - Appel à l'action de téléchargement
+10. **Footer** - Liens légaux et réseaux sociaux
 
 ---
 
@@ -262,7 +263,53 @@ L'interface est tellement rapide que je n'ai plus d'excuse pour ne pas enregistr
 
 ---
 
-### 7. FAQ
+### 7. Newsletter
+
+**Section "Restez Informé"**
+
+**Titre :**
+```
+Ne Manquez Aucune Mise à Jour
+```
+
+**Subheadline :**
+```
+Recevez les dernières fonctionnalités, conseils de gestion financière et offres exclusives directement dans votre boîte mail.
+```
+
+**Formulaire d'inscription :**
+- **Champs** :
+  - Email (requis)
+  - Prénom (optionnel)
+
+**CTA Button :**
+```
+[📨 S'inscrire à la Newsletter]
+```
+
+**Message de confirmation :**
+```
+✅ Merci ! Vous recevrez bientôt nos dernières actualités.
+```
+
+**Design :**
+- Background : Dégradé subtil (teal-50 to blue-50)
+- Card blanche centrée avec ombre douce
+- Input avec validation en temps réel
+- Animation de confetti ou checkmark au succès
+- Badge "Zéro spam, promis !" sous le formulaire
+
+**Avantages listés :**
+- 🎯 Nouveautés en avant-première
+- 💡 Conseils budgétaires exclusifs
+- 🎁 Accès anticipé aux nouvelles fonctionnalités
+- 📊 Guides et tutoriels gratuits
+
+**Fréquence :** 1 email par mois maximum (mentionné en petit texte)
+
+---
+
+### 8. FAQ
 
 #### Q1 : L'application est-elle vraiment gratuite ?
 **R :** Oui, Money Tracker est 100% gratuite sans publicité. Toutes les fonctionnalités sont accessibles gratuitement.
@@ -296,7 +343,7 @@ L'interface est tellement rapide que je n'ai plus d'excuse pour ne pas enregistr
 
 ---
 
-### 8. CTA Final
+### 9. CTA Final
 
 **Section "Prêt à Reprendre le Contrôle ?"**
 
@@ -331,7 +378,7 @@ Gratuit. Sans Publicité. Fonctionne Hors Ligne. Conçu pour Madagascar.
 
 ---
 
-### 9. Footer
+### 10. Footer
 
 #### Colonnes
 
@@ -538,10 +585,12 @@ Gratuit. Sans Publicité. Fonctionne Hors Ligne. Conçu pour Madagascar.
 **Stack Complet :**
 - **Framework** : Next.js 15+ (App Router)
 - **Langage** : TypeScript
+- **UI Library** : shadcn/ui (composants React réutilisables)
 - **Styling** : Tailwind CSS v4
-- **Animations** : Framer Motion
-- **Icons** : Lucide React
-- **Forms** : React Hook Form + Zod
+- **Animations** : Framer Motion + Auto Animate
+- **Icons** : Lucide React (inclus avec shadcn/ui)
+- **Forms** : React Hook Form + Zod (validation)
+- **Newsletter** : Resend API ou Mailchimp
 - **Analytics** : Vercel Analytics + Google Analytics 4
 - **Deployment** : Vercel (gratuit)
 - **SEO** : next-seo
@@ -554,7 +603,10 @@ landing-page/
 │   ├── layout.tsx              # Layout principal
 │   ├── page.tsx                # Page d'accueil
 │   ├── metadata.ts             # SEO metadata
-│   └── globals.css             # Styles globaux Tailwind
+│   ├── globals.css             # Styles globaux Tailwind
+│   └── api/
+│       └── newsletter/
+│           └── route.ts        # API route pour newsletter
 ├── components/
 │   ├── sections/
 │   │   ├── Hero.tsx           # Section hero
@@ -563,22 +615,54 @@ landing-page/
 │   │   ├── Screenshots.tsx    # Carousel de screenshots
 │   │   ├── Benefits.tsx       # Avantages
 │   │   ├── Testimonials.tsx   # Témoignages
+│   │   ├── Newsletter.tsx     # Formulaire newsletter
 │   │   ├── FAQ.tsx            # Questions fréquentes
 │   │   ├── CTAFinal.tsx       # CTA de téléchargement
 │   │   └── Footer.tsx         # Footer
-│   ├── ui/
-│   │   ├── Button.tsx         # Composant bouton
-│   │   ├── Card.tsx           # Composant carte
-│   │   └── Badge.tsx          # Composant badge
+│   ├── ui/                    # Composants shadcn/ui
+│   │   ├── button.tsx         # Bouton shadcn
+│   │   ├── card.tsx           # Carte shadcn
+│   │   ├── badge.tsx          # Badge shadcn
+│   │   ├── input.tsx          # Input shadcn
+│   │   ├── label.tsx          # Label shadcn
+│   │   ├── toast.tsx          # Toast shadcn
+│   │   ├── accordion.tsx      # Accordion shadcn (pour FAQ)
+│   │   └── carousel.tsx       # Carousel shadcn (pour screenshots)
 │   └── DownloadButtons.tsx    # Boutons App Store/Play Store
 ├── public/
 │   ├── screenshots/           # Screenshots de l'app
 │   ├── og-image.png          # Image Open Graph
-│   └── app-icon.png          # Icône de l'app
+│   ├── app-icon.png          # Icône de l'app
+│   └── patterns/             # Patterns SVG pour backgrounds
+│       ├── grid.svg          # Pattern grid
+│       └── dots.svg          # Pattern dots
 ├── lib/
-│   └── analytics.ts          # Helpers analytics
+│   ├── utils.ts              # Utilities (cn function)
+│   ├── analytics.ts          # Helpers analytics
+│   └── newsletter.ts         # Newsletter API helpers
 └── constants/
     └── content.ts            # Contenu texte de la landing page
+```
+
+### Installation de shadcn/ui
+
+**Étapes d'installation :**
+
+```bash
+# 1. Créer un projet Next.js
+npx create-next-app@latest landing-page --typescript --tailwind --app
+
+# 2. Initialiser shadcn/ui
+npx shadcn@latest init
+
+# Configuration automatique :
+# - TypeScript: Oui
+# - Style: Default
+# - Couleur de base: Teal
+# - Variables CSS: Oui
+
+# 3. Installer les composants nécessaires
+npx shadcn@latest add button card badge input label toast accordion carousel
 ```
 
 ### Configuration Tailwind CSS
@@ -588,37 +672,129 @@ landing-page/
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: ['class'],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       colors: {
-        // Couleurs de l'app Money Tracker
-        teal: {
-          DEFAULT: '#14b8a6',
-          dark: '#0d9488',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: '#14b8a6', // Teal - couleur principale de l'app
+          foreground: '#ffffff',
         },
-        blue: {
-          DEFAULT: '#3b82f6',
+        secondary: {
+          DEFAULT: '#3b82f6', // Blue
+          foreground: '#ffffff',
         },
-        purple: {
-          DEFAULT: '#a855f7',
+        accent: {
+          DEFAULT: '#a855f7', // Purple
+          foreground: '#ffffff',
         },
-        orange: {
-          DEFAULT: '#f97316',
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+      },
+      borderRadius: {
+        lg: '0.75rem',
+        md: '0.5rem',
+        sm: '0.25rem',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        shimmer: 'shimmer 2s infinite linear',
+        float: 'float 3s ease-in-out infinite',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 }
 export default config
+```
+
+**app/globals.css :**
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 174 72% 56%; /* Teal */
+    --radius: 0.75rem;
+  }
+}
+
+@layer utilities {
+  /* Gradient animé pour le hero */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+
+  @keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
 ```
 
 ### SEO et Metadata
@@ -647,57 +823,160 @@ export const metadata: Metadata = {
 }
 ```
 
-### Composants Clés
+### Composants Clés avec Design Attractif
 
 **components/sections/Hero.tsx :**
 ```typescript
 'use client'
 
 import { motion } from 'framer-motion'
-import { Download, PlayCircle } from 'lucide-react'
+import { Sparkles, PlayCircle, Zap, Shield, Globe } from 'lucide-react'
 import { DownloadButtons } from '../DownloadButtons'
+import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50 overflow-hidden">
-      <div className="container mx-auto px-4 py-20">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background animé avec dégradé */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 animate-gradient" />
+
+      {/* Pattern de fond */}
+      <div className="absolute inset-0 opacity-[0.02]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
+
+      {/* Orbes flottants (effets visuels) */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+
+      <div className="container relative mx-auto px-4 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Contenu texte */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="z-10"
           >
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            {/* Badge "Nouveau" ou "100% Gratuit" */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mb-6"
+            >
+              <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2 text-sm font-medium">
+                <Sparkles className="w-4 h-4 mr-2 inline" />
+                100% Gratuit · Offline-First · Madagascar
+              </Badge>
+            </motion.div>
+
+            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Prenez le Contrôle de Vos Finances en{' '}
-              <span className="text-teal">10 Secondes</span>
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                10 Secondes
+              </span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+
+            <p className="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
               Money Tracker est l'application mobile qui vous permet de suivre chaque Ariary dépensé,
-              même sans connexion internet. Conçue pour Madagascar, adaptée au monde entier.
+              <span className="font-semibold text-gray-900"> même sans connexion internet</span>.
+              Conçue pour Madagascar, adaptée au monde entier.
             </p>
+
+            {/* Points clés */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-primary" />
+                </div>
+                <span className="font-medium">Ultra-rapide</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-secondary" />
+                </div>
+                <span className="font-medium">100% Offline</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-accent" />
+                </div>
+                <span className="font-medium">Multi-devises</span>
+              </div>
+            </div>
 
             <DownloadButtons />
 
-            <button className="mt-4 flex items-center gap-2 text-blue hover:text-blue-600 transition">
-              <PlayCircle size={24} />
-              <span>Voir la démo</span>
+            <button className="mt-6 flex items-center gap-2 text-gray-600 hover:text-primary transition group">
+              <PlayCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              <span className="font-medium">Voir la démo (30 sec)</span>
             </button>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="mt-8 flex items-center gap-6 text-sm text-gray-600"
+            >
+              <div className="flex items-center gap-1">
+                <span className="text-yellow-500">★★★★★</span>
+                <span className="ml-2">4.8/5</span>
+              </div>
+              <div className="h-4 w-px bg-gray-300" />
+              <span>10 000+ téléchargements</span>
+              <div className="h-4 w-px bg-gray-300" />
+              <span>🇲🇬 Made in Madagascar</span>
+            </motion.div>
           </motion.div>
 
-          {/* Visuel */}
+          {/* Visuel avec effet 3D */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
+            className="relative z-10"
           >
-            {/* Ajoutez votre screenshot d'app ici */}
-            <img
-              src="/screenshots/dashboard.png"
-              alt="Money Tracker Dashboard"
-              className="rounded-3xl shadow-2xl"
-            />
+            {/* Glow effect derrière l'image */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 rounded-3xl blur-2xl opacity-50" />
+
+            {/* Screenshot de l'app avec bordure et ombre */}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white/50 backdrop-blur">
+              <Image
+                src="/screenshots/dashboard.png"
+                alt="Money Tracker Dashboard"
+                width={600}
+                height={1200}
+                className="w-full h-auto animate-float"
+                priority
+              />
+            </div>
+
+            {/* Badges flottants autour du screenshot */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.8 }}
+              className="absolute -left-4 top-20 glass rounded-2xl p-4 shadow-lg"
+            >
+              <div className="text-sm font-semibold text-gray-900">⚡ Entrée en 10s</div>
+              <div className="text-xs text-gray-600">Le plus rapide du marché</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1 }}
+              className="absolute -right-4 bottom-32 glass rounded-2xl p-4 shadow-lg"
+            >
+              <div className="text-sm font-semibold text-gray-900">📊 Analytics</div>
+              <div className="text-xs text-gray-600">Graphiques temps réel</div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
@@ -709,31 +988,310 @@ export function Hero() {
 **components/DownloadButtons.tsx :**
 ```typescript
 import { Apple, Smartphone } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function DownloadButtons() {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
-      <a
-        href="https://play.google.com/store/apps/details?id=YOUR_APP_ID"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-3 bg-teal text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-dark transition shadow-lg"
+      <Button
+        size="lg"
+        className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all group"
+        asChild
       >
-        <Smartphone size={24} />
-        Télécharger sur Android
-      </a>
+        <a
+          href="https://play.google.com/store/apps/details?id=YOUR_APP_ID"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Smartphone className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+          Télécharger sur Android
+        </a>
+      </Button>
 
-      <a
-        href="https://apps.apple.com/app/YOUR_APP_ID"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-3 bg-gray-900 text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 transition shadow-lg"
+      <Button
+        size="lg"
+        variant="outline"
+        className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8 py-6 text-base font-semibold transition-all group"
+        asChild
       >
-        <Apple size={24} />
-        Télécharger sur iOS
-      </a>
+        <a
+          href="https://apps.apple.com/app/YOUR_APP_ID"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Apple className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+          Télécharger sur iOS
+        </a>
+      </Button>
     </div>
   )
+}
+```
+
+**components/sections/Newsletter.tsx :**
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Mail, Sparkles, CheckCircle2, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/use-toast'
+
+export function Newsletter() {
+  const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      // Appel à l'API newsletter
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, firstName }),
+      })
+
+      if (response.ok) {
+        setIsSuccess(true)
+        toast({
+          title: '✅ Inscription réussie !',
+          description: 'Vous recevrez bientôt nos dernières actualités.',
+        })
+        setEmail('')
+        setFirstName('')
+      } else {
+        throw new Error('Erreur lors de l\'inscription')
+      }
+    } catch (error) {
+      toast({
+        title: '❌ Erreur',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const benefits = [
+    { icon: '🎯', text: 'Nouveautés en avant-première' },
+    { icon: '💡', text: 'Conseils budgétaires exclusifs' },
+    { icon: '🎁', text: 'Accès anticipé aux nouvelles fonctionnalités' },
+    { icon: '📊', text: 'Guides et tutoriels gratuits' },
+  ]
+
+  return (
+    <section className="relative py-24 overflow-hidden">
+      {/* Background avec dégradé */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5" />
+
+      {/* Pattern de fond */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
+          backgroundSize: '24px 24px'
+        }} />
+      </div>
+
+      <div className="container relative mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
+              <Mail className="w-4 h-4 mr-2" />
+              Newsletter
+            </Badge>
+
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Ne Manquez Aucune{' '}
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Mise à Jour
+              </span>
+            </h2>
+
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Recevez les dernières fonctionnalités, conseils de gestion financière et offres exclusives
+              directement dans votre boîte mail.
+            </p>
+          </motion.div>
+
+          {/* Card du formulaire */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="p-8 lg:p-12 shadow-2xl border-0 bg-white/80 backdrop-blur">
+              {!isSuccess ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Email */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-base font-medium">
+                        Email <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="votre@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="h-12 text-base"
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    {/* Prénom (optionnel) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-base font-medium">
+                        Prénom <span className="text-gray-400">(optionnel)</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="Votre prénom"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="h-12 text-base"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bouton submit */}
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Inscription en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-5 h-5 mr-2" />
+                        S'inscrire à la Newsletter
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Badge "Zéro spam" */}
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span>Zéro spam, promis ! · 1 email par mois maximum</span>
+                  </div>
+                </form>
+              ) : (
+                /* Message de succès */
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-10 h-10 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Merci pour votre inscription !</h3>
+                  <p className="text-gray-600">Vous recevrez bientôt nos dernières actualités.</p>
+                </motion.div>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* Avantages */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8"
+          >
+            {benefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-4 rounded-lg bg-white/50 backdrop-blur border border-gray-200/50"
+              >
+                <span className="text-2xl">{benefit.icon}</span>
+                <span className="text-sm font-medium text-gray-700">{benefit.text}</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+**app/api/newsletter/route.ts (API Route) :**
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+
+// Exemple avec Resend (https://resend.com)
+// import { Resend } from 'resend'
+// const resend = new Resend(process.env.RESEND_API_KEY)
+
+export async function POST(request: NextRequest) {
+  try {
+    const { email, firstName } = await request.json()
+
+    // Validation
+    if (!email || !email.includes('@')) {
+      return NextResponse.json(
+        { error: 'Email invalide' },
+        { status: 400 }
+      )
+    }
+
+    // Option 1: Sauvegarder dans une base de données (Supabase, Prisma, etc.)
+    // await db.newsletter.create({ data: { email, firstName } })
+
+    // Option 2: Envoyer à un service de newsletter (Resend, Mailchimp, etc.)
+    // await resend.contacts.create({
+    //   email,
+    //   firstName,
+    //   audienceId: process.env.RESEND_AUDIENCE_ID!,
+    // })
+
+    // Option 3: Ajouter à Mailchimp
+    // const mailchimp = require('@mailchimp/mailchimp_marketing')
+    // await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+    //   email_address: email,
+    //   status: 'subscribed',
+    //   merge_fields: { FNAME: firstName || '' }
+    // })
+
+    // Pour le développement, on log simplement
+    console.log('Nouvelle inscription newsletter:', { email, firstName })
+
+    return NextResponse.json({ success: true }, { status: 200 })
+  } catch (error) {
+    console.error('Erreur newsletter:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de l\'inscription' },
+      { status: 500 }
+    )
+  }
 }
 ```
 
@@ -820,6 +1378,258 @@ vercel --prod
 ✅ **TypeScript** : Type safety et meilleure DX
 ✅ **Analytics Intégré** : Vercel Analytics inclus gratuitement
 ✅ **Edge Functions** : Pour les fonctionnalités serverless si nécessaire
+
+---
+
+## Design Attractif - Recommandations
+
+### Principes de Design Moderne
+
+**1. Hiérarchie Visuelle Claire**
+- Titres en dégradé de couleur (gradient text)
+- Tailles de police importantes (72px+ pour H1)
+- Espacement généreux entre sections (80-120px)
+- Utiliser des poids de police variés (400, 500, 700, 900)
+
+**2. Micro-animations**
+- Hover effects sur tous les boutons et cartes
+- Animations d'entrée pour les sections (fade-in, slide-up)
+- Transitions fluides (300-600ms)
+- Parallax scrolling subtil
+
+**3. Éléments Visuels Attractifs**
+
+#### Dégradés et Couleurs
+```css
+/* Dégradé de texte */
+.gradient-text {
+  background: linear-gradient(135deg, #14b8a6 0%, #3b82f6 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Dégradé de fond animé */
+.gradient-bg {
+  background: linear-gradient(135deg, #14b8a6, #3b82f6, #a855f7);
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+```
+
+#### Glass Morphism (Effet de verre)
+```css
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+```
+
+#### Orbes Flottants (Background)
+```tsx
+<div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
+<div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+```
+
+#### Effet de Glow (Lueur)
+```css
+.glow {
+  box-shadow: 0 0 60px rgba(20, 184, 166, 0.5);
+  filter: drop-shadow(0 0 30px rgba(20, 184, 166, 0.3));
+}
+```
+
+**4. Typographie Impactante**
+
+```tsx
+// Utiliser Inter avec next/font
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '900'],
+  variable: '--font-inter',
+})
+```
+
+**Échelle typographique :**
+- H1 Hero : 64-72px (mobile), 96-108px (desktop)
+- H2 Sections : 36-48px
+- H3 Features : 24-32px
+- Body : 16-18px
+- Small : 14px
+
+**5. Espacements et Layout**
+
+```tsx
+// Container responsive
+<div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+  {/* Contenu */}
+</div>
+
+// Sections avec padding généreux
+<section className="py-16 sm:py-20 lg:py-32">
+  {/* Contenu */}
+</section>
+
+// Grilles responsives
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  {/* Items */}
+</div>
+```
+
+**6. Composants avec Ombres Avancées**
+
+```css
+/* Ombre douce */
+.shadow-soft {
+  box-shadow: 0 2px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Ombre forte */
+.shadow-strong {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Ombre colorée */
+.shadow-primary {
+  box-shadow: 0 10px 40px rgba(20, 184, 166, 0.3);
+}
+```
+
+**7. États Interactifs**
+
+```tsx
+// Boutons avec hover effects
+<Button className="
+  transform transition-all duration-300
+  hover:scale-105 hover:shadow-2xl
+  active:scale-95
+  group
+">
+  <span className="group-hover:translate-x-1 transition-transform">
+    Télécharger
+  </span>
+</Button>
+
+// Cards avec lift effect
+<Card className="
+  transition-all duration-300
+  hover:-translate-y-2 hover:shadow-2xl
+  border-2 hover:border-primary
+">
+  {/* Contenu */}
+</Card>
+```
+
+**8. Patterns de Fond**
+
+```tsx
+// Grid pattern
+<div className="absolute inset-0 opacity-[0.02]">
+  <div className="absolute inset-0" style={{
+    backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0 0 0) 1px, transparent 0)',
+    backgroundSize: '40px 40px'
+  }} />
+</div>
+
+// Dots pattern
+<div className="absolute inset-0 opacity-[0.03]">
+  <div className="absolute inset-0" style={{
+    backgroundImage: 'radial-gradient(circle, rgb(0 0 0) 1px, transparent 1px)',
+    backgroundSize: '20px 20px'
+  }} />
+</div>
+```
+
+**9. Badges et Pills**
+
+```tsx
+// Badge "Nouveau" ou "Gratuit"
+<Badge className="
+  bg-primary/10 text-primary border-primary/20
+  px-4 py-2 text-sm font-medium
+  animate-pulse
+">
+  <Sparkles className="w-4 h-4 mr-2 inline" />
+  100% Gratuit
+</Badge>
+```
+
+**10. Sections avec Backgrounds Variés**
+
+```tsx
+// Background blanc
+<section className="bg-white">
+
+// Background gris clair
+<section className="bg-gray-50">
+
+// Background avec dégradé
+<section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
+
+// Background sombre (dark mode)
+<section className="bg-gray-900 text-white">
+```
+
+### Inspiration Design
+
+**Sites de référence pour le design :**
+- [Linear.app](https://linear.app) - Animations fluides, design épuré
+- [Vercel.com](https://vercel.com) - Typographie impactante, espacement
+- [Stripe.com](https://stripe.com) - Dégradés subtils, micro-interactions
+- [Framer.com](https://framer.com) - Animations avancées, effets visuels
+- [Resend.com](https://resend.com) - Glass morphism, design moderne
+
+**Outils de design :**
+- **Figma** : Prototypage et design
+- **Dribbble/Behance** : Inspiration
+- **Coolors.co** : Palettes de couleurs
+- **Hero Patterns** : Patterns SVG de fond
+- **uiGradients** : Dégradés prêts à l'emploi
+
+### Checklist Design Attractif
+
+**Visual Polish :**
+- [ ] Dégradés sur les titres principaux
+- [ ] Animations d'entrée sur toutes les sections
+- [ ] Hover effects sur tous les éléments interactifs
+- [ ] Orbes flottants ou shapes en background
+- [ ] Glass morphism sur au moins 2 composants
+- [ ] Ombres colorées sur les CTA principaux
+- [ ] Patterns subtils en arrière-plan
+- [ ] Badges animés pour attirer l'attention
+
+**Typography :**
+- [ ] Police moderne (Inter, Poppins, ou SF Pro)
+- [ ] Échelle typographique cohérente
+- [ ] Line-height généreux (1.6-1.8)
+- [ ] Poids de police variés (light, regular, bold, black)
+
+**Colors :**
+- [ ] Palette cohérente avec l'app (teal, blue, purple)
+- [ ] Utilisation d'opacity pour les variants (primary/10, primary/20)
+- [ ] Contraste suffisant (WCAG AA minimum)
+- [ ] Mode sombre optionnel
+
+**Spacing :**
+- [ ] Espacement vertical généreux entre sections (80-120px)
+- [ ] Padding interne cohérent (16px, 24px, 32px, 48px)
+- [ ] Marges consistantes
+- [ ] Responsive breakpoints bien définis
+
+**Performance Visuelle :**
+- [ ] Images optimisées (WebP, lazy loading)
+- [ ] Animations fluides (60fps)
+- [ ] Transitions CSS plutôt que JavaScript
+- [ ] Utiliser `will-change` pour les animations complexes
 
 ---
 
