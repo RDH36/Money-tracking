@@ -1,4 +1,4 @@
-# Features Tracker: Money Tracker
+# Features Tracker: Mitsitsy
 
 ## Features Complétées (v1.0)
 

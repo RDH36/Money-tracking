@@ -1,4 +1,4 @@
-# Product Requirements Document: Money Tracker
+# Product Requirements Document: Mitsitsy
 
 ## Product Vision
 

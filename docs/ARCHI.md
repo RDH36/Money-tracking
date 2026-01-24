@@ -1,4 +1,4 @@
-# Technical Architecture: Money Tracker
+# Technical Architecture: Mitsitsy
 
 ## Architecture Overview
 

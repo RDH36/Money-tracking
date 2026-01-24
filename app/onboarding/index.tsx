@@ -24,7 +24,7 @@ export default function WelcomeScreen() {
           <Center>
             <Text className="text-6xl mb-4">💰</Text>
             <Heading size="2xl" className="text-center text-typography-900">
-              Money Tracker
+              Mitsitsy
             </Heading>
             <Text className="text-center text-typography-600 mt-2">
               Gérez vos finances simplement
@@ -34,17 +34,22 @@ export default function WelcomeScreen() {
           <VStack space="md" className="mt-8">
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Suivez vos dépenses et revenus
+                ✓ Saisie rapide des dépenses et revenus
               </Text>
             </Box>
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Fonctionne hors ligne
+                ✓ Dashboard avec graphiques par catégorie
               </Text>
             </Box>
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Synchronisation automatique
+                ✓ Rappels pour ne rien oublier
+              </Text>
+            </Box>
+            <Box className="bg-background-50 p-4 rounded-xl">
+              <Text className="text-typography-700">
+                ✓ 100% hors ligne, vos données restent privées
               </Text>
             </Box>
           </VStack>

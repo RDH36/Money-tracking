@@ -6,7 +6,7 @@ export type ReminderFrequency = 'off' | '1h' | '2h' | '4h';
 const REMINDER_MESSAGES = [
   { title: "N'oublie pas !", body: 'As-tu des dépenses à enregistrer ?' },
   { title: 'Petit rappel', body: 'Pense à noter tes dépenses récentes' },
-  { title: '💰 Money Tracker', body: "As-tu dépensé quelque chose aujourd'hui ?" },
+  { title: '💰 Mitsitsy', body: "As-tu dépensé quelque chose aujourd'hui ?" },
   { title: 'Check rapide', body: 'Tes dépenses sont-elles à jour ?' },
 ];
 
