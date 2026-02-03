@@ -19,7 +19,7 @@ import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationD
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
-import { formatAmountInput, parseAmountToCents, getNumericValue } from '@/lib/amountInput';
+import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -74,7 +74,7 @@ export default function PlanificationDetailScreen() {
   const handleAddItem = async () => {
     const numericAmount = getNumericValue(amount);
     if (!numericAmount || numericAmount <= 0) return;
-    await addItem(parseAmountToCents(amount), categoryId, note.trim() || null);
+    await addItem(parseAmount(amount), categoryId, note.trim() || null);
     setAmount('');
     setCategoryId(null);
     setNote('');

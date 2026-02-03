@@ -28,17 +28,13 @@ export function formatAmountInput(value: string): string {
 }
 
 /**
- * Parses an amount string and returns the value in cents
- * - Returns an integer (cents)
+ * Parses an amount string and returns the numeric value
  */
-export function parseAmountToCents(value: string): number {
+export function parseAmount(value: string): number {
   if (!value) return 0;
 
   const floatValue = parseFloat(value);
-  if (isNaN(floatValue)) return 0;
-
-  // Round to avoid floating point issues
-  return Math.round(floatValue * 100);
+  return isNaN(floatValue) ? 0 : floatValue;
 }
 
 /**

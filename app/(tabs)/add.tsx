@@ -18,7 +18,7 @@ import { TransferForm } from '@/components/TransferForm';
 import { useCategories, useTransactions, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
-import { formatAmountInput, parseAmountToCents, getNumericValue } from '@/lib/amountInput';
+import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import type { TransactionType } from '@/types';
 
 type ScreenMode = 'transaction' | 'transfer';
@@ -64,7 +64,7 @@ export default function AddTransactionScreen() {
   const handleSave = async () => {
     const numericAmount = getNumericAmount();
     if (numericAmount <= 0) return;
-    const amountInCents = parseAmountToCents(amount);
+    const amountValue = parseAmount(amount);
 
     if (mode === 'transaction') {
       if (!accountId) return;
@@ -72,7 +72,7 @@ export default function AddTransactionScreen() {
       const finalCategoryId = type === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
       const result = await createTransaction({
         type,
-        amount: amountInCents,
+        amount: amountValue,
         categoryId: finalCategoryId,
         accountId,
         note: note.trim() || null,
@@ -86,7 +86,7 @@ export default function AddTransactionScreen() {
       const result = await createTransfer({
         fromAccountId,
         toAccountId,
-        amount: amountInCents,
+        amount: amountValue,
         note: note.trim() || undefined,
       });
       if (result.success) {

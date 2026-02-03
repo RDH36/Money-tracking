@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form-control';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
-import { formatAmountInput, parseAmountToCents, getNumericValue } from '@/lib/amountInput';
+import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 
 export default function BalanceScreen() {
   const router = useRouter();
@@ -49,8 +49,8 @@ export default function BalanceScreen() {
     router.push({
       pathname: '/onboarding/categories' as const,
       params: {
-        bankBalance: parseAmountToCents(bankBalance).toString(),
-        cashBalance: parseAmountToCents(cashBalance).toString(),
+        bankBalance: parseAmount(bankBalance).toString(),
+        cashBalance: parseAmount(cashBalance).toString(),
       },
     });
   };

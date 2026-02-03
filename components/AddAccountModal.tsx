@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
-import { formatAmountInput, parseAmountToCents } from '@/lib/amountInput';
+import { formatAmountInput, parseAmount } from '@/lib/amountInput';
 import type { AccountType } from '@/types';
 
 const ACCOUNT_ICONS = [
@@ -67,7 +67,7 @@ export function AddAccountModal({
     await onCreateAccount({
       name: name.trim(),
       type,
-      initialBalance: parseAmountToCents(balance),
+      initialBalance: parseAmount(balance),
       icon,
     });
     resetForm();
