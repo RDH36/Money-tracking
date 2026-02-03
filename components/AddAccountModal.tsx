@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { formatAmountInput, parseAmountToCents } from '@/lib/amountInput';
 import type { AccountType } from '@/types';
 
 const ACCOUNT_ICONS = [
@@ -60,20 +61,13 @@ export function AddAccountModal({
   const [balance, setBalance] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const formatNumber = (value: string) => {
-    const cleaned = value.replace(/[^\d]/g, '');
-    if (!cleaned) return '';
-    return parseInt(cleaned, 10).toLocaleString('fr-FR');
-  };
-
   const handleCreate = async () => {
     if (!name.trim()) return;
     setIsCreating(true);
-    const numericBalance = parseInt(balance.replace(/\s/g, '') || '0', 10);
     await onCreateAccount({
       name: name.trim(),
       type,
-      initialBalance: numericBalance * 100,
+      initialBalance: parseAmountToCents(balance),
       icon,
     });
     resetForm();
@@ -234,9 +228,9 @@ export function AddAccountModal({
               <Input size="md">
                 <InputField
                   placeholder="0"
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   value={balance}
-                  onChangeText={(text) => setBalance(formatNumber(text))}
+                  onChangeText={(text) => setBalance(formatAmountInput(text))}
                 />
               </Input>
             </VStack>

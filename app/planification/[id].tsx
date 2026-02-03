@@ -19,6 +19,7 @@ import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationD
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { formatAmountInput, parseAmountToCents, getNumericValue } from '@/lib/amountInput';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -70,16 +71,10 @@ export default function PlanificationDetailScreen() {
     }
   };
 
-  const formatAmount = (value: string) => {
-    const cleaned = value.replace(/[^\d]/g, '');
-    if (!cleaned) return '';
-    return parseInt(cleaned, 10).toLocaleString('fr-FR');
-  };
-
   const handleAddItem = async () => {
-    const numericAmount = parseInt(amount.replace(/\s/g, ''), 10);
+    const numericAmount = getNumericValue(amount);
     if (!numericAmount || numericAmount <= 0) return;
-    await addItem(numericAmount * 100, categoryId, note.trim() || null);
+    await addItem(parseAmountToCents(amount), categoryId, note.trim() || null);
     setAmount('');
     setCategoryId(null);
     setNote('');
@@ -99,7 +94,7 @@ export default function PlanificationDetailScreen() {
     router.back();
   };
 
-  const isValid = amount && parseInt(amount.replace(/\s/g, ''), 10) > 0;
+  const isValid = amount && getNumericValue(amount) > 0;
   const isPending = planification?.status === 'pending';
   const expired = isPending && isExpired(planification?.deadline || null);
   const projectedBalance = balance - total;
@@ -210,7 +205,7 @@ export default function PlanificationDetailScreen() {
                 <Center>
                   <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
                   <Input size="xl" variant="underlined" className="w-full max-w-[200px]">
-                    <InputField placeholder="0" keyboardType="numeric" value={amount} onChangeText={(t) => setAmount(formatAmount(t))} className="text-3xl text-center font-bold" textAlign="center" />
+                    <InputField placeholder="0" keyboardType="decimal-pad" value={amount} onChangeText={(t) => setAmount(formatAmountInput(t))} className="text-3xl text-center font-bold" textAlign="center" />
                   </Input>
                 </Center>
                 <VStack space="sm">
