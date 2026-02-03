@@ -53,12 +53,12 @@ export function PlanificationCard({
               <Box
                 className="px-2 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: isPending ? theme.colors.primaryLight : '#E5E7EB',
+                  backgroundColor: isPending ? theme.colors.primaryLight : theme.colors.secondaryLight,
                 }}
               >
                 <Text
                   className="text-xs font-medium"
-                  style={{ color: isPending ? theme.colors.primary : '#6B7280' }}
+                  style={{ color: isPending ? theme.colors.primary : theme.colors.secondary }}
                 >
                   {isPending ? 'En attente' : 'Terminé'}
                 </Text>

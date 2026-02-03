@@ -144,7 +144,7 @@ export default function AddTransactionScreen() {
                   <Pressable onPress={() => setMode('transfer')} className="flex-1">
                     <Box
                       className="py-3 rounded-lg items-center"
-                      style={mode === 'transfer' ? { backgroundColor: theme.colors.primary } : {}}
+                      style={mode === 'transfer' ? { backgroundColor: theme.colors.secondary } : {}}
                     >
                       <HStack space="sm" className="items-center">
                         <Ionicons
@@ -283,7 +283,7 @@ export default function AddTransactionScreen() {
             <Button
               size="xl"
               className="w-full mt-4"
-              style={{ backgroundColor: theme.colors.primary }}
+              style={{ backgroundColor: mode === 'transfer' ? theme.colors.secondary : theme.colors.primary }}
               onPress={handleSave}
               isDisabled={!isValid || isLoading}
             >

@@ -185,7 +185,7 @@ export default function SettingsScreen() {
                     <>
                       <Box
                         className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full"
-                        style={{ backgroundColor: theme.colors.primary }}
+                        style={{ backgroundColor: theme.colors.secondary }}
                       >
                         <Text className="text-white text-[10px]">Custom</Text>
                       </Box>
@@ -379,7 +379,7 @@ export default function SettingsScreen() {
                 </HStack>
                 <Box
                   className="w-12 h-7 rounded-full p-1"
-                  style={{ backgroundColor: balanceHidden ? theme.colors.primary : '#E5E5E5' }}
+                  style={{ backgroundColor: balanceHidden ? theme.colors.secondary : '#E5E5E5' }}
                 >
                   <Box className="w-5 h-5 rounded-full bg-white" style={{ marginLeft: balanceHidden ? 'auto' : 0 }} />
                 </Box>

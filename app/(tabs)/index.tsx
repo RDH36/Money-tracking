@@ -47,7 +47,7 @@ export default function DashboardScreen() {
   };
 
   const hiddenAmount = '••••••';
-  const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : '#22c55e');
+  const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : theme.colors.secondary);
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
@@ -120,7 +120,7 @@ export default function DashboardScreen() {
                   <TransactionCard key={transaction.id} transaction={transaction} />
                 ))}
                 {transactions.length > 5 && (
-                  <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.primary }}>
+                  <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.secondary }}>
                     <HStack className="justify-center items-center" space="sm">
                       <Text className="text-white font-semibold">Voir plus</Text>
                       <Ionicons name="arrow-forward" size={18} color="white" />
