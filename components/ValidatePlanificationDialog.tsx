@@ -16,6 +16,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
+import { useBalanceHidden } from '@/stores/settingsStore';
 import type { AccountWithBalance, PlanificationWithTotal } from '@/types';
 
 interface ValidatePlanificationDialogProps {
@@ -36,6 +37,8 @@ export function ValidatePlanificationDialog({
   formatMoney,
 }: ValidatePlanificationDialogProps) {
   const { theme } = useTheme();
+  const balanceHidden = useBalanceHidden();
+  const hiddenAmount = '••••••';
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,7 +101,7 @@ export function ValidatePlanificationDialog({
                           <VStack>
                             <Text className="font-medium text-typography-900">{account.name}</Text>
                             <Text className="text-xs text-typography-500">
-                              {formatMoney(account.current_balance)}
+                              {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                             </Text>
                           </VStack>
                         </HStack>

@@ -5,6 +5,7 @@ import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
+import { useBalanceHidden } from '@/stores/settingsStore';
 import type { AccountWithBalance } from '@/types';
 
 interface AccountListProps {
@@ -15,6 +16,8 @@ interface AccountListProps {
 
 export function AccountList({ accounts, formatMoney, onDelete }: AccountListProps) {
   const { theme } = useTheme();
+  const balanceHidden = useBalanceHidden();
+  const hiddenAmount = '••••••';
 
   const getAccountColor = (type: string) => {
     return type === 'bank' ? theme.colors.primary : '#22c55e';
@@ -54,7 +57,7 @@ export function AccountList({ accounts, formatMoney, onDelete }: AccountListProp
               </HStack>
               <HStack space="md" className="items-center">
                 <Text className="font-bold" style={{ color: getAccountColor(account.type) }}>
-                  {formatMoney(account.current_balance)}
+                  {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                 </Text>
                 {account.is_default === 0 && onDelete && (
                   <Pressable onPress={() => onDelete(account)}>

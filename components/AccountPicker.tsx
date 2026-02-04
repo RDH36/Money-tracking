@@ -5,6 +5,7 @@ import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { useTheme } from '@/contexts';
+import { useBalanceHidden } from '@/stores/settingsStore';
 import type { AccountWithBalance } from '@/types';
 
 interface AccountPickerProps {
@@ -21,6 +22,8 @@ export function AccountPicker({
   formatMoney,
 }: AccountPickerProps) {
   const { theme } = useTheme();
+  const balanceHidden = useBalanceHidden();
+  const hiddenAmount = '••••••';
 
   const getAccountColor = (type: string) => {
     return type === 'bank' ? theme.colors.primary : '#22c55e';
@@ -68,7 +71,7 @@ export function AccountPicker({
                     className="text-xs"
                     style={{ color: isSelected ? color : '#999' }}
                   >
-                    {formatMoney(account.current_balance)}
+                    {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                   </Text>
                 </VStack>
               </Box>
