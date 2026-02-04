@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { parseAmount } from '@/lib/amountInput';
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -33,14 +34,14 @@ export function useOnboarding() {
         await db.runAsync(
           `INSERT INTO accounts (id, name, type, initial_balance, icon, is_default, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
-          [bankId, 'Banque', 'bank', parseInt(bankBalance || '0', 10), 'card', now, now]
+          [bankId, 'Banque', 'bank', parseAmount(bankBalance || '0'), 'card', now, now]
         );
 
         const cashId = generateId();
         await db.runAsync(
           `INSERT INTO accounts (id, name, type, initial_balance, icon, is_default, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
-          [cashId, 'Espèce', 'cash', parseInt(cashBalance || '0', 10), 'cash', now, now]
+          [cashId, 'Espèce', 'cash', parseAmount(cashBalance || '0'), 'cash', now, now]
         );
 
         await db.runAsync(

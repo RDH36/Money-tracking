@@ -30,7 +30,7 @@ export function TransferForm({
     isDisabled: boolean,
     onPress: () => void
   ) => {
-    const color = account.type === 'bank' ? theme.colors.primary : '#22c55e';
+    const color = account.type === 'bank' ? theme.colors.primary : theme.colors.secondary;
     return (
       <Button
         key={account.id}

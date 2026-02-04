@@ -105,6 +105,32 @@ export function useAccounts() {
   const createTransfer = useCallback(
     async ({ fromAccountId, toAccountId, amount, note }: TransferParams) => {
       try {
+        // Check if source account has sufficient balance by querying the database
+        const fromAccountResult = await db.getFirstAsync<{
+          initial_balance: number;
+          total_income: number;
+          total_expense: number;
+        }>(
+          `SELECT
+            a.initial_balance,
+            COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0) as total_income,
+            COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0) as total_expense
+          FROM accounts a
+          LEFT JOIN transactions t ON t.account_id = a.id AND t.deleted_at IS NULL
+          WHERE a.id = ? AND a.deleted_at IS NULL
+          GROUP BY a.id`,
+          [fromAccountId]
+        );
+
+        if (!fromAccountResult) {
+          return { success: false, transferId: null, error: 'Compte source introuvable' };
+        }
+
+        const currentBalance = fromAccountResult.initial_balance + fromAccountResult.total_income - fromAccountResult.total_expense;
+        if (currentBalance < amount) {
+          return { success: false, transferId: null, error: 'Solde insuffisant' };
+        }
+
         const now = new Date().toISOString();
         const transferId = generateId();
         const expenseId = generateId();
@@ -126,7 +152,7 @@ export function useAccounts() {
         return { success: true, transferId };
       } catch (error) {
         console.error('Error creating transfer:', error);
-        return { success: false, transferId: null };
+        return { success: false, transferId: null, error: 'Erreur lors du transfert' };
       }
     },
     [db, fetchAccounts]

@@ -4,6 +4,8 @@ import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
+import { formatCurrency } from '@/lib/currency';
+import { useCurrencyCode } from '@/stores/settingsStore';
 
 interface CategoryData {
   name: string;
@@ -18,6 +20,7 @@ interface ExpenseChartProps {
 
 export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: ExpenseChartProps) {
   const { theme } = useTheme();
+  const currencyCode = useCurrencyCode();
 
   if (data.length === 0) {
     return null;
@@ -47,7 +50,7 @@ export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: Expen
             <VStack className="items-center">
               <Text className="text-typography-500 text-xs">Total</Text>
               <Text className="text-typography-900 font-bold text-sm">
-                {(total / 100).toLocaleString('fr-FR')}
+                {formatCurrency(total, currencyCode)}
               </Text>
             </VStack>
           )}

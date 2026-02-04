@@ -58,7 +58,9 @@ export default function PlanificationScreen() {
 
   const pendingPlanifications = planifications.filter((p) => p.status === 'pending');
   const completedPlanifications = planifications.filter((p) => p.status === 'completed');
-  const totalPending = pendingPlanifications.reduce((sum, p) => sum + p.total, 0);
+  const totalPendingExpenses = pendingPlanifications.reduce((sum, p) => sum + (p.total_expenses || 0), 0);
+  const totalPendingIncome = pendingPlanifications.reduce((sum, p) => sum + (p.total_income || 0), 0);
+  const netImpact = totalPendingExpenses - totalPendingIncome;
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return;
@@ -107,20 +109,28 @@ export default function PlanificationScreen() {
                 <Text className="text-typography-600">Solde actuel</Text>
                 <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
               </HStack>
-              {totalPending > 0 && (
+              {(totalPendingExpenses > 0 || totalPendingIncome > 0) && (
                 <>
-                  <HStack className="justify-between">
-                    <Text className="text-typography-600">Total planifié</Text>
-                    <Text className="text-error-600 font-semibold">- {formatMoney(totalPending)}</Text>
-                  </HStack>
+                  {totalPendingExpenses > 0 && (
+                    <HStack className="justify-between">
+                      <Text className="text-typography-600">Dépenses prévues</Text>
+                      <Text className="text-error-600 font-semibold">- {formatMoney(totalPendingExpenses)}</Text>
+                    </HStack>
+                  )}
+                  {totalPendingIncome > 0 && (
+                    <HStack className="justify-between">
+                      <Text className="text-typography-600">Revenus prévus</Text>
+                      <Text className="text-success-600 font-semibold">+ {formatMoney(totalPendingIncome)}</Text>
+                    </HStack>
+                  )}
                   <Box className="h-px bg-outline-200" />
                   <HStack className="justify-between items-center">
                     <Text className="text-typography-700 font-medium">Solde après</Text>
                     <Text
                       className="text-2xl font-bold"
-                      style={{ color: balance - totalPending < 0 ? '#DC2626' : theme.colors.primary }}
+                      style={{ color: balance - netImpact < 0 ? '#DC2626' : theme.colors.primary }}
                     >
-                      {formatMoney(balance - totalPending)}
+                      {formatMoney(balance - netImpact)}
                     </Text>
                   </HStack>
                 </>

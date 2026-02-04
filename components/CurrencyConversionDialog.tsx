@@ -40,10 +40,10 @@ export function CurrencyConversionDialog({
   onConfirm,
 }: CurrencyConversionDialogProps) {
   const { theme } = useTheme();
-  const isDisabled = isLoading || isFetchingRate || !exchangeRate;
+  const canConvert = !isLoading && !isFetchingRate && !!exchangeRate;
 
   return (
-    <AlertDialog isOpen={isOpen} onClose={isDisabled ? undefined : onClose}>
+    <AlertDialog isOpen={isOpen} onClose={isLoading ? undefined : onClose}>
       <AlertDialogBackdrop />
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -108,13 +108,13 @@ export function CurrencyConversionDialog({
           </VStack>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={onClose} disabled={isDisabled}>
+          <Button variant="outline" onPress={onClose} disabled={isLoading}>
             <ButtonText>Annuler</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: theme.colors.primary }}
             onPress={onConfirm}
-            disabled={isDisabled}
+            disabled={!canConvert}
           >
             {isLoading ? (
               <HStack space="sm" className="items-center">

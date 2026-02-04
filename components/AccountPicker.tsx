@@ -26,7 +26,7 @@ export function AccountPicker({
   const hiddenAmount = '••••••';
 
   const getAccountColor = (type: string) => {
-    return type === 'bank' ? theme.colors.primary : '#22c55e';
+    return type === 'bank' ? theme.colors.primary : theme.colors.secondary;
   };
 
   const getAccountIcon = (type: string) => {

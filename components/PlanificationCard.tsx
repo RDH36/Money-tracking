@@ -71,7 +71,7 @@ export function PlanificationCard({
             </HStack>
             <HStack space="md" className="items-center">
               <Text className="text-typography-500 text-sm">
-                {planification.item_count} achat{planification.item_count > 1 ? 's' : ''}
+                {planification.item_count} élément{planification.item_count > 1 ? 's' : ''}
               </Text>
               {planification.deadline && (
                 <HStack space="xs" className="items-center">
@@ -88,9 +88,22 @@ export function PlanificationCard({
             </HStack>
           </VStack>
           <VStack className="items-end" space="xs">
-            <Text className="text-typography-900 font-bold text-lg">
-              {formatMoney(planification.total)}
-            </Text>
+            {(planification.total_expenses > 0 || planification.total_income > 0) ? (
+              <VStack className="items-end">
+                {planification.total_expenses > 0 && (
+                  <Text className="text-error-600 font-semibold text-sm">
+                    - {formatMoney(planification.total_expenses)}
+                  </Text>
+                )}
+                {planification.total_income > 0 && (
+                  <Text className="text-success-600 font-semibold text-sm">
+                    + {formatMoney(planification.total_income)}
+                  </Text>
+                )}
+              </VStack>
+            ) : (
+              <Text className="text-typography-500 font-medium">0</Text>
+            )}
             {isPending && (
               <HStack space="sm" className="items-center">
                 {onDelete && (

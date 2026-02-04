@@ -56,7 +56,7 @@ export function ValidatePlanificationDialog({
     onClose();
   };
 
-  const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : '#22c55e');
+  const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : theme.colors.secondary);
 
   if (!planification) return null;
 

@@ -4,16 +4,16 @@ import { getCurrencyByCode, Currency } from '@/constants/currencies';
  * Format an amount in cents to a localized currency string
  * @param amountInCents - The amount in cents (e.g., 150000 for 1500.00)
  * @param currencyCode - The currency code (MGA, EUR, USD)
- * @returns Formatted string (e.g., "1 500 Ar", "1 500,00 €", "$1,500.00")
+ * @returns Formatted string (e.g., "1 500,00 Ar", "1 500,00 €", "$1,500.00")
  */
 export function formatCurrency(amountInCents: number, currencyCode: string): string {
   const currency = getCurrencyByCode(currencyCode);
   const amount = amountInCents / 100;
 
-  // Format number based on locale
+  // Format number with 2 decimal places for all currencies
   const formattedNumber = amount.toLocaleString(currency.locale, {
-    minimumFractionDigits: currency.code === 'MGA' ? 0 : 2,
-    maximumFractionDigits: currency.code === 'MGA' ? 0 : 2,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
   // Position symbol based on currency
@@ -34,8 +34,8 @@ export function formatCurrency(amountInCents: number, currencyCode: string): str
 export function formatNumber(value: number, currencyCode: string): string {
   const currency = getCurrencyByCode(currencyCode);
   return value.toLocaleString(currency.locale, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 

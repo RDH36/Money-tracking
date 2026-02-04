@@ -49,8 +49,8 @@ export default function BalanceScreen() {
     router.push({
       pathname: '/onboarding/categories' as const,
       params: {
-        bankBalance: parseAmount(bankBalance).toString(),
-        cashBalance: parseAmount(cashBalance).toString(),
+        bankBalance: bankBalance || '0',
+        cashBalance: cashBalance || '0',
       },
     });
   };
@@ -124,14 +124,14 @@ export default function BalanceScreen() {
 
                 <Box
                   className="p-4 rounded-xl border-2"
-                  style={{ borderColor: '#22c55e40' }}
+                  style={{ borderColor: theme.colors.secondary + '40' }}
                 >
                   <HStack space="md" className="items-center mb-3">
                     <Box
                       className="w-12 h-12 rounded-full items-center justify-center"
-                      style={{ backgroundColor: '#22c55e20' }}
+                      style={{ backgroundColor: theme.colors.secondaryLight }}
                     >
-                      <Ionicons name="cash" size={24} color="#22c55e" />
+                      <Ionicons name="cash" size={24} color={theme.colors.secondary} />
                     </Box>
                     <VStack>
                       <Text className="font-semibold text-typography-900">Espèce</Text>

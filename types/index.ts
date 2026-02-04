@@ -94,6 +94,7 @@ export interface PlanificationItem {
   id: string;
   planification_id: string;
   amount: number;
+  type: TransactionType;
   category_id: string | null;
   note: string | null;
   created_at: string;
@@ -107,5 +108,7 @@ export interface PlanificationItemWithCategory extends PlanificationItem {
 
 export interface PlanificationWithTotal extends Planification {
   total: number;
+  total_expenses: number;
+  total_income: number;
   item_count: number;
 }

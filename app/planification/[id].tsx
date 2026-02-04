@@ -16,10 +16,11 @@ import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
-import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts } from '@/hooks';
+import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import type { TransactionType } from '@/types';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -39,7 +40,7 @@ export default function PlanificationDetailScreen() {
   const currency = useCurrency();
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
-  const { categories, refresh: refreshCategories } = useCategories();
+  const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
   const { planification, items, total, addItem, removeItem, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
 
@@ -50,6 +51,7 @@ export default function PlanificationDetailScreen() {
   );
 
   const [amount, setAmount] = useState('');
+  const [itemType, setItemType] = useState<TransactionType>('expense');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -74,8 +76,10 @@ export default function PlanificationDetailScreen() {
   const handleAddItem = async () => {
     const numericAmount = getNumericValue(amount);
     if (!numericAmount || numericAmount <= 0) return;
-    await addItem(parseAmount(amount), categoryId, note.trim() || null);
+    const finalCategoryId = itemType === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
+    await addItem(parseAmount(amount), itemType, finalCategoryId, note.trim() || null);
     setAmount('');
+    setItemType('expense');
     setCategoryId(null);
     setNote('');
   };
@@ -97,7 +101,13 @@ export default function PlanificationDetailScreen() {
   const isValid = amount && getNumericValue(amount) > 0;
   const isPending = planification?.status === 'pending';
   const expired = isPending && isExpired(planification?.deadline || null);
-  const projectedBalance = balance - total;
+
+  // Calculate expenses and income separately
+  const totalExpenses = items.reduce((sum, item) => item.type !== 'income' ? sum + item.amount : sum, 0);
+  const totalIncome = items.reduce((sum, item) => item.type === 'income' ? sum + item.amount : sum, 0);
+  const netImpact = totalExpenses - totalIncome; // positive = net expense, negative = net income
+
+  const projectedBalance = balance - netImpact;
   const isNegative = projectedBalance < 0;
 
   if (!planification && !isFetching) {
@@ -177,12 +187,20 @@ export default function PlanificationDetailScreen() {
                   <Text className="text-typography-600">Solde actuel</Text>
                   <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
                 </HStack>
-                {total > 0 && isPending && (
+                {(totalExpenses > 0 || totalIncome > 0) && isPending && (
                   <>
-                    <HStack className="justify-between">
-                      <Text className="text-typography-600">Total planifié</Text>
-                      <Text className="text-error-600 font-semibold">- {formatMoney(total)}</Text>
-                    </HStack>
+                    {totalExpenses > 0 && (
+                      <HStack className="justify-between">
+                        <Text className="text-typography-600">Dépenses prévues</Text>
+                        <Text className="text-error-600 font-semibold">- {formatMoney(totalExpenses)}</Text>
+                      </HStack>
+                    )}
+                    {totalIncome > 0 && (
+                      <HStack className="justify-between">
+                        <Text className="text-typography-600">Revenus prévus</Text>
+                        <Text className="text-success-600 font-semibold">+ {formatMoney(totalIncome)}</Text>
+                      </HStack>
+                    )}
                     <Box className="h-px bg-outline-200" />
                     <HStack className="justify-between items-center">
                       <Text className="text-typography-700 font-medium">Solde après</Text>
@@ -201,22 +219,85 @@ export default function PlanificationDetailScreen() {
 
             {isPending && (
               <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">Ajouter un achat</Text>
+                <Text className="text-typography-700 font-semibold text-lg">Ajouter un élément</Text>
+                <HStack space="sm" className="justify-center">
+                  <Pressable onPress={() => setItemType('expense')} className="flex-1">
+                    <Box
+                      className="py-3 px-4 rounded-xl border-2 items-center"
+                      style={{
+                        borderColor: itemType === 'expense' ? '#EF4444' : '#E5E5E5',
+                        backgroundColor: itemType === 'expense' ? '#FEF2F2' : '#FFFFFF',
+                      }}
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Ionicons
+                          name="arrow-down-circle"
+                          size={20}
+                          color={itemType === 'expense' ? '#EF4444' : '#9CA3AF'}
+                        />
+                        <Text
+                          className="font-semibold"
+                          style={{ color: itemType === 'expense' ? '#EF4444' : '#6B7280' }}
+                        >
+                          Dépense
+                        </Text>
+                      </HStack>
+                    </Box>
+                  </Pressable>
+                  <Pressable onPress={() => setItemType('income')} className="flex-1">
+                    <Box
+                      className="py-3 px-4 rounded-xl border-2 items-center"
+                      style={{
+                        borderColor: itemType === 'income' ? '#22C55E' : '#E5E5E5',
+                        backgroundColor: itemType === 'income' ? '#F0FDF4' : '#FFFFFF',
+                      }}
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Ionicons
+                          name="arrow-up-circle"
+                          size={20}
+                          color={itemType === 'income' ? '#22C55E' : '#9CA3AF'}
+                        />
+                        <Text
+                          className="font-semibold"
+                          style={{ color: itemType === 'income' ? '#22C55E' : '#6B7280' }}
+                        >
+                          Revenu
+                        </Text>
+                      </HStack>
+                    </Box>
+                  </Pressable>
+                </HStack>
                 <Center>
                   <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
                   <Input size="xl" variant="underlined" className="w-full max-w-[200px]">
                     <InputField placeholder="0" keyboardType="decimal-pad" value={amount} onChangeText={(t) => setAmount(formatAmountInput(t))} className="text-3xl text-center font-bold" textAlign="center" />
                   </Input>
                 </Center>
-                <VStack space="sm">
-                  <Text className="text-typography-700 font-medium">Catégorie</Text>
-                  <CategoryPicker categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
-                </VStack>
+                {itemType === 'expense' ? (
+                  <VStack space="sm">
+                    <Text className="text-typography-700 font-medium">Catégorie</Text>
+                    <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
+                  </VStack>
+                ) : (
+                  <VStack space="sm">
+                    <Text className="text-typography-700 font-medium">Catégorie</Text>
+                    <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: '#F0FDF4' }}>
+                      <HStack space="md" className="items-center">
+                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
+                          <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
+                        </Box>
+                        <Text className="font-medium text-typography-900">{incomeCategory?.name || 'Revenu'}</Text>
+                      </HStack>
+                    </Box>
+                  </VStack>
+                )}
                 <VStack space="sm">
                   <Text className="text-typography-700 font-medium">Note (optionnel)</Text>
-                  <Input size="md"><InputField placeholder="Ex: Restaurant avec amis..." value={note} onChangeText={setNote} /></Input>
+                  <Input size="md"><InputField placeholder="Ex: Restaurant..." value={note} onChangeText={setNote} maxLength={20} /></Input>
+                  <Text className="text-typography-400 text-xs text-right">{note.length}/20 caractères</Text>
                 </VStack>
-                <Button size="lg" className="w-full" style={{ backgroundColor: theme.colors.primary }} onPress={handleAddItem} isDisabled={!isValid || isLoading}>
+                <Button size="lg" className="w-full" style={{ backgroundColor: itemType === 'income' ? '#22C55E' : theme.colors.primary }} onPress={handleAddItem} isDisabled={!isValid || isLoading}>
                   <ButtonText className="text-white font-semibold">Ajouter</ButtonText>
                 </Button>
               </VStack>
@@ -224,31 +305,36 @@ export default function PlanificationDetailScreen() {
 
             {items.length > 0 && (
               <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">Achats ({items.length})</Text>
-                {items.map((item) => (
-                  <HStack key={item.id} className="bg-background-50 p-3 rounded-xl items-center justify-between">
-                    <HStack space="md" className="items-center flex-1">
-                      <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: item.category_color || '#94A3B8' }}>
-                        {item.category_icon && <Ionicons name={item.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
-                      </Box>
-                      <VStack className="flex-1">
-                        <Text className="text-typography-900 font-medium">{item.category_name || 'Sans catégorie'}</Text>
-                        {item.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{item.note}</Text>}
-                      </VStack>
+                <Text className="text-typography-700 font-semibold text-lg">Éléments ({items.length})</Text>
+                {items.map((item) => {
+                  const isIncome = item.type === 'income';
+                  return (
+                    <HStack key={item.id} className="bg-background-50 p-3 rounded-xl items-center justify-between">
+                      <HStack space="md" className="items-center flex-1">
+                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: item.category_color || '#94A3B8' }}>
+                          {item.category_icon && <Ionicons name={item.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
+                        </Box>
+                        <VStack className="flex-1">
+                          <Text className="text-typography-900 font-medium">{item.category_name || 'Sans catégorie'}</Text>
+                          {item.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{item.note}</Text>}
+                        </VStack>
+                      </HStack>
+                      <HStack space="md" className="items-center">
+                        <Text className="font-semibold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
+                          {isIncome ? '+' : '-'}{formatMoney(item.amount)}
+                        </Text>
+                        {isPending && <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>}
+                      </HStack>
                     </HStack>
-                    <HStack space="md" className="items-center">
-                      <Text className="text-typography-900 font-semibold">{formatMoney(item.amount)}</Text>
-                      {isPending && <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>}
-                    </HStack>
-                  </HStack>
-                ))}
+                  );
+                })}
               </VStack>
             )}
 
             {items.length === 0 && isPending && (
               <Center className="py-8">
-                <Ionicons name="cart-outline" size={48} color="#9CA3AF" />
-                <Text className="text-typography-500 text-center mt-4">Ajoutez des achats à votre planification</Text>
+                <Ionicons name="list-outline" size={48} color="#9CA3AF" />
+                <Text className="text-typography-500 text-center mt-4">Ajoutez des éléments à votre planification</Text>
               </Center>
             )}
 

@@ -129,7 +129,7 @@ export function AddAccountModal({
           <HStack className="items-center justify-between w-full">
             <Heading size="md" className="text-typography-900">Nouveau compte</Heading>
             <Text className="text-typography-500 text-sm">
-              {customAccountsCount}/{maxCustomAccounts}
+              {customAccountsCount}/{maxCustomAccounts} personnalisés
             </Text>
           </HStack>
         </AlertDialogHeader>
@@ -148,8 +148,10 @@ export function AddAccountModal({
                   placeholder="Ex: Épargne, MVola..."
                   value={name}
                   onChangeText={setName}
+                  maxLength={20}
                 />
               </Input>
+              <Text className="text-typography-400 text-xs text-right">{name.length}/20 caractères</Text>
             </VStack>
 
             <VStack space="sm">
@@ -180,18 +182,18 @@ export function AddAccountModal({
                   <Box
                     className="p-3 rounded-xl border-2 items-center"
                     style={{
-                      borderColor: type === 'cash' ? '#22c55e' : '#E5E5E5',
-                      backgroundColor: type === 'cash' ? '#22c55e20' : '#FFF',
+                      borderColor: type === 'cash' ? theme.colors.secondary : '#E5E5E5',
+                      backgroundColor: type === 'cash' ? theme.colors.secondaryLight : '#FFF',
                     }}
                   >
                     <Ionicons
                       name="cash"
                       size={24}
-                      color={type === 'cash' ? '#22c55e' : '#666'}
+                      color={type === 'cash' ? theme.colors.secondary : '#666'}
                     />
                     <Text
                       className="text-xs mt-1"
-                      style={{ color: type === 'cash' ? '#22c55e' : '#666' }}
+                      style={{ color: type === 'cash' ? theme.colors.secondary : '#666' }}
                     >
                       Espèce
                     </Text>

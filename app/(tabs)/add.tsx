@@ -40,6 +40,7 @@ export default function AddTransactionScreen() {
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,6 +58,7 @@ export default function AddTransactionScreen() {
     setFromAccountId(null);
     setToAccountId(null);
     setNote('');
+    setError(null);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
   };
@@ -65,6 +67,7 @@ export default function AddTransactionScreen() {
     const numericAmount = getNumericAmount();
     if (numericAmount <= 0) return;
     const amountValue = parseAmount(amount);
+    setError(null);
 
     if (mode === 'transaction') {
       if (!accountId) return;
@@ -92,6 +95,8 @@ export default function AddTransactionScreen() {
       if (result.success) {
         resetForm();
         refreshAccounts();
+      } else if (result.error) {
+        setError(result.error);
       }
     }
   };
@@ -116,7 +121,7 @@ export default function AddTransactionScreen() {
 
               <Box className="bg-background-100 p-1 rounded-xl">
                 <HStack>
-                  <Pressable onPress={() => setMode('transaction')} className="flex-1">
+                  <Pressable onPress={() => { setMode('transaction'); setError(null); }} className="flex-1">
                     <Box
                       className="py-3 rounded-lg items-center"
                       style={mode === 'transaction' ? { backgroundColor: theme.colors.primary } : {}}
@@ -136,7 +141,7 @@ export default function AddTransactionScreen() {
                       </HStack>
                     </Box>
                   </Pressable>
-                  <Pressable onPress={() => setMode('transfer')} className="flex-1">
+                  <Pressable onPress={() => { setMode('transfer'); setError(null); }} className="flex-1">
                     <Box
                       className="py-3 rounded-lg items-center"
                       style={mode === 'transfer' ? { backgroundColor: theme.colors.secondary } : {}}
@@ -217,7 +222,7 @@ export default function AddTransactionScreen() {
                     placeholder="0"
                     keyboardType="decimal-pad"
                     value={amount}
-                    onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); }}
+                    onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); setError(null); }}
                     className="text-4xl text-center font-bold"
                     textAlign="center"
                   />
@@ -262,14 +267,23 @@ export default function AddTransactionScreen() {
               <VStack space="sm">
                 <Text className="text-typography-700 font-medium">Note (optionnel)</Text>
                 <Input size="lg">
-                  <InputField placeholder="Ajouter une note..." value={note} onChangeText={setNote} />
+                  <InputField placeholder="Ajouter une note..." value={note} onChangeText={setNote} maxLength={20} />
                 </Input>
+                <Text className="text-typography-400 text-xs text-right">{note.length}/20 caractères</Text>
               </VStack>
 
               {success && (
                 <Center className="bg-success-100 p-3 rounded-xl">
                   <Text className="text-success-700 font-medium">
                     {mode === 'transaction' ? '✓ Transaction enregistrée !' : '✓ Transfert effectué !'}
+                  </Text>
+                </Center>
+              )}
+
+              {error && (
+                <Center className="bg-error-100 p-3 rounded-xl">
+                  <Text className="text-error-700 font-medium">
+                    {error}
                   </Text>
                 </Center>
               )}

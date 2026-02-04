@@ -12,11 +12,12 @@ import {
   ADD_CATEGORY_TYPE_TO_CATEGORIES,
   ADD_IS_DEFAULT_TO_ACCOUNTS,
   ADD_DELETED_AT_TO_CATEGORIES,
+  ADD_TYPE_TO_PLANIFICATION_ITEMS,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 11;
+const DATABASE_VERSION = 13;
 
 interface VersionResult {
   user_version: number;
@@ -81,6 +82,16 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 11) {
     await migrateToV11(db);
     currentVersion = 11;
+  }
+
+  if (currentVersion < 12) {
+    await migrateToV12(db);
+    currentVersion = 12;
+  }
+
+  if (currentVersion < 13) {
+    await migrateToV13(db);
+    currentVersion = 13;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -257,4 +268,36 @@ async function migrateToV11(db: SQLiteDatabase): Promise<void> {
   await db.runAsync(
     `UPDATE accounts SET is_default = 1 WHERE name IN ('Banque', 'Espèce') AND deleted_at IS NULL`
   );
+}
+
+async function migrateToV12(db: SQLiteDatabase): Promise<void> {
+  // Convert all amounts from raw values to cents (multiply by 100)
+  // This migration runs once for existing users to fix the decimal storage issue
+
+  // Convert account initial balances to cents
+  await db.runAsync(
+    `UPDATE accounts SET initial_balance = ROUND(initial_balance * 100) WHERE initial_balance != 0`
+  );
+
+  // Convert transaction amounts to cents
+  await db.runAsync(
+    `UPDATE transactions SET amount = ROUND(amount * 100) WHERE amount != 0`
+  );
+
+  // Convert planification item amounts to cents
+  await db.runAsync(
+    `UPDATE planification_items SET amount = ROUND(amount * 100) WHERE amount != 0`
+  );
+}
+
+async function migrateToV13(db: SQLiteDatabase): Promise<void> {
+  // Add type column to planification_items for income/expense distinction
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(planification_items)"
+  );
+  const hasType = tableInfo.some((col) => col.name === 'type');
+
+  if (!hasType) {
+    await db.execAsync(ADD_TYPE_TO_PLANIFICATION_ITEMS);
+  }
 }
