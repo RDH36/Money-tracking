@@ -3,6 +3,7 @@ export interface ThemeColors {
   primary: string;
   primaryLight: string;
   secondary: string;
+  secondaryLight: string;
   accent1: string;
   accent2: string;
   accent3: string;
@@ -34,6 +35,7 @@ const turquoiseTheme: Theme = {
     primary: '#4ECDC4',
     primaryLight: '#4ECDC420',
     secondary: '#FF6B6B',
+    secondaryLight: '#FF6B6B20',
     accent1: '#45B7D1',
     accent2: '#96CEB4',
     accent3: '#FFEAA7',
@@ -59,7 +61,8 @@ const blueTheme: Theme = {
   colors: {
     primary: '#3498DB',
     primaryLight: '#3498DB20',
-    secondary: '#E74C3C',
+    secondary: '#F1C40F',
+    secondaryLight: '#F1C40F20',
     accent1: '#9B59B6',
     accent2: '#1ABC9C',
     accent3: '#F1C40F',
@@ -75,7 +78,7 @@ const blueTheme: Theme = {
     cardBackground: '#FFFFFF',
     border: '#D5DBDB',
   },
-  chartColors: ['#E74C3C', '#3498DB', '#9B59B6', '#1ABC9C', '#F1C40F', '#E67E22', '#34495E', '#2ECC71'],
+  chartColors: ['#F1C40F', '#3498DB', '#9B59B6', '#1ABC9C', '#E74C3C', '#E67E22', '#34495E', '#2ECC71'],
 };
 
 // Thème 3 - Violet (Élégant)
@@ -85,7 +88,8 @@ const purpleTheme: Theme = {
   colors: {
     primary: '#9B59B6',
     primaryLight: '#9B59B620',
-    secondary: '#E74C3C',
+    secondary: '#2ECC71',
+    secondaryLight: '#2ECC7120',
     accent1: '#3498DB',
     accent2: '#1ABC9C',
     accent3: '#F39C12',
@@ -101,7 +105,7 @@ const purpleTheme: Theme = {
     cardBackground: '#FFFFFF',
     border: '#E5E5E5',
   },
-  chartColors: ['#E74C3C', '#9B59B6', '#3498DB', '#1ABC9C', '#F39C12', '#E91E63', '#00BCD4', '#8BC34A'],
+  chartColors: ['#2ECC71', '#9B59B6', '#3498DB', '#1ABC9C', '#F39C12', '#E91E63', '#00BCD4', '#8BC34A'],
 };
 
 // Thème 4 - Orange (Chaleureux)
@@ -111,7 +115,8 @@ const orangeTheme: Theme = {
   colors: {
     primary: '#F39C12',
     primaryLight: '#F39C1220',
-    secondary: '#E74C3C',
+    secondary: '#1ABC9C',
+    secondaryLight: '#1ABC9C20',
     accent1: '#3498DB',
     accent2: '#27AE60',
     accent3: '#9B59B6',
@@ -127,7 +132,7 @@ const orangeTheme: Theme = {
     cardBackground: '#FFFFFF',
     border: '#F5E6D3',
   },
-  chartColors: ['#E74C3C', '#F39C12', '#3498DB', '#27AE60', '#9B59B6', '#1ABC9C', '#E91E63', '#00BCD4'],
+  chartColors: ['#1ABC9C', '#F39C12', '#3498DB', '#27AE60', '#9B59B6', '#E74C3C', '#E91E63', '#00BCD4'],
 };
 
 // Liste des thèmes disponibles

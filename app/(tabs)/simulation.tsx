@@ -174,7 +174,7 @@ export default function PlanificationScreen() {
 
           {pendingPlanifications.length > 0 && (
             <VStack space="md">
-              <Text className="text-typography-700 font-semibold text-lg">En attente ({pendingPlanifications.length})</Text>
+              <Text className="font-semibold text-lg" style={{ color: theme.colors.primary }}>En attente ({pendingPlanifications.length})</Text>
               {pendingPlanifications.map((p) => (
                 <PlanificationCard
                   key={p.id}
@@ -191,7 +191,7 @@ export default function PlanificationScreen() {
 
           {completedPlanifications.length > 0 && (
             <VStack space="md">
-              <Text className="text-typography-500 font-semibold text-lg">Terminées ({completedPlanifications.length})</Text>
+              <Text className="font-semibold text-lg" style={{ color: theme.colors.secondary }}>Terminées ({completedPlanifications.length})</Text>
               {completedPlanifications.map((p) => (
                 <PlanificationCard key={p.id} planification={p} onPress={() => router.push(`/planification/${p.id}` as Href)} formatMoney={formatMoney} />
               ))}
