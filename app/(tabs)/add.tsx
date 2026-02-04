@@ -18,6 +18,7 @@ import { TransferForm } from '@/components/TransferForm';
 import { useCategories, useTransactions, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import type { TransactionType } from '@/types';
 
 type ScreenMode = 'transaction' | 'transfer';
@@ -47,13 +48,7 @@ export default function AddTransactionScreen() {
     }, [refreshAccounts, refreshCategories])
   );
 
-  const formatAmount = (value: string) => {
-    const cleaned = value.replace(/[^\d]/g, '');
-    if (!cleaned) return '';
-    return parseInt(cleaned, 10).toLocaleString('fr-FR');
-  };
-
-  const getNumericAmount = () => parseInt(amount.replace(/\s/g, ''), 10) || 0;
+  const getNumericAmount = () => getNumericValue(amount);
 
   const resetForm = () => {
     setAmount('');
@@ -69,7 +64,7 @@ export default function AddTransactionScreen() {
   const handleSave = async () => {
     const numericAmount = getNumericAmount();
     if (numericAmount <= 0) return;
-    const amountInCents = numericAmount * 100;
+    const amountValue = parseAmount(amount);
 
     if (mode === 'transaction') {
       if (!accountId) return;
@@ -77,7 +72,7 @@ export default function AddTransactionScreen() {
       const finalCategoryId = type === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
       const result = await createTransaction({
         type,
-        amount: amountInCents,
+        amount: amountValue,
         categoryId: finalCategoryId,
         accountId,
         note: note.trim() || null,
@@ -91,7 +86,7 @@ export default function AddTransactionScreen() {
       const result = await createTransfer({
         fromAccountId,
         toAccountId,
-        amount: amountInCents,
+        amount: amountValue,
         note: note.trim() || undefined,
       });
       if (result.success) {
@@ -220,9 +215,9 @@ export default function AddTransactionScreen() {
                 <Input size="xl" variant="underlined" className="w-full max-w-[250px]">
                   <InputField
                     placeholder="0"
-                    keyboardType="numeric"
+                    keyboardType="decimal-pad"
                     value={amount}
-                    onChangeText={(text) => { setAmount(formatAmount(text)); setSuccess(false); }}
+                    onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); }}
                     className="text-4xl text-center font-bold"
                     textAlign="center"
                   />

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/form-control';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 
 export default function BalanceScreen() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export default function BalanceScreen() {
   const [error, setError] = useState('');
 
   const handleNext = () => {
-    const numericBank = parseFloat(bankBalance.replace(/\s/g, '') || '0');
-    const numericCash = parseFloat(cashBalance.replace(/\s/g, '') || '0');
+    const numericBank = getNumericValue(bankBalance);
+    const numericCash = getNumericValue(cashBalance);
 
     if (numericBank < 0 || numericCash < 0) {
       setError('Les montants ne peuvent pas être négatifs');
@@ -48,26 +49,19 @@ export default function BalanceScreen() {
     router.push({
       pathname: '/onboarding/categories' as const,
       params: {
-        bankBalance: Math.round(numericBank * 100).toString(),
-        cashBalance: Math.round(numericCash * 100).toString(),
+        bankBalance: parseAmount(bankBalance).toString(),
+        cashBalance: parseAmount(cashBalance).toString(),
       },
     });
   };
 
-  const formatNumber = (value: string) => {
-    const cleaned = value.replace(/[^\d]/g, '');
-    if (!cleaned) return '';
-    const number = parseInt(cleaned, 10);
-    return number.toLocaleString('fr-FR');
-  };
-
   const handleBankChange = (text: string) => {
-    setBankBalance(formatNumber(text));
+    setBankBalance(formatAmountInput(text));
     if (error) setError('');
   };
 
   const handleCashChange = (text: string) => {
-    setCashBalance(formatNumber(text));
+    setCashBalance(formatAmountInput(text));
     if (error) setError('');
   };
 
@@ -119,7 +113,7 @@ export default function BalanceScreen() {
                     <Input size="xl" className="mt-2">
                       <InputField
                         placeholder="0"
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         value={bankBalance}
                         onChangeText={handleBankChange}
                         className="text-xl"
@@ -152,7 +146,7 @@ export default function BalanceScreen() {
                     <Input size="xl" className="mt-2">
                       <InputField
                         placeholder="0"
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         value={cashBalance}
                         onChangeText={handleCashChange}
                         className="text-xl"
