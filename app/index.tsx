@@ -14,7 +14,7 @@ export default function IndexRedirect() {
   }
 
   if (isCompleted) {
-    return <Redirect href="/add" />;
+    return <Redirect href="/(tabs)" />;
   }
 
   return <Redirect href="/onboarding" />;

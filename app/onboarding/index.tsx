@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -13,6 +13,10 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+
+  const openLink = (url: string) => {
+    Linking.openURL(url);
+  };
 
   return (
     <View
@@ -55,14 +59,27 @@ export default function WelcomeScreen() {
           </VStack>
         </VStack>
 
-        <Button
-          size="xl"
-          className="w-full"
-          style={{ backgroundColor: theme.colors.primary }}
-          onPress={() => router.push('/onboarding/currency' as const)}
-        >
-          <ButtonText className="text-white">Commencer</ButtonText>
-        </Button>
+        <VStack space="md">
+          <Button
+            size="xl"
+            className="w-full"
+            style={{ backgroundColor: theme.colors.primary }}
+            onPress={() => router.push('/tutorial')}
+          >
+            <ButtonText className="text-white">Commencer</ButtonText>
+          </Button>
+
+          <Text className="text-typography-400 text-xs text-center">
+            En continuant, vous acceptez nos{' '}
+            <Pressable onPress={() => openLink('https://www.mitsitsy.app/terms')}>
+              <Text className="text-typography-500 text-xs underline">CGU</Text>
+            </Pressable>
+            {' '}et notre{' '}
+            <Pressable onPress={() => openLink('https://www.mitsitsy.app/privacy')}>
+              <Text className="text-typography-500 text-xs underline">Politique de Confidentialité</Text>
+            </Pressable>
+          </Text>
+        </VStack>
       </Box>
     </View>
   );
