@@ -20,6 +20,8 @@ import { usePlanificationDetail, useCategories, useBalance, usePlanifications, u
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { TransactionType } from '@/types';
 
 function formatDate(dateStr: string): string {
@@ -43,6 +45,10 @@ export default function PlanificationDetailScreen() {
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
   const { planification, items, total, addItem, removeItem, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
+
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   useFocusEffect(
     useCallback(() => {
@@ -92,10 +98,13 @@ export default function PlanificationDetailScreen() {
   };
 
   const handleValidateConfirm = async (planificationId: string, accountId: string) => {
-    await validatePlanification(planificationId, accountId);
-    await refreshBalance();
-    await refreshAccounts();
-    router.back();
+    const result = await validatePlanification(planificationId, accountId);
+    if (result.success) {
+      await refreshBalance();
+      await refreshAccounts();
+      router.back();
+    }
+    return result;
   };
 
   const isValid = amount && getNumericValue(amount) > 0;
@@ -161,7 +170,7 @@ export default function PlanificationDetailScreen() {
                     </Pressable>
                     {planification?.deadline && (
                       <Pressable onPress={handleRemoveDeadline} className="p-2 rounded-lg bg-background-100">
-                        <Ionicons name="close" size={20} color="#9CA3AF" />
+                        <Ionicons name="close" size={20} color={colors.textMuted} />
                       </Pressable>
                     )}
                   </HStack>
@@ -225,19 +234,19 @@ export default function PlanificationDetailScreen() {
                     <Box
                       className="py-3 px-4 rounded-xl border-2 items-center"
                       style={{
-                        borderColor: itemType === 'expense' ? '#EF4444' : '#E5E5E5',
-                        backgroundColor: itemType === 'expense' ? '#FEF2F2' : '#FFFFFF',
+                        borderColor: itemType === 'expense' ? '#EF4444' : colors.cardBorder,
+                        backgroundColor: itemType === 'expense' ? (isDark ? '#450A0A' : '#FEF2F2') : colors.cardBg,
                       }}
                     >
                       <HStack space="sm" className="items-center">
                         <Ionicons
                           name="arrow-down-circle"
                           size={20}
-                          color={itemType === 'expense' ? '#EF4444' : '#9CA3AF'}
+                          color={itemType === 'expense' ? '#EF4444' : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: itemType === 'expense' ? '#EF4444' : '#6B7280' }}
+                          style={{ color: itemType === 'expense' ? '#EF4444' : colors.textMuted }}
                         >
                           Dépense
                         </Text>
@@ -248,19 +257,19 @@ export default function PlanificationDetailScreen() {
                     <Box
                       className="py-3 px-4 rounded-xl border-2 items-center"
                       style={{
-                        borderColor: itemType === 'income' ? '#22C55E' : '#E5E5E5',
-                        backgroundColor: itemType === 'income' ? '#F0FDF4' : '#FFFFFF',
+                        borderColor: itemType === 'income' ? '#22C55E' : colors.cardBorder,
+                        backgroundColor: itemType === 'income' ? (isDark ? '#052E16' : '#F0FDF4') : colors.cardBg,
                       }}
                     >
                       <HStack space="sm" className="items-center">
                         <Ionicons
                           name="arrow-up-circle"
                           size={20}
-                          color={itemType === 'income' ? '#22C55E' : '#9CA3AF'}
+                          color={itemType === 'income' ? '#22C55E' : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: itemType === 'income' ? '#22C55E' : '#6B7280' }}
+                          style={{ color: itemType === 'income' ? '#22C55E' : colors.textMuted }}
                         >
                           Revenu
                         </Text>
@@ -282,7 +291,7 @@ export default function PlanificationDetailScreen() {
                 ) : (
                   <VStack space="sm">
                     <Text className="text-typography-700 font-medium">Catégorie</Text>
-                    <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: '#F0FDF4' }}>
+                    <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
                       <HStack space="md" className="items-center">
                         <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
                           <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
@@ -333,7 +342,7 @@ export default function PlanificationDetailScreen() {
 
             {items.length === 0 && isPending && (
               <Center className="py-8">
-                <Ionicons name="list-outline" size={48} color="#9CA3AF" />
+                <Ionicons name="list-outline" size={48} color={colors.textMuted} />
                 <Text className="text-typography-500 text-center mt-4">Ajoutez des éléments à votre planification</Text>
               </Center>
             )}

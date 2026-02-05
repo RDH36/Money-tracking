@@ -14,6 +14,8 @@ import { HStack } from '@/components/ui/hstack';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { Currency } from '@/constants/currencies';
 
 interface CurrencyConversionDialogProps {
@@ -40,6 +42,8 @@ export function CurrencyConversionDialog({
   onConfirm,
 }: CurrencyConversionDialogProps) {
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const canConvert = !isLoading && !isFetchingRate && !!exchangeRate;
 
   return (
@@ -67,7 +71,7 @@ export function CurrencyConversionDialog({
                 </Text>
                 <Text className="text-sm text-typography-500">{fromCurrency.code}</Text>
               </VStack>
-              <Ionicons name="arrow-forward" size={24} color="#666" />
+              <Ionicons name="arrow-forward" size={24} color={colors.textMuted} />
               <VStack className="items-center">
                 <Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
                   {toCurrency.symbol}

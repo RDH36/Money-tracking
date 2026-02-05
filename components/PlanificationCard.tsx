@@ -6,6 +6,8 @@ import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import type { PlanificationWithTotal } from '@/types';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 interface PlanificationCardProps {
   planification: PlanificationWithTotal;
@@ -35,6 +37,8 @@ export function PlanificationCard({
   formatMoney,
 }: PlanificationCardProps) {
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const isPending = planification.status === 'pending';
   const expired = isPending && isExpired(planification.deadline);
 
@@ -78,9 +82,9 @@ export function PlanificationCard({
                   <Ionicons
                     name="calendar-outline"
                     size={14}
-                    color={expired ? '#DC2626' : '#6B7280'}
+                    color={expired ? '#DC2626' : colors.textMuted}
                   />
-                  <Text className="text-sm" style={{ color: expired ? '#DC2626' : '#6B7280' }}>
+                  <Text className="text-sm" style={{ color: expired ? '#DC2626' : colors.textMuted }}>
                     {formatDate(planification.deadline)}
                   </Text>
                 </HStack>

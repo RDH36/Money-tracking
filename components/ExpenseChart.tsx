@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 
 interface CategoryData {
   name: string;
@@ -21,6 +22,8 @@ interface ExpenseChartProps {
 export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: ExpenseChartProps) {
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
 
   if (data.length === 0) {
     return null;
@@ -45,7 +48,7 @@ export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: Expen
           donut
           radius={70}
           innerRadius={45}
-          innerCircleColor="#FFFFFF"
+          innerCircleColor={isDark ? '#1C1C1E' : '#FFFFFF'}
           centerLabelComponent={() => (
             <VStack className="items-center">
               <Text className="text-typography-500 text-xs">Total</Text>

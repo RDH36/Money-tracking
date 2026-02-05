@@ -147,7 +147,7 @@ export function usePlanifications() {
   }, [db]);
 
   const validatePlanification = useCallback(
-    async (id: string, accountId: string) => {
+    async (id: string, accountId: string): Promise<{ success: boolean; error?: string }> => {
       setIsLoading(true);
       try {
         const items = await db.getAllAsync<PlanificationItemWithCategory>(
@@ -157,6 +157,43 @@ export function usePlanifications() {
            WHERE pi.planification_id = ?`,
           [id]
         );
+
+        // Calculate net expense (expenses - incomes) from planification items
+        const totalExpenses = items
+          .filter(item => (item.type || 'expense') === 'expense')
+          .reduce((sum, item) => sum + item.amount, 0);
+        const totalIncomes = items
+          .filter(item => item.type === 'income')
+          .reduce((sum, item) => sum + item.amount, 0);
+        const netExpense = totalExpenses - totalIncomes;
+
+        // Check if account has sufficient balance for net expenses
+        if (netExpense > 0) {
+          const accountResult = await db.getFirstAsync<{
+            initial_balance: number;
+            total_income: number;
+            total_expense: number;
+          }>(
+            `SELECT
+              a.initial_balance,
+              COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0) as total_income,
+              COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0) as total_expense
+            FROM accounts a
+            LEFT JOIN transactions t ON t.account_id = a.id AND t.deleted_at IS NULL
+            WHERE a.id = ? AND a.deleted_at IS NULL
+            GROUP BY a.id`,
+            [accountId]
+          );
+
+          if (!accountResult) {
+            return { success: false, error: 'Compte introuvable' };
+          }
+
+          const currentBalance = accountResult.initial_balance + accountResult.total_income - accountResult.total_expense;
+          if (currentBalance < netExpense) {
+            return { success: false, error: 'Solde insuffisant' };
+          }
+        }
 
         const now = new Date().toISOString();
 
@@ -176,10 +213,10 @@ export function usePlanifications() {
 
         await cancelPlanificationReminders(id);
         await fetchPlanifications();
-        return true;
+        return { success: true };
       } catch (err) {
         console.error('Error validating planification:', err);
-        return false;
+        return { success: false, error: 'Erreur lors de la validation' };
       } finally {
         setIsLoading(false);
       }

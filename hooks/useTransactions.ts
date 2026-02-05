@@ -65,11 +65,39 @@ export function useTransactions() {
   }, [fetchTransactions]);
 
   const createTransaction = useCallback(
-    async ({ type, amount, categoryId, accountId, note }: CreateTransactionParams) => {
+    async ({ type, amount, categoryId, accountId, note }: CreateTransactionParams): Promise<{ success: boolean; id: string | null; error?: string }> => {
       setIsLoading(true);
       setError(null);
 
       try {
+        // For expense transactions, check if account has sufficient balance
+        if (type === 'expense' && accountId) {
+          const accountResult = await db.getFirstAsync<{
+            initial_balance: number;
+            total_income: number;
+            total_expense: number;
+          }>(
+            `SELECT
+              a.initial_balance,
+              COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0) as total_income,
+              COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0) as total_expense
+            FROM accounts a
+            LEFT JOIN transactions t ON t.account_id = a.id AND t.deleted_at IS NULL
+            WHERE a.id = ? AND a.deleted_at IS NULL
+            GROUP BY a.id`,
+            [accountId]
+          );
+
+          if (!accountResult) {
+            return { success: false, id: null, error: 'Compte introuvable' };
+          }
+
+          const currentBalance = accountResult.initial_balance + accountResult.total_income - accountResult.total_expense;
+          if (currentBalance < amount) {
+            return { success: false, id: null, error: 'Solde insuffisant' };
+          }
+        }
+
         const now = new Date().toISOString();
         const id = generateId();
 
@@ -84,7 +112,7 @@ export function useTransactions() {
       } catch (err) {
         console.error('Error creating transaction:', err);
         setError('Erreur lors de la sauvegarde');
-        return { success: false, id: null };
+        return { success: false, id: null, error: 'Erreur lors de la sauvegarde' };
       } finally {
         setIsLoading(false);
       }

@@ -21,6 +21,8 @@ import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount } from '@/lib/amountInput';
 import type { AccountType } from '@/types';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 const ACCOUNT_ICONS = [
   { icon: 'card', label: 'Carte' },
@@ -55,6 +57,9 @@ export function AddAccountModal({
 }: AddAccountModalProps) {
   const { theme } = useTheme();
   const currency = useCurrency();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [icon, setIcon] = useState('wallet');
@@ -96,7 +101,7 @@ export function AddAccountModal({
             <HStack space="sm" className="items-center">
               <Box
                 className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: '#FEE2E2' }}
+                style={{ backgroundColor: isDark ? '#450A0A' : '#FEE2E2' }}
               >
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
               </Box>
@@ -161,18 +166,18 @@ export function AddAccountModal({
                   <Box
                     className="p-3 rounded-xl border-2 items-center"
                     style={{
-                      borderColor: type === 'bank' ? theme.colors.primary : '#E5E5E5',
-                      backgroundColor: type === 'bank' ? theme.colors.primaryLight : '#FFF',
+                      borderColor: type === 'bank' ? theme.colors.primary : colors.cardBorder,
+                      backgroundColor: type === 'bank' ? theme.colors.primaryLight : colors.cardBg,
                     }}
                   >
                     <Ionicons
                       name="card"
                       size={24}
-                      color={type === 'bank' ? theme.colors.primary : '#666'}
+                      color={type === 'bank' ? theme.colors.primary : colors.textMuted}
                     />
                     <Text
                       className="text-xs mt-1"
-                      style={{ color: type === 'bank' ? theme.colors.primary : '#666' }}
+                      style={{ color: type === 'bank' ? theme.colors.primary : colors.textMuted }}
                     >
                       Bancaire
                     </Text>
@@ -182,18 +187,18 @@ export function AddAccountModal({
                   <Box
                     className="p-3 rounded-xl border-2 items-center"
                     style={{
-                      borderColor: type === 'cash' ? theme.colors.secondary : '#E5E5E5',
-                      backgroundColor: type === 'cash' ? theme.colors.secondaryLight : '#FFF',
+                      borderColor: type === 'cash' ? theme.colors.secondary : colors.cardBorder,
+                      backgroundColor: type === 'cash' ? theme.colors.secondaryLight : colors.cardBg,
                     }}
                   >
                     <Ionicons
                       name="cash"
                       size={24}
-                      color={type === 'cash' ? theme.colors.secondary : '#666'}
+                      color={type === 'cash' ? theme.colors.secondary : colors.textMuted}
                     />
                     <Text
                       className="text-xs mt-1"
-                      style={{ color: type === 'cash' ? theme.colors.secondary : '#666' }}
+                      style={{ color: type === 'cash' ? theme.colors.secondary : colors.textMuted }}
                     >
                       Espèce
                     </Text>
@@ -210,14 +215,14 @@ export function AddAccountModal({
                     <Box
                       className="w-12 h-12 rounded-xl border-2 items-center justify-center"
                       style={{
-                        borderColor: icon === item.icon ? theme.colors.primary : '#E5E5E5',
-                        backgroundColor: icon === item.icon ? theme.colors.primaryLight : '#FFF',
+                        borderColor: icon === item.icon ? theme.colors.primary : colors.cardBorder,
+                        backgroundColor: icon === item.icon ? theme.colors.primaryLight : colors.cardBg,
                       }}
                     >
                       <Ionicons
                         name={item.icon as keyof typeof Ionicons.glyphMap}
                         size={24}
-                        color={icon === item.icon ? theme.colors.primary : '#666'}
+                        color={icon === item.icon ? theme.colors.primary : colors.textMuted}
                       />
                     </Box>
                   </Pressable>

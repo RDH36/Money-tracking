@@ -19,6 +19,8 @@ import { useCategories, useTransactions, useAccounts, SYSTEM_CATEGORY_INCOME_ID 
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
 import type { TransactionType } from '@/types';
 
 type ScreenMode = 'transaction' | 'transfer';
@@ -30,6 +32,9 @@ export default function AddTransactionScreen() {
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { createTransaction, isLoading } = useTransactions();
   const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
   const [type, setType] = useState<TransactionType>('expense');
@@ -83,6 +88,8 @@ export default function AddTransactionScreen() {
       if (result.success) {
         resetForm();
         refreshAccounts();
+      } else if (result.error) {
+        setError(result.error);
       }
     } else {
       if (!fromAccountId || !toAccountId) return;
@@ -130,11 +137,11 @@ export default function AddTransactionScreen() {
                         <Ionicons
                           name="receipt-outline"
                           size={18}
-                          color={mode === 'transaction' ? '#FFFFFF' : '#6B7280'}
+                          color={mode === 'transaction' ? colors.cardBg : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: mode === 'transaction' ? '#FFFFFF' : '#6B7280' }}
+                          style={{ color: mode === 'transaction' ? colors.cardBg : colors.textMuted }}
                         >
                           Transaction
                         </Text>
@@ -150,11 +157,11 @@ export default function AddTransactionScreen() {
                         <Ionicons
                           name="swap-horizontal-outline"
                           size={18}
-                          color={mode === 'transfer' ? '#FFFFFF' : '#6B7280'}
+                          color={mode === 'transfer' ? colors.cardBg : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: mode === 'transfer' ? '#FFFFFF' : '#6B7280' }}
+                          style={{ color: mode === 'transfer' ? colors.cardBg : colors.textMuted }}
                         >
                           Transfert
                         </Text>
@@ -170,19 +177,19 @@ export default function AddTransactionScreen() {
                     <Box
                       className="py-3 px-4 rounded-xl border-2 items-center"
                       style={{
-                        borderColor: type === 'expense' ? '#EF4444' : '#E5E5E5',
-                        backgroundColor: type === 'expense' ? '#FEF2F2' : '#FFFFFF',
+                        borderColor: type === 'expense' ? '#EF4444' : colors.cardBorder,
+                        backgroundColor: type === 'expense' ? (isDark ? '#450A0A' : '#FEF2F2') : colors.cardBg,
                       }}
                     >
                       <HStack space="sm" className="items-center">
                         <Ionicons
                           name="arrow-down-circle"
                           size={20}
-                          color={type === 'expense' ? '#EF4444' : '#9CA3AF'}
+                          color={type === 'expense' ? '#EF4444' : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: type === 'expense' ? '#EF4444' : '#6B7280' }}
+                          style={{ color: type === 'expense' ? '#EF4444' : colors.textMuted }}
                         >
                           Dépense
                         </Text>
@@ -193,19 +200,19 @@ export default function AddTransactionScreen() {
                     <Box
                       className="py-3 px-4 rounded-xl border-2 items-center"
                       style={{
-                        borderColor: type === 'income' ? '#22C55E' : '#E5E5E5',
-                        backgroundColor: type === 'income' ? '#F0FDF4' : '#FFFFFF',
+                        borderColor: type === 'income' ? '#22C55E' : colors.cardBorder,
+                        backgroundColor: type === 'income' ? (isDark ? '#052E16' : '#F0FDF4') : colors.cardBg,
                       }}
                     >
                       <HStack space="sm" className="items-center">
                         <Ionicons
                           name="arrow-up-circle"
                           size={20}
-                          color={type === 'income' ? '#22C55E' : '#9CA3AF'}
+                          color={type === 'income' ? '#22C55E' : colors.textMuted}
                         />
                         <Text
                           className="font-semibold"
-                          style={{ color: type === 'income' ? '#22C55E' : '#6B7280' }}
+                          style={{ color: type === 'income' ? '#22C55E' : colors.textMuted }}
                         >
                           Revenu
                         </Text>
@@ -243,7 +250,7 @@ export default function AddTransactionScreen() {
                   ) : (
                     <VStack space="sm">
                       <Text className="text-typography-700 font-medium">Catégorie</Text>
-                      <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: '#F0FDF4' }}>
+                      <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
                         <HStack space="md" className="items-center">
                           <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
                             <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />

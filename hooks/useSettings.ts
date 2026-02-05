@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { useSettingsStore } from '@/stores';
+import { useSettingsStore, ColorMode } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { checkInternetConnection } from '@/lib/network';
@@ -11,12 +11,14 @@ export function useSettings() {
   const {
     balanceHidden,
     themeId,
+    colorMode,
     reminderFrequency,
     currencyCode,
     isInitialized,
     initialize,
     setBalanceHidden,
     setThemeId,
+    setColorMode: setStoreColorMode,
     setReminderFrequency: setStoreReminderFrequency,
     setCurrencyCode: setStoreCurrencyCode,
   } = useSettingsStore();
@@ -26,28 +28,22 @@ export function useSettings() {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult] = await Promise.all([
-          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
-            'balance_hidden',
-          ]),
-          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
-            'theme_id',
-          ]),
-          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
-            'reminder_frequency',
-          ]),
-          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
-            'currency',
-          ]),
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult] = await Promise.all([
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['balance_hidden']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['theme_id']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['reminder_frequency']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['currency']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['color_mode']),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency);
+        const mode = (colorModeResult?.value as ColorMode) || 'system';
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode);
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY);
+        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system');
         scheduleReminders('1h');
       }
     };
@@ -91,6 +87,26 @@ export function useSettings() {
       }
     },
     [db, setThemeId]
+  );
+
+  const setColorMode = useCallback(
+    async (mode: ColorMode) => {
+      try {
+        const now = new Date().toISOString();
+
+        await db.runAsync(
+          `INSERT INTO settings (key, value, updated_at)
+           VALUES (?, ?, ?)
+           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
+          ['color_mode', mode, now, mode, now]
+        );
+
+        setStoreColorMode(mode);
+      } catch (error) {
+        console.error('Error saving color mode:', error);
+      }
+    },
+    [db, setStoreColorMode]
   );
 
   const setReminderFrequency = useCallback(
@@ -164,10 +180,12 @@ export function useSettings() {
   return {
     balanceHidden,
     themeId,
+    colorMode,
     reminderFrequency,
     currencyCode,
     toggleBalanceVisibility,
     setTheme,
+    setColorMode,
     setReminderFrequency,
     setCurrency,
     changeCurrencyWithConversion,

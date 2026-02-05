@@ -4,6 +4,8 @@ import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { Category } from '@/types';
 
 interface CategoryPickerProps {
@@ -18,6 +20,8 @@ export function CategoryPicker({
   onSelect,
 }: CategoryPickerProps) {
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
 
   const handlePress = (id: string) => {
     if (selectedId === id) {
@@ -41,7 +45,7 @@ export function CategoryPicker({
             <VStack
               className="items-center p-3 rounded-xl min-w-[80px] border-2"
               style={{
-                backgroundColor: isSelected ? theme.colors.primaryLight : '#F5F5F5',
+                backgroundColor: isSelected ? theme.colors.primaryLight : colors.chipBg,
                 borderColor: isSelected ? theme.colors.primary : 'transparent',
               }}
               space="xs"
@@ -59,7 +63,7 @@ export function CategoryPicker({
               <Text
                 className="text-xs text-center"
                 style={{
-                  color: isSelected ? theme.colors.primary : '#666',
+                  color: isSelected ? theme.colors.primary : colors.textMuted,
                   fontWeight: isSelected ? '600' : '400',
                 }}
                 numberOfLines={1}

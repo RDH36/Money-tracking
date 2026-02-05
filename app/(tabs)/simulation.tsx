@@ -17,6 +17,8 @@ import { PlanificationCard } from '@/components/PlanificationCard';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
 import { usePlanifications, useBalance, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { PlanificationWithTotal } from '@/types';
 
 function formatDate(dateStr: string): string {
@@ -28,6 +30,8 @@ export default function PlanificationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
   const {
@@ -85,9 +89,12 @@ export default function PlanificationScreen() {
   };
 
   const handleValidateConfirm = async (planificationId: string, accountId: string) => {
-    await validatePlanification(planificationId, accountId);
-    await refreshBalance();
-    await refreshAccounts();
+    const result = await validatePlanification(planificationId, accountId);
+    if (result.success) {
+      await refreshBalance();
+      await refreshAccounts();
+    }
+    return result;
   };
 
   return (
@@ -155,7 +162,7 @@ export default function PlanificationScreen() {
                       </Text>
                       {deadline && (
                         <Pressable onPress={() => setDeadline(null)} className="ml-auto">
-                          <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                          <Ionicons name="close-circle" size={20} color={colors.textMuted} />
                         </Pressable>
                       )}
                     </HStack>
@@ -210,7 +217,7 @@ export default function PlanificationScreen() {
 
           {planifications.length === 0 && !showNewForm && (
             <Center className="py-12">
-              <Ionicons name="clipboard-outline" size={48} color="#9CA3AF" />
+              <Ionicons name="clipboard-outline" size={48} color={colors.textMuted} />
               <Text className="text-typography-500 text-center mt-4">
                 Créez une planification pour préparer vos achats à l&apos;avance
               </Text>

@@ -18,6 +18,8 @@ import {
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 const CATEGORY_ICONS = [
   { icon: 'fast-food', label: 'Nourriture' },
@@ -62,6 +64,9 @@ export function AddCategoryModal({
   maxCustomCategories,
 }: AddCategoryModalProps) {
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('cube');
   const [color, setColor] = useState('#3498DB');
@@ -103,7 +108,7 @@ export function AddCategoryModal({
             <HStack space="sm" className="items-center">
               <Box
                 className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: '#FEE2E2' }}
+                style={{ backgroundColor: isDark ? '#450A0A' : '#FEE2E2' }}
               >
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
               </Box>
@@ -168,14 +173,14 @@ export function AddCategoryModal({
                         <Box
                           className="w-12 h-12 rounded-xl border-2 items-center justify-center"
                           style={{
-                            borderColor: icon === item.icon ? color : '#E5E5E5',
-                            backgroundColor: icon === item.icon ? `${color}20` : '#FFF',
+                            borderColor: icon === item.icon ? color : colors.cardBorder,
+                            backgroundColor: icon === item.icon ? `${color}20` : colors.cardBg,
                           }}
                         >
                           <Ionicons
                             name={item.icon as keyof typeof Ionicons.glyphMap}
                             size={24}
-                            color={icon === item.icon ? color : '#666'}
+                            color={icon === item.icon ? color : colors.textMuted}
                           />
                         </Box>
                       </Pressable>
@@ -193,7 +198,7 @@ export function AddCategoryModal({
                         className="w-10 h-10 rounded-full border-2 items-center justify-center"
                         style={{
                           backgroundColor: c,
-                          borderColor: color === c ? '#000' : 'transparent',
+                          borderColor: color === c ? (isDark ? '#FFF' : '#000') : 'transparent',
                         }}
                       >
                         {color === c && (

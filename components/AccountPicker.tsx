@@ -6,6 +6,8 @@ import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { useTheme } from '@/contexts';
 import { useBalanceHidden } from '@/stores/settingsStore';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { AccountWithBalance } from '@/types';
 
 interface AccountPickerProps {
@@ -24,6 +26,8 @@ export function AccountPicker({
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
 
   const getAccountColor = (type: string) => {
     return type === 'bank' ? theme.colors.primary : theme.colors.secondary;
@@ -49,7 +53,7 @@ export function AccountPicker({
               <Box
                 className="p-4 rounded-xl border-2"
                 style={{
-                  backgroundColor: isSelected ? color + '15' : '#F5F5F5',
+                  backgroundColor: isSelected ? color + '15' : colors.chipBg,
                   borderColor: isSelected ? color : 'transparent',
                 }}
               >
@@ -58,18 +62,18 @@ export function AccountPicker({
                     <Ionicons
                       name={getAccountIcon(account.type) as keyof typeof Ionicons.glyphMap}
                       size={20}
-                      color={isSelected ? color : '#666'}
+                      color={isSelected ? color : colors.textMuted}
                     />
                     <Text
                       className="font-semibold"
-                      style={{ color: isSelected ? color : '#666' }}
+                      style={{ color: isSelected ? color : colors.textMuted }}
                     >
                       {account.name}
                     </Text>
                   </HStack>
                   <Text
                     className="text-xs"
-                    style={{ color: isSelected ? color : '#999' }}
+                    style={{ color: isSelected ? color : colors.textMuted }}
                   >
                     {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                   </Text>

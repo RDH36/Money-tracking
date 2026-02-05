@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useColorScheme as useSystemColorScheme } from 'react-native';
 import { rawConfig, vars, generateSecondaryColors } from './config';
 import { View, ViewProps } from 'react-native';
 import { OverlayProvider } from '@gluestack-ui/core/overlay/creator';
@@ -9,31 +10,38 @@ import { useSettingsStore } from '@/stores/settingsStore';
 export type ModeType = 'light' | 'dark' | 'system';
 
 export function GluestackUIProvider({
-  mode = 'light',
   ...props
 }: {
-  mode?: ModeType;
   children?: React.ReactNode;
   style?: ViewProps['style'];
 }) {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { setColorScheme } = useColorScheme();
+  const systemColorScheme = useSystemColorScheme();
   const theme = useSettingsStore((state) => state.theme);
+  const colorMode = useSettingsStore((state) => state.colorMode);
+
+  // Determine actual color scheme based on user preference
+  const effectiveColorScheme = useMemo(() => {
+    if (colorMode === 'system') {
+      return systemColorScheme ?? 'light';
+    }
+    return colorMode;
+  }, [colorMode, systemColorScheme]);
 
   useEffect(() => {
-    setColorScheme(mode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+    setColorScheme(effectiveColorScheme);
+  }, [effectiveColorScheme, setColorScheme]);
 
   const dynamicStyles = useMemo(() => {
-    const isDark = colorScheme === 'dark';
-    const baseConfig = rawConfig[colorScheme ?? 'light'];
+    const isDark = effectiveColorScheme === 'dark';
+    const baseConfig = rawConfig[effectiveColorScheme];
     const secondaryColors = generateSecondaryColors(theme.colors.secondary, isDark);
 
     return vars({
       ...baseConfig,
       ...secondaryColors,
     });
-  }, [colorScheme, theme.colors.secondary]);
+  }, [effectiveColorScheme, theme.colors.secondary]);
 
   return (
     <View
@@ -48,4 +56,15 @@ export function GluestackUIProvider({
       </OverlayProvider>
     </View>
   );
+}
+
+// Export hook for components that need to know the current effective color scheme
+export function useEffectiveColorScheme() {
+  const systemColorScheme = useSystemColorScheme();
+  const colorMode = useSettingsStore((state) => state.colorMode);
+
+  if (colorMode === 'system') {
+    return systemColorScheme ?? 'light';
+  }
+  return colorMode;
 }

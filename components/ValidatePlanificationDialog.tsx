@@ -17,6 +17,8 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
 import { useBalanceHidden } from '@/stores/settingsStore';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { AccountWithBalance, PlanificationWithTotal } from '@/types';
 
 interface ValidatePlanificationDialogProps {
@@ -24,7 +26,7 @@ interface ValidatePlanificationDialogProps {
   planification: PlanificationWithTotal | null;
   accounts: AccountWithBalance[];
   onClose: () => void;
-  onValidate: (planificationId: string, accountId: string) => Promise<void>;
+  onValidate: (planificationId: string, accountId: string) => Promise<{ success: boolean; error?: string }>;
   formatMoney: (amount: number) => string;
 }
 
@@ -39,20 +41,30 @@ export function ValidatePlanificationDialog({
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleValidate = async () => {
     if (!planification || !selectedAccountId) return;
     setIsLoading(true);
-    await onValidate(planification.id, selectedAccountId);
+    setError(null);
+    const result = await onValidate(planification.id, selectedAccountId);
     setIsLoading(false);
-    setSelectedAccountId(null);
-    onClose();
+    if (result.success) {
+      setSelectedAccountId(null);
+      onClose();
+    } else if (result.error) {
+      setError(result.error);
+    }
   };
 
   const handleClose = () => {
     setSelectedAccountId(null);
+    setError(null);
     onClose();
   };
 
@@ -80,15 +92,15 @@ export function ValidatePlanificationDialog({
                 return (
                   <Pressable
                     key={account.id}
-                    onPress={() => setSelectedAccountId(account.id)}
+                    onPress={() => { setSelectedAccountId(account.id); setError(null); }}
                     disabled={!hasEnough}
                     style={{ opacity: hasEnough ? 1 : 0.5 }}
                   >
                     <Box
                       className="p-3 rounded-xl border-2"
                       style={{
-                        borderColor: isSelected ? color : '#E5E5E5',
-                        backgroundColor: isSelected ? color + '15' : '#FFFFFF',
+                        borderColor: isSelected ? color : colors.cardBorder,
+                        backgroundColor: isSelected ? color + '15' : colors.cardBg,
                       }}
                     >
                       <HStack className="justify-between items-center">
@@ -115,6 +127,11 @@ export function ValidatePlanificationDialog({
                 );
               })}
             </VStack>
+            {error && (
+              <Box className="p-3 rounded-xl bg-error-100">
+                <Text className="text-error-700 text-center">{error}</Text>
+              </Box>
+            )}
           </VStack>
         </AlertDialogBody>
         <AlertDialogFooter>

@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { Theme, getThemeById } from '@/constants/colors';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
-import { useSettingsStore } from '@/stores';
+import { useSettingsStore, ColorMode } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 
 interface ThemeContextValue {
@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -40,18 +40,22 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'currency',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'color_mode',
+          ]),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency);
+        const colorMode = (colorModeResult?.value as ColorMode) || 'system';
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, colorMode);
 
         if (frequency !== 'off') {
           scheduleReminders(frequency);
         }
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY);
+        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY, 'system');
       }
     };
 

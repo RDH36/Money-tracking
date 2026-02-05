@@ -2,21 +2,28 @@ import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: '#999',
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom + 8,
           paddingTop: 8,
+          backgroundColor: colors.cardBg,
+          borderTopColor: colors.cardBorder,
         },
         tabBarLabelStyle: {
           fontSize: 12,

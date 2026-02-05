@@ -1,4 +1,5 @@
 export { useOnboardingStatus } from './useOnboardingStatus';
+export { useTutorialStatus } from './useTutorialStatus';
 export { useBalance } from './useBalance';
 export { useOnboarding } from './useOnboarding';
 export { useCategories, SYSTEM_CATEGORY_TRANSFER_ID, SYSTEM_CATEGORY_INCOME_ID } from './useCategories';
