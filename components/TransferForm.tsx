@@ -1,4 +1,5 @@
 import { ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
@@ -22,7 +23,15 @@ export function TransferForm({
   onFromChange,
   onToChange,
 }: TransferFormProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
+
+  const getAccountName = (account: AccountWithBalance) => {
+    if (account.is_default === 1) {
+      return account.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash');
+    }
+    return account.name;
+  };
 
   const renderAccountButton = (
     account: AccountWithBalance,
@@ -47,7 +56,7 @@ export function TransferForm({
             color={isSelected ? 'white' : color}
           />
           <ButtonText style={isSelected ? { color: 'white' } : { color }}>
-            {account.name}
+            {getAccountName(account)}
           </ButtonText>
         </HStack>
       </Button>
@@ -57,7 +66,7 @@ export function TransferForm({
   return (
     <>
       <VStack space="sm">
-        <Text className="text-typography-700 font-medium">De</Text>
+        <Text className="text-typography-700 font-medium">{t('add.from')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <HStack space="md">
             {accounts.map((account) =>
@@ -73,7 +82,7 @@ export function TransferForm({
       </VStack>
 
       <VStack space="sm">
-        <Text className="text-typography-700 font-medium">Vers</Text>
+        <Text className="text-typography-700 font-medium">{t('add.to')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <HStack space="md">
             {accounts.map((account) =>

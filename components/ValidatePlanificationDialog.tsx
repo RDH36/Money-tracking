@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import {
   AlertDialog,
@@ -38,6 +39,7 @@ export function ValidatePlanificationDialog({
   onValidate,
   formatMoney,
 }: ValidatePlanificationDialogProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
@@ -70,6 +72,13 @@ export function ValidatePlanificationDialog({
 
   const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : theme.colors.secondary);
 
+  const getAccountName = (account: AccountWithBalance) => {
+    if (account.is_default === 1) {
+      return account.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash');
+    }
+    return account.name;
+  };
+
   if (!planification) return null;
 
   return (
@@ -77,12 +86,12 @@ export function ValidatePlanificationDialog({
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <Heading size="md" className="text-typography-900">Valider la planification</Heading>
+          <Heading size="md" className="text-typography-900">{t('planification.validate')}</Heading>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <VStack space="md">
             <Text className="text-typography-700">
-              Déduire {formatMoney(planification.total)} de quel compte ?
+              {t('planification.deductFromAccount', { amount: formatMoney(planification.total) })}
             </Text>
             <VStack space="sm">
               {accounts.map((account) => {
@@ -111,7 +120,7 @@ export function ValidatePlanificationDialog({
                             color={color}
                           />
                           <VStack>
-                            <Text className="font-medium text-typography-900">{account.name}</Text>
+                            <Text className="font-medium text-typography-900">{getAccountName(account)}</Text>
                             <Text className="text-xs text-typography-500">
                               {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                             </Text>
@@ -119,7 +128,7 @@ export function ValidatePlanificationDialog({
                         </HStack>
                         {isSelected && <Ionicons name="checkmark-circle" size={24} color={color} />}
                         {!hasEnough && (
-                          <Text className="text-xs text-error-500">Solde insuffisant</Text>
+                          <Text className="text-xs text-error-500">{t('planification.insufficientBalance')}</Text>
                         )}
                       </HStack>
                     </Box>
@@ -136,14 +145,14 @@ export function ValidatePlanificationDialog({
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={handleClose}>
-            <ButtonText>Annuler</ButtonText>
+            <ButtonText>{t('common.cancel')}</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: theme.colors.primary }}
             onPress={handleValidate}
             isDisabled={!selectedAccountId || isLoading}
           >
-            <ButtonText className="text-white">{isLoading ? 'Validation...' : 'Valider'}</ButtonText>
+            <ButtonText className="text-white">{isLoading ? t('planification.validating') : t('planification.validate')}</ButtonText>
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

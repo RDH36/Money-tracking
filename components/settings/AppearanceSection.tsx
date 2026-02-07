@@ -1,5 +1,6 @@
 import { Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
@@ -10,12 +11,6 @@ import { useTheme } from '@/contexts';
 import { SettingSection } from './SettingSection';
 import { ColorMode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-
-const COLOR_MODES: { value: ColorMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { value: 'light', label: 'Clair', icon: 'sunny' },
-  { value: 'dark', label: 'Sombre', icon: 'moon' },
-  { value: 'system', label: 'Auto', icon: 'phone-portrait-outline' },
-];
 
 interface AppearanceSectionProps {
   themeId: string;
@@ -34,9 +29,16 @@ export function AppearanceSection({
   onColorModeChange,
   onCurrencyChange,
 }: AppearanceSectionProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
+
+  const COLOR_MODES: { value: ColorMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { value: 'light', label: t('settings.light'), icon: 'sunny' },
+    { value: 'dark', label: t('settings.dark'), icon: 'moon' },
+    { value: 'system', label: t('settings.auto'), icon: 'phone-portrait-outline' },
+  ];
 
   // Dark mode aware colors
   const cardBg = isDark ? '#1C1C1E' : '#FFF';
@@ -45,10 +47,10 @@ export function AppearanceSection({
   const chipBg = isDark ? '#2C2C2E' : '#F2F2F7';
 
   return (
-    <SettingSection title="Apparence">
+    <SettingSection title={t('settings.appearance')}>
       {/* Mode d'affichage */}
       <Box className="px-4 py-3 border-b border-outline-100">
-        <Text className="text-typography-900 mb-3">Mode</Text>
+        <Text className="text-typography-900 mb-3">{t('settings.mode')}</Text>
         <HStack space="sm">
           {COLOR_MODES.map((mode) => {
             const isSelected = colorMode === mode.value;
@@ -82,7 +84,7 @@ export function AppearanceSection({
 
       {/* Thème */}
       <Box className="px-4 py-3 border-b border-outline-100">
-        <Text className="text-typography-900 mb-3">Couleur</Text>
+        <Text className="text-typography-900 mb-3">{t('settings.color')}</Text>
         <HStack space="sm" className="flex-wrap">
           {THEMES.map((t) => {
             const isSelected = themeId === t.id;
@@ -124,7 +126,7 @@ export function AppearanceSection({
 
       {/* Devise */}
       <Box className="px-4 py-3">
-        <Text className="text-typography-900 mb-2">Devise</Text>
+        <Text className="text-typography-900 mb-2">{t('settings.currency')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {CURRENCIES.map((c) => {
             const isSelected = currencyCode === c.code;

@@ -3,6 +3,7 @@ import { View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -16,6 +17,7 @@ import { AddAccountModal } from '@/components/AddAccountModal';
 import { useTheme } from '@/contexts';
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
@@ -48,6 +50,12 @@ export default function DashboardScreen() {
 
   const hiddenAmount = '••••••';
   const getAccountColor = (type: string) => (type === 'bank' ? theme.colors.primary : theme.colors.secondary);
+  const getAccountName = (account: typeof accounts[0]) => {
+    if (account.is_default === 1) {
+      return account.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash');
+    }
+    return account.name;
+  };
 
   return (
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
@@ -57,12 +65,12 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={isFetching || accountsLoading} onRefresh={handleRefresh} />}
       >
         <VStack className="p-6" space="lg">
-          <Heading size="xl" className="text-typography-900">Dashboard</Heading>
+          <Heading size="xl" className="text-typography-900">{t('dashboard.title')}</Heading>
 
           <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
             <HStack className="justify-between items-start">
               <VStack>
-                <Text className="text-white text-sm mb-1">Solde total</Text>
+                <Text className="text-white text-sm mb-1">{t('dashboard.totalBalance')}</Text>
                 <Heading size="2xl" className="text-white">{balanceHidden ? hiddenAmount : formattedTotal}</Heading>
               </VStack>
               <Pressable onPress={toggleBalanceVisibility} className="p-2">
@@ -85,7 +93,7 @@ export default function DashboardScreen() {
                 <HStack space="sm" className="items-center mb-2">
                   <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} color={getAccountColor(account.type)} />
                   <Text className="text-xs font-medium" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
-                    {account.name}
+                    {getAccountName(account)}
                   </Text>
                 </HStack>
                 <Text className="font-bold text-base" style={{ color: getAccountColor(account.type) }}>
@@ -96,23 +104,23 @@ export default function DashboardScreen() {
             <Pressable onPress={() => setShowAddAccount(true)}>
               <Box className="p-4 rounded-xl border-2 border-dashed border-outline-300 items-center justify-center" style={{ minWidth: 100, minHeight: 80 }}>
                 <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
-                <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>Ajouter</Text>
+                <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>{t('dashboard.addAccount')}</Text>
               </Box>
             </Pressable>
           </ScrollView>
 
           {expenses.length > 0 && (
             <Box className="bg-background-0 p-4 rounded-xl border border-outline-100">
-              <ExpenseChart data={expenses} />
+              <ExpenseChart data={expenses} title={t('dashboard.expensesByCategory')} />
             </Box>
           )}
 
           <VStack space="md">
-            <Text className="text-typography-700 font-semibold">Transactions récentes</Text>
+            <Text className="text-typography-700 font-semibold">{t('dashboard.recentTransactions')}</Text>
             {recentTransactions.length === 0 ? (
               <Center className="py-8 bg-background-0 rounded-xl border border-outline-100">
                 <Text className="text-4xl mb-2">📭</Text>
-                <Text className="text-typography-500 text-center text-sm">Aucune transaction</Text>
+                <Text className="text-typography-500 text-center text-sm">{t('dashboard.noTransactions')}</Text>
               </Center>
             ) : (
               <VStack space="sm">
@@ -122,7 +130,7 @@ export default function DashboardScreen() {
                 {transactions.length > 5 && (
                   <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.secondary }}>
                     <HStack className="justify-center items-center" space="sm">
-                      <Text className="text-white font-semibold">Voir plus</Text>
+                      <Text className="text-white font-semibold">{t('dashboard.viewMore')}</Text>
                       <Ionicons name="arrow-forward" size={18} color="white" />
                     </HStack>
                   </Pressable>

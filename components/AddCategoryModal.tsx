@@ -17,6 +17,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
@@ -63,6 +64,7 @@ export function AddCategoryModal({
   customCategoriesCount,
   maxCustomCategories,
 }: AddCategoryModalProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
@@ -112,12 +114,12 @@ export function AddCategoryModal({
               >
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
               </Box>
-              <Heading size="md" className="text-typography-900">Limite atteinte</Heading>
+              <Heading size="md" className="text-typography-900">{t('category.limitReached')}</Heading>
             </HStack>
           </AlertDialogHeader>
           <AlertDialogBody className="mt-3 mb-4">
             <Text className="text-typography-600">
-              Vous avez atteint la limite de {maxCustomCategories} catégories personnalisées.
+              {t('category.limitMessage', { max: maxCustomCategories })}
             </Text>
           </AlertDialogBody>
           <AlertDialogFooter>
@@ -125,7 +127,7 @@ export function AddCategoryModal({
               style={{ backgroundColor: theme.colors.primary }}
               onPress={handleClose}
             >
-              <ButtonText className="text-white">Compris</ButtonText>
+              <ButtonText className="text-white">{t('common.understood')}</ButtonText>
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -139,7 +141,7 @@ export function AddCategoryModal({
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <HStack className="items-center justify-between w-full">
-            <Heading size="md" className="text-typography-900">Nouvelle catégorie</Heading>
+            <Heading size="md" className="text-typography-900">{t('category.new')}</Heading>
             <Text className="text-typography-500 text-sm">
               {customCategoriesCount}/{maxCustomCategories}
             </Text>
@@ -154,10 +156,10 @@ export function AddCategoryModal({
           >
             <VStack space="lg">
               <VStack space="sm">
-                <Text className="text-typography-700 font-medium">Nom de la catégorie</Text>
+                <Text className="text-typography-700 font-medium">{t('category.name')}</Text>
                 <Input size="md">
                   <InputField
-                    placeholder="Ex: Restaurants, Sport..."
+                    placeholder={t('category.namePlaceholder')}
                     value={name}
                     onChangeText={setName}
                   />
@@ -165,7 +167,7 @@ export function AddCategoryModal({
               </VStack>
 
               <VStack space="sm">
-                <Text className="text-typography-700 font-medium">Icône</Text>
+                <Text className="text-typography-700 font-medium">{t('category.icon')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <HStack space="sm">
                     {CATEGORY_ICONS.map((item) => (
@@ -190,7 +192,7 @@ export function AddCategoryModal({
               </VStack>
 
               <VStack space="sm">
-                <Text className="text-typography-700 font-medium">Couleur</Text>
+                <Text className="text-typography-700 font-medium">{t('category.color')}</Text>
                 <HStack space="sm" className="flex-wrap">
                   {CATEGORY_COLORS.map((c) => (
                     <Pressable key={c} onPress={() => setColor(c)}>
@@ -225,7 +227,7 @@ export function AddCategoryModal({
                   />
                 </Box>
                 <Text className="font-medium" style={{ color }}>
-                  {name || 'Aperçu'}
+                  {name || t('category.preview')}
                 </Text>
               </Box>
             </VStack>
@@ -233,7 +235,7 @@ export function AddCategoryModal({
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={handleClose} isDisabled={isCreating}>
-            <ButtonText>Annuler</ButtonText>
+            <ButtonText>{t('common.cancel')}</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: theme.colors.primary }}
@@ -241,7 +243,7 @@ export function AddCategoryModal({
             isDisabled={!name.trim() || isCreating}
           >
             <ButtonText className="text-white">
-              {isCreating ? 'Création...' : 'Créer'}
+              {isCreating ? t('category.creating') : t('category.create')}
             </ButtonText>
           </Button>
         </AlertDialogFooter>

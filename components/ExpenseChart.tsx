@@ -1,4 +1,5 @@
 import { PieChart } from 'react-native-gifted-charts';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -7,8 +8,12 @@ import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
+
+const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface CategoryData {
+  id?: string | null;
   name: string;
   amount: number;
   color?: string;
@@ -19,11 +24,22 @@ interface ExpenseChartProps {
   title?: string;
 }
 
-export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: ExpenseChartProps) {
+export function ExpenseChart({ data, title }: ExpenseChartProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
+
+  const getCategoryName = (item: CategoryData) => {
+    if (!item.id) return t('common.noCategory');
+    if (DEFAULT_CATEGORY_IDS.includes(item.id)) {
+      return t(`categories.${item.id}`);
+    }
+    return item.name;
+  };
+
+  const displayTitle = title || t('dashboard.expensesByCategory');
 
   if (data.length === 0) {
     return null;
@@ -35,12 +51,12 @@ export function ExpenseChart({ data, title = 'Dépenses par catégorie' }: Expen
     value: item.amount,
     color: item.color || theme.chartColors[index % theme.chartColors.length],
     text: `${Math.round((item.amount / total) * 100)}%`,
-    label: item.name,
+    label: getCategoryName(item),
   }));
 
   return (
     <VStack space="md">
-      <Text className="text-typography-700 font-semibold">{title}</Text>
+      <Text className="text-typography-700 font-semibold">{displayTitle}</Text>
 
       <HStack className="items-center justify-center" space="lg">
         <PieChart

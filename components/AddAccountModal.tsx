@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -57,6 +58,7 @@ export function AddAccountModal({
 }: AddAccountModalProps) {
   const { theme } = useTheme();
   const currency = useCurrency();
+  const { t } = useTranslation();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
@@ -105,12 +107,12 @@ export function AddAccountModal({
               >
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
               </Box>
-              <Heading size="md" className="text-typography-900">Limite atteinte</Heading>
+              <Heading size="md" className="text-typography-900">{t('account.limitReached')}</Heading>
             </HStack>
           </AlertDialogHeader>
           <AlertDialogBody className="mt-3 mb-4">
             <Text className="text-typography-600">
-              Vous avez atteint la limite de {maxCustomAccounts} comptes personnalisés.
+              {t('account.limitMessage', { max: maxCustomAccounts })}
             </Text>
           </AlertDialogBody>
           <AlertDialogFooter>
@@ -118,7 +120,7 @@ export function AddAccountModal({
               style={{ backgroundColor: theme.colors.primary }}
               onPress={handleClose}
             >
-              <ButtonText className="text-white">Compris</ButtonText>
+              <ButtonText className="text-white">{t('common.understood')}</ButtonText>
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -132,9 +134,9 @@ export function AddAccountModal({
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <HStack className="items-center justify-between w-full">
-            <Heading size="md" className="text-typography-900">Nouveau compte</Heading>
+            <Heading size="md" className="text-typography-900">{t('account.new')}</Heading>
             <Text className="text-typography-500 text-sm">
-              {customAccountsCount}/{maxCustomAccounts} personnalisés
+              {t('account.customCount', { count: customAccountsCount, max: maxCustomAccounts })}
             </Text>
           </HStack>
         </AlertDialogHeader>
@@ -147,20 +149,20 @@ export function AddAccountModal({
           >
           <VStack space="lg">
             <VStack space="sm">
-              <Text className="text-typography-700 font-medium">Nom du compte</Text>
+              <Text className="text-typography-700 font-medium">{t('account.name')}</Text>
               <Input size="md">
                 <InputField
-                  placeholder="Ex: Épargne, MVola..."
+                  placeholder={t('account.namePlaceholder')}
                   value={name}
                   onChangeText={setName}
                   maxLength={20}
                 />
               </Input>
-              <Text className="text-typography-400 text-xs text-right">{name.length}/20 caractères</Text>
+              <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: name.length, max: 20 })}</Text>
             </VStack>
 
             <VStack space="sm">
-              <Text className="text-typography-700 font-medium">Type</Text>
+              <Text className="text-typography-700 font-medium">{t('account.type')}</Text>
               <HStack space="md">
                 <Pressable onPress={() => setType('bank')} className="flex-1">
                   <Box
@@ -179,7 +181,7 @@ export function AddAccountModal({
                       className="text-xs mt-1"
                       style={{ color: type === 'bank' ? theme.colors.primary : colors.textMuted }}
                     >
-                      Bancaire
+                      {t('account.bank')}
                     </Text>
                   </Box>
                 </Pressable>
@@ -200,7 +202,7 @@ export function AddAccountModal({
                       className="text-xs mt-1"
                       style={{ color: type === 'cash' ? theme.colors.secondary : colors.textMuted }}
                     >
-                      Espèce
+                      {t('account.cash')}
                     </Text>
                   </Box>
                 </Pressable>
@@ -208,7 +210,7 @@ export function AddAccountModal({
             </VStack>
 
             <VStack space="sm">
-              <Text className="text-typography-700 font-medium">Icône</Text>
+              <Text className="text-typography-700 font-medium">{t('account.icon')}</Text>
               <HStack space="sm" className="flex-wrap">
                 {ACCOUNT_ICONS.map((item) => (
                   <Pressable key={item.icon} onPress={() => setIcon(item.icon)}>
@@ -231,7 +233,7 @@ export function AddAccountModal({
             </VStack>
 
             <VStack space="sm">
-              <Text className="text-typography-700 font-medium">Solde initial ({currency.code})</Text>
+              <Text className="text-typography-700 font-medium">{t('account.initialBalance', { currency: currency.code })}</Text>
               <Input size="md">
                 <InputField
                   placeholder="0"
@@ -246,7 +248,7 @@ export function AddAccountModal({
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={handleClose} isDisabled={isCreating}>
-            <ButtonText>Annuler</ButtonText>
+            <ButtonText>{t('common.cancel')}</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: theme.colors.primary }}
@@ -254,7 +256,7 @@ export function AddAccountModal({
             isDisabled={!name.trim() || isCreating}
           >
             <ButtonText className="text-white">
-              {isCreating ? 'Création...' : 'Créer'}
+              {isCreating ? t('account.creating') : t('account.create')}
             </ButtonText>
           </Button>
         </AlertDialogFooter>

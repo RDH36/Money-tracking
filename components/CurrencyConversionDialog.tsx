@@ -1,4 +1,5 @@
 import { ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogBackdrop,
@@ -41,6 +42,7 @@ export function CurrencyConversionDialog({
   onClose,
   onConfirm,
 }: CurrencyConversionDialogProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
@@ -52,7 +54,7 @@ export function CurrencyConversionDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <Heading size="md" className="text-typography-900">
-            Conversion de devise
+            {t('currency.conversion')}
           </Heading>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
@@ -60,7 +62,7 @@ export function CurrencyConversionDialog({
             <HStack space="sm" className="items-center">
               <Ionicons name="wifi" size={20} color={theme.colors.primary} />
               <Text className="text-typography-700 flex-1">
-                Cette action nécessite une connexion internet pour récupérer les taux de change.
+                {t('currency.conversionInfo')}
               </Text>
             </HStack>
 
@@ -83,7 +85,7 @@ export function CurrencyConversionDialog({
             {isFetchingRate ? (
               <HStack space="sm" className="items-center justify-center py-2">
                 <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text className="text-typography-500 text-sm">Récupération du taux...</Text>
+                <Text className="text-typography-500 text-sm">{t('currency.fetchingRate')}</Text>
               </HStack>
             ) : exchangeRate ? (
               <VStack space="xs" className="bg-background-100 p-3 rounded-lg">
@@ -94,13 +96,13 @@ export function CurrencyConversionDialog({
                   1 {fromCurrency.code} = {exchangeRate.toFixed(6)} {toCurrency.code}
                 </Text>
                 <Text className="text-typography-500 text-xs text-center mt-1">
-                  Exemple : 100,000 {fromCurrency.code} → {(100000 * exchangeRate).toFixed(2)} {toCurrency.code}
+                  {t('currency.example')} 100,000 {fromCurrency.code} → {(100000 * exchangeRate).toFixed(2)} {toCurrency.code}
                 </Text>
               </VStack>
             ) : null}
 
             <Text className="text-typography-500 text-sm text-center">
-              Tous vos soldes seront convertis de {fromCurrency.name} en {toCurrency.name}.
+              {t('currency.convertInfo', { from: fromCurrency.name, to: toCurrency.name })}
             </Text>
 
             {error && (
@@ -113,7 +115,7 @@ export function CurrencyConversionDialog({
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={onClose} disabled={isLoading}>
-            <ButtonText>Annuler</ButtonText>
+            <ButtonText>{t('common.cancel')}</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: theme.colors.primary }}
@@ -123,10 +125,10 @@ export function CurrencyConversionDialog({
             {isLoading ? (
               <HStack space="sm" className="items-center">
                 <ActivityIndicator size="small" color="white" />
-                <ButtonText className="text-white">Conversion...</ButtonText>
+                <ButtonText className="text-white">{t('currency.converting')}</ButtonText>
               </HStack>
             ) : (
-              <ButtonText className="text-white">Convertir</ButtonText>
+              <ButtonText className="text-white">{t('currency.convert')}</ButtonText>
             )}
           </Button>
         </AlertDialogFooter>

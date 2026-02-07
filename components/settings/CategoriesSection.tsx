@@ -1,4 +1,5 @@
 import { Pressable, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -6,6 +7,7 @@ import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import type { Category } from '@/types';
 
 interface CategoriesSectionProps {
@@ -16,6 +18,8 @@ interface CategoriesSectionProps {
   onDelete: (category: Category) => void;
 }
 
+const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
+
 export function CategoriesSection({
   categories,
   customCount,
@@ -23,15 +27,23 @@ export function CategoriesSection({
   onAdd,
   onDelete,
 }: CategoriesSectionProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
+
+  const getCategoryName = (cat: Category) => {
+    if (DEFAULT_CATEGORY_IDS.includes(cat.id)) {
+      return t(`categories.${cat.id}`);
+    }
+    return cat.name;
+  };
 
   return (
     <Box className="mb-6">
       <HStack className="justify-between items-center px-4 mb-2">
         <Text className="text-typography-500 text-xs font-medium uppercase tracking-wide">
-          Catégories personnalisées ({customCount}/{maxCustom})
+          {t('settings.customCategories')} ({customCount}/{maxCustom})
         </Text>
         <Pressable onPress={onAdd}>
           <Box
@@ -71,7 +83,7 @@ export function CategoriesSection({
                 style={{ color: cat.color || colors.textMuted }}
                 numberOfLines={1}
               >
-                {cat.name}
+                {getCategoryName(cat)}
               </Text>
               {cat.is_default === 0 && (
                 <Box className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 items-center justify-center">

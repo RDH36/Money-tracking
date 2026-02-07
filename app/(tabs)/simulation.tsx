@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { View, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Href, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
@@ -21,14 +22,15 @@ import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
 import type { PlanificationWithTotal } from '@/types';
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string = 'fr-FR'): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
 }
 
 export default function PlanificationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
@@ -102,7 +104,7 @@ export default function PlanificationScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
         <VStack className="p-6" space="xl">
           <HStack className="justify-between items-center">
-            <Heading size="xl" className="text-typography-900">Planification</Heading>
+            <Heading size="xl" className="text-typography-900">{t('planification.title')}</Heading>
             {!showNewForm && (
               <Pressable onPress={() => setShowNewForm(true)}>
                 <Ionicons name="add-circle" size={32} color={theme.colors.primary} />
@@ -113,26 +115,26 @@ export default function PlanificationScreen() {
           <Box className="p-4 rounded-2xl" style={{ backgroundColor: theme.colors.primaryLight }}>
             <VStack space="md">
               <HStack className="justify-between">
-                <Text className="text-typography-600">Solde actuel</Text>
+                <Text className="text-typography-600">{t('planification.currentBalance')}</Text>
                 <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
               </HStack>
               {(totalPendingExpenses > 0 || totalPendingIncome > 0) && (
                 <>
                   {totalPendingExpenses > 0 && (
                     <HStack className="justify-between">
-                      <Text className="text-typography-600">Dépenses prévues</Text>
+                      <Text className="text-typography-600">{t('planification.plannedExpenses')}</Text>
                       <Text className="text-error-600 font-semibold">- {formatMoney(totalPendingExpenses)}</Text>
                     </HStack>
                   )}
                   {totalPendingIncome > 0 && (
                     <HStack className="justify-between">
-                      <Text className="text-typography-600">Revenus prévus</Text>
+                      <Text className="text-typography-600">{t('planification.plannedIncome')}</Text>
                       <Text className="text-success-600 font-semibold">+ {formatMoney(totalPendingIncome)}</Text>
                     </HStack>
                   )}
                   <Box className="h-px bg-outline-200" />
                   <HStack className="justify-between items-center">
-                    <Text className="text-typography-700 font-medium">Solde après</Text>
+                    <Text className="text-typography-700 font-medium">{t('planification.balanceAfter')}</Text>
                     <Text
                       className="text-2xl font-bold"
                       style={{ color: balance - netImpact < 0 ? '#DC2626' : theme.colors.primary }}
@@ -148,17 +150,17 @@ export default function PlanificationScreen() {
           {showNewForm && (
             <Box className="bg-background-50 p-4 rounded-xl">
               <VStack space="md">
-                <Text className="text-typography-700 font-semibold">Nouvelle planification</Text>
+                <Text className="text-typography-700 font-semibold">{t('planification.new')}</Text>
                 <Input size="md">
-                  <InputField placeholder="Ex: Courses du weekend" value={newTitle} onChangeText={setNewTitle} autoFocus />
+                  <InputField placeholder={t('planification.placeholder')} value={newTitle} onChangeText={setNewTitle} autoFocus />
                 </Input>
                 <VStack space="sm">
-                  <Text className="text-typography-600 text-sm">Date butoir (optionnel)</Text>
+                  <Text className="text-typography-600 text-sm">{t('planification.deadlineOptional')}</Text>
                   <Pressable onPress={() => setShowDatePicker(true)} className="p-3 rounded-lg bg-background-100">
                     <HStack space="sm" className="items-center">
                       <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                       <Text className="text-typography-700">
-                        {deadline ? formatDate(deadline.toISOString()) : 'Choisir une date'}
+                        {deadline ? formatDate(deadline.toISOString(), i18n.language) : t('planification.chooseDate')}
                       </Text>
                       {deadline && (
                         <Pressable onPress={() => setDeadline(null)} className="ml-auto">
@@ -179,10 +181,10 @@ export default function PlanificationScreen() {
                 </VStack>
                 <HStack space="md">
                   <Button variant="outline" className="flex-1" onPress={() => { setShowNewForm(false); setNewTitle(''); setDeadline(null); }}>
-                    <ButtonText>Annuler</ButtonText>
+                    <ButtonText>{t('common.cancel')}</ButtonText>
                   </Button>
                   <Button className="flex-1" style={{ backgroundColor: theme.colors.primary }} onPress={handleCreate} isDisabled={!newTitle.trim() || isLoading}>
-                    <ButtonText className="text-white">Créer</ButtonText>
+                    <ButtonText className="text-white">{t('planification.create')}</ButtonText>
                   </Button>
                 </HStack>
               </VStack>
@@ -191,7 +193,7 @@ export default function PlanificationScreen() {
 
           {pendingPlanifications.length > 0 && (
             <VStack space="md">
-              <Text className="font-semibold text-lg" style={{ color: theme.colors.primary }}>En attente ({pendingPlanifications.length})</Text>
+              <Text className="font-semibold text-lg" style={{ color: theme.colors.primary }}>{t('planification.pending')} ({pendingPlanifications.length})</Text>
               {pendingPlanifications.map((p) => (
                 <PlanificationCard
                   key={p.id}
@@ -208,7 +210,7 @@ export default function PlanificationScreen() {
 
           {completedPlanifications.length > 0 && (
             <VStack space="md">
-              <Text className="font-semibold text-lg" style={{ color: theme.colors.secondary }}>Terminées ({completedPlanifications.length})</Text>
+              <Text className="font-semibold text-lg" style={{ color: theme.colors.secondary }}>{t('planification.completed')} ({completedPlanifications.length})</Text>
               {completedPlanifications.map((p) => (
                 <PlanificationCard key={p.id} planification={p} onPress={() => router.push(`/planification/${p.id}` as Href)} formatMoney={formatMoney} />
               ))}
@@ -219,10 +221,10 @@ export default function PlanificationScreen() {
             <Center className="py-12">
               <Ionicons name="clipboard-outline" size={48} color={colors.textMuted} />
               <Text className="text-typography-500 text-center mt-4">
-                Créez une planification pour préparer vos achats à l&apos;avance
+                {t('planification.emptyMessage')}
               </Text>
               <Button className="mt-4" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowNewForm(true)}>
-                <ButtonText className="text-white">Créer une planification</ButtonText>
+                <ButtonText className="text-white">{t('planification.createButton')}</ButtonText>
               </Button>
             </Center>
           )}
@@ -231,9 +233,9 @@ export default function PlanificationScreen() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Supprimer"
-        message={`Voulez-vous supprimer "${deleteTarget?.title}" ?`}
-        confirmText="Supprimer"
+        title={t('common.delete')}
+        message={t('common.deleteItem', { name: deleteTarget?.title })}
+        confirmText={t('common.delete')}
         isDestructive
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}

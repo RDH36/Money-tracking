@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -27,6 +28,7 @@ export default function BalanceScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const currency = useCurrency();
+  const { t } = useTranslation();
   const [bankBalance, setBankBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [error, setError] = useState('');
@@ -36,12 +38,12 @@ export default function BalanceScreen() {
     const numericCash = getNumericValue(cashBalance);
 
     if (numericBank < 0 || numericCash < 0) {
-      setError('Les montants ne peuvent pas être négatifs');
+      setError(t('onboarding.negativeError'));
       return;
     }
 
     if (numericBank === 0 && numericCash === 0) {
-      setError('Veuillez entrer au moins un solde');
+      setError(t('onboarding.balanceRequired'));
       return;
     }
 
@@ -79,12 +81,12 @@ export default function BalanceScreen() {
         <Box className="flex-1 p-6">
           <VStack className="flex-1" space="xl">
               <VStack space="sm">
-                <Text className="text-typography-500">Étape 2/3</Text>
+                <Text className="text-typography-500">{t('onboarding.step')} 2/3</Text>
                 <Heading size="xl" className="text-typography-900">
-                  Configurez vos comptes
+                  {t('onboarding.configureAccounts')}
                 </Heading>
                 <Text className="text-typography-600">
-                  Entrez vos soldes actuels pour chaque compte
+                  {t('onboarding.enterBalances')}
                 </Text>
               </VStack>
 
@@ -101,14 +103,14 @@ export default function BalanceScreen() {
                       <Ionicons name="card" size={24} color={theme.colors.primary} />
                     </Box>
                     <VStack>
-                      <Text className="font-semibold text-typography-900">Banque</Text>
-                      <Text className="text-xs text-typography-500">Compte bancaire</Text>
+                      <Text className="font-semibold text-typography-900">{t('account.bank')}</Text>
+                      <Text className="text-xs text-typography-500">{t('onboarding.bankAccount')}</Text>
                     </VStack>
                   </HStack>
 
                   <FormControl>
                     <FormControlLabel>
-                      <FormControlLabelText>Solde en banque ({currency.code})</FormControlLabelText>
+                      <FormControlLabelText>{t('onboarding.balanceInBank')} ({currency.code})</FormControlLabelText>
                     </FormControlLabel>
                     <Input size="xl" className="mt-2">
                       <InputField
@@ -134,14 +136,14 @@ export default function BalanceScreen() {
                       <Ionicons name="cash" size={24} color={theme.colors.secondary} />
                     </Box>
                     <VStack>
-                      <Text className="font-semibold text-typography-900">Espèce</Text>
-                      <Text className="text-xs text-typography-500">Argent liquide</Text>
+                      <Text className="font-semibold text-typography-900">{t('account.cash')}</Text>
+                      <Text className="text-xs text-typography-500">{t('onboarding.cashAccount')}</Text>
                     </VStack>
                   </HStack>
 
                   <FormControl>
                     <FormControlLabel>
-                      <FormControlLabelText>Solde en espèce ({currency.code})</FormControlLabelText>
+                      <FormControlLabelText>{t('onboarding.balanceInCash')} ({currency.code})</FormControlLabelText>
                     </FormControlLabel>
                     <Input size="xl" className="mt-2">
                       <InputField
@@ -165,7 +167,7 @@ export default function BalanceScreen() {
               )}
 
             <Text className="text-center text-typography-400 text-sm">
-              Vous pourrez modifier ces montants plus tard
+              {t('onboarding.balanceChangeHint')}
             </Text>
 
             <HStack space="md" className="mt-4">
@@ -175,7 +177,7 @@ export default function BalanceScreen() {
                 className="flex-1"
                 onPress={() => router.back()}
               >
-                <ButtonText>Retour</ButtonText>
+                <ButtonText>{t('onboarding.back')}</ButtonText>
               </Button>
               <Button
                 size="xl"
@@ -183,7 +185,7 @@ export default function BalanceScreen() {
                 style={{ backgroundColor: theme.colors.primary }}
                 onPress={handleNext}
               >
-                <ButtonText className="text-white">Suivant</ButtonText>
+                <ButtonText className="text-white">{t('onboarding.next')}</ButtonText>
               </Button>
             </HStack>
           </VStack>

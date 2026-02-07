@@ -2,6 +2,7 @@ import { useMemo, useCallback, useState } from 'react';
 import { View, SectionList, RefreshControl, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { Heading } from '@/components/ui/heading';
@@ -19,7 +20,7 @@ interface Section {
   data: TransactionWithCategory[];
 }
 
-function formatDateHeader(dateString: string): string {
+function formatDateHeader(dateString: string, locale: string, t: any): string {
   const date = new Date(dateString);
   const today = new Date();
   const yesterday = new Date(today);
@@ -28,17 +29,17 @@ function formatDateHeader(dateString: string): string {
   const isToday = date.toDateString() === today.toDateString();
   const isYesterday = date.toDateString() === yesterday.toDateString();
 
-  if (isToday) return "Aujourd'hui";
-  if (isYesterday) return 'Hier';
+  if (isToday) return t('history.today');
+  if (isYesterday) return t('history.yesterday');
 
-  return date.toLocaleDateString('fr-FR', {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   });
 }
 
-function groupByDate(transactions: TransactionWithCategory[]): Section[] {
+function groupByDate(transactions: TransactionWithCategory[], locale: string, t: any): Section[] {
   const groups: Record<string, TransactionWithCategory[]> = {};
 
   transactions.forEach((transaction) => {
@@ -50,7 +51,7 @@ function groupByDate(transactions: TransactionWithCategory[]): Section[] {
   });
 
   return Object.entries(groups).map(([date, data]) => ({
-    title: formatDateHeader(data[0].created_at),
+    title: formatDateHeader(data[0].created_at, locale, t),
     data,
   }));
 }
@@ -59,6 +60,7 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { transactions, isFetching, refresh } = useTransactions();
+  const { t, i18n } = useTranslation();
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Auto-refresh when screen is focused
@@ -80,16 +82,16 @@ export default function HistoryScreen() {
     setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
   };
 
-  const sections = useMemo(() => groupByDate(visibleTransactions), [visibleTransactions]);
+  const sections = useMemo(() => groupByDate(visibleTransactions, i18n.language, t), [visibleTransactions, i18n.language, t]);
 
   const renderEmpty = () => (
     <Center className="flex-1 py-20">
       <Text className="text-6xl mb-4">📭</Text>
       <Text className="text-typography-500 text-center">
-        Aucune transaction
+        {t('history.noTransactions')}
       </Text>
       <Text className="text-typography-400 text-center text-sm mt-1">
-        Ajoutez votre première dépense ou revenu
+        {t('history.addFirst')}
       </Text>
     </Center>
   );
@@ -121,7 +123,7 @@ export default function HistoryScreen() {
             className="text-center font-medium"
             style={{ color: theme.colors.primary }}
           >
-            Afficher plus
+            {t('history.loadMore')}
           </Text>
         </Pressable>
       </Box>
@@ -133,7 +135,7 @@ export default function HistoryScreen() {
       <VStack className="flex-1">
         <Box className="px-6 py-4 bg-background-0">
           <Heading size="xl" className="text-typography-900">
-            Historique
+            {t('history.title')}
           </Heading>
         </Box>
 

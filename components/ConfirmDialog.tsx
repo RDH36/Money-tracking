@@ -10,6 +10,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <AlertDialog isOpen={isOpen} onClose={onClose}>
@@ -44,7 +46,7 @@ export function ConfirmDialog({
         </AlertDialogBody>
         <AlertDialogFooter>
           <Button variant="outline" onPress={onClose}>
-            <ButtonText>Annuler</ButtonText>
+            <ButtonText>{t('common.cancel')}</ButtonText>
           </Button>
           <Button
             style={{ backgroundColor: isDestructive ? '#DC2626' : theme.colors.primary }}

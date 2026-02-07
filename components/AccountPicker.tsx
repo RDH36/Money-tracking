@@ -1,4 +1,5 @@
 import { Pressable, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -23,11 +24,19 @@ export function AccountPicker({
   onSelect,
   formatMoney,
 }: AccountPickerProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
+
+  const getAccountName = (account: AccountWithBalance) => {
+    if (account.is_default === 1) {
+      return account.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash');
+    }
+    return account.name;
+  };
 
   const getAccountColor = (type: string) => {
     return type === 'bank' ? theme.colors.primary : theme.colors.secondary;
@@ -68,7 +77,7 @@ export function AccountPicker({
                       className="font-semibold"
                       style={{ color: isSelected ? color : colors.textMuted }}
                     >
-                      {account.name}
+                      {getAccountName(account)}
                     </Text>
                   </HStack>
                   <Text

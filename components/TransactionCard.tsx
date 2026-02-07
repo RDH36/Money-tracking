@@ -1,12 +1,16 @@
 import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+
+const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
@@ -15,11 +19,20 @@ interface TransactionCardProps {
 
 export function TransactionCard({ transaction, onPress }: TransactionCardProps) {
   const currencyCode = useCurrencyCode();
+  const { t, i18n } = useTranslation();
   const isExpense = transaction.type === 'expense';
   const isTransfer = !!transaction.transfer_id;
   const formattedAmount = formatCurrency(transaction.amount, currencyCode);
   const sign = isExpense ? '-' : '+';
   const iconColor = transaction.category_color || '#95A5A6';
+
+  const getCategoryName = () => {
+    if (!transaction.category_id) return t('common.noCategory');
+    if (DEFAULT_CATEGORY_IDS.includes(transaction.category_id)) {
+      return t(`categories.${transaction.category_id}`);
+    }
+    return transaction.category_name || t('common.noCategory');
+  };
 
   const getTransferLabel = () => {
     if (!isTransfer) return null;
@@ -30,7 +43,8 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', {
+    const locale = i18n.language === 'fr' ? 'fr-FR' : 'en-US';
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -57,7 +71,7 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
 
         <VStack className="flex-1" space="xs">
           <Text className="font-semibold text-typography-900">
-            {transaction.category_name || 'Sans catégorie'}
+            {getCategoryName()}
           </Text>
           {isTransfer && getTransferLabel() && (
             <Text className="text-primary-600 text-sm font-medium">

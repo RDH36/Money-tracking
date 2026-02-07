@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 
 interface CategoryExpense {
+  id: string | null;
   name: string;
   amount: number;
   color: string;
@@ -16,11 +17,13 @@ export function useExpensesByCategory() {
     try {
       setIsLoading(true);
       const result = await db.getAllAsync<{
+        category_id: string | null;
         category_name: string | null;
         category_color: string | null;
         total: number;
       }>(
         `SELECT
+          t.category_id as category_id,
           c.name as category_name,
           c.color as category_color,
           SUM(t.amount) as total
@@ -33,7 +36,8 @@ export function useExpensesByCategory() {
 
       setExpenses(
         result.map((row) => ({
-          name: row.category_name || 'Sans catégorie',
+          id: row.category_id,
+          name: row.category_name || '',
           amount: row.total,
           color: row.category_color || '#95A5A6',
         }))

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -27,6 +28,7 @@ type ScreenMode = 'transaction' | 'transfer';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const currency = useCurrency();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
@@ -123,7 +125,7 @@ export default function AddTransactionScreen() {
           <Box className="flex-1 p-6 pb-4">
             <VStack className="flex-1" space="xl">
               <Heading size="xl" className="text-typography-900">
-                {mode === 'transaction' ? 'Nouvelle transaction' : 'Transfert'}
+                {mode === 'transaction' ? t('add.newTransaction') : t('add.transfer')}
               </Heading>
 
               <Box className="bg-background-100 p-1 rounded-xl">
@@ -143,7 +145,7 @@ export default function AddTransactionScreen() {
                           className="font-semibold"
                           style={{ color: mode === 'transaction' ? colors.cardBg : colors.textMuted }}
                         >
-                          Transaction
+                          {t('add.transaction')}
                         </Text>
                       </HStack>
                     </Box>
@@ -163,7 +165,7 @@ export default function AddTransactionScreen() {
                           className="font-semibold"
                           style={{ color: mode === 'transfer' ? colors.cardBg : colors.textMuted }}
                         >
-                          Transfert
+                          {t('add.transfer')}
                         </Text>
                       </HStack>
                     </Box>
@@ -191,7 +193,7 @@ export default function AddTransactionScreen() {
                           className="font-semibold"
                           style={{ color: type === 'expense' ? '#EF4444' : colors.textMuted }}
                         >
-                          Dépense
+                          {t('add.expense')}
                         </Text>
                       </HStack>
                     </Box>
@@ -214,7 +216,7 @@ export default function AddTransactionScreen() {
                           className="font-semibold"
                           style={{ color: type === 'income' ? '#22C55E' : colors.textMuted }}
                         >
-                          Revenu
+                          {t('add.income')}
                         </Text>
                       </HStack>
                     </Box>
@@ -223,7 +225,7 @@ export default function AddTransactionScreen() {
               )}
 
               <Center className="py-4">
-                <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
+                <Text className="text-typography-500 text-sm mb-2">{t('add.amount')} ({currency.code})</Text>
                 <Input size="xl" variant="underlined" className="w-full max-w-[250px]">
                   <InputField
                     placeholder="0"
@@ -239,23 +241,23 @@ export default function AddTransactionScreen() {
               {mode === 'transaction' ? (
                 <>
                   <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">Compte</Text>
+                    <Text className="text-typography-700 font-medium">{t('add.account')}</Text>
                     <AccountPicker accounts={accounts} selectedId={accountId} onSelect={setAccountId} formatMoney={formatMoney} />
                   </VStack>
                   {type === 'expense' ? (
                     <VStack space="sm">
-                      <Text className="text-typography-700 font-medium">Catégorie</Text>
+                      <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
                       <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
                     </VStack>
                   ) : (
                     <VStack space="sm">
-                      <Text className="text-typography-700 font-medium">Catégorie</Text>
+                      <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
                       <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
                         <HStack space="md" className="items-center">
                           <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
                             <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
                           </Box>
-                          <Text className="font-medium text-typography-900">{incomeCategory?.name || 'Revenu'}</Text>
+                          <Text className="font-medium text-typography-900">{t('add.income')}</Text>
                         </HStack>
                       </Box>
                     </VStack>
@@ -272,17 +274,17 @@ export default function AddTransactionScreen() {
               )}
 
               <VStack space="sm">
-                <Text className="text-typography-700 font-medium">Note (optionnel)</Text>
+                <Text className="text-typography-700 font-medium">{t('add.noteOptional')}</Text>
                 <Input size="lg">
-                  <InputField placeholder="Ajouter une note..." value={note} onChangeText={setNote} maxLength={20} />
+                  <InputField placeholder={t('add.notePlaceholder')} value={note} onChangeText={setNote} maxLength={20} />
                 </Input>
-                <Text className="text-typography-400 text-xs text-right">{note.length}/20 caractères</Text>
+                <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: note.length, max: 20 })}</Text>
               </VStack>
 
               {success && (
                 <Center className="bg-success-100 p-3 rounded-xl">
                   <Text className="text-success-700 font-medium">
-                    {mode === 'transaction' ? '✓ Transaction enregistrée !' : '✓ Transfert effectué !'}
+                    {mode === 'transaction' ? t('add.transactionSaved') : t('add.transferSaved')}
                   </Text>
                 </Center>
               )}
@@ -304,7 +306,7 @@ export default function AddTransactionScreen() {
               isDisabled={!isValid || isLoading}
             >
               <ButtonText className="text-white font-semibold">
-                {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+                {isLoading ? t('add.saving') : t('common.save')}
               </ButtonText>
             </Button>
           </Box>

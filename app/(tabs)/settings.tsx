@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Heading } from '@/components/ui/heading';
 import { getCurrencyByCode } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
@@ -13,6 +14,7 @@ import {
   AccountsSection,
   CategoriesSection,
   AppearanceSection,
+  LanguageSection,
   NotificationsSection,
   PrivacySection,
   AboutSection,
@@ -23,6 +25,7 @@ import type { Category, AccountWithBalance } from '@/types';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { themeId, setTheme } = useTheme();
   const {
     balanceHidden,
@@ -114,7 +117,7 @@ export default function SettingsScreen() {
     <View className="flex-1 bg-background-50" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
         <Heading size="2xl" className="text-typography-900 px-4 py-6">
-          Paramètres
+          {t('settings.title')}
         </Heading>
 
         <AccountsSection
@@ -140,6 +143,8 @@ export default function SettingsScreen() {
           onCurrencyChange={handleCurrencyPress}
         />
 
+        <LanguageSection />
+
         <NotificationsSection
           reminderFrequency={reminderFrequency}
           onReminderChange={setReminderFrequency}
@@ -164,9 +169,9 @@ export default function SettingsScreen() {
 
       <ConfirmDialog
         isOpen={!!deleteCategoryTarget}
-        title="Supprimer la catégorie"
-        message={`Supprimer "${deleteCategoryTarget?.name}" ?`}
-        confirmText="Supprimer"
+        title={t('category.deleteConfirm')}
+        message={t('common.deleteItem', { name: deleteCategoryTarget?.name })}
+        confirmText={t('common.delete')}
         isDestructive
         onClose={() => setDeleteCategoryTarget(null)}
         onConfirm={async () => {
@@ -177,9 +182,9 @@ export default function SettingsScreen() {
 
       <ConfirmDialog
         isOpen={!!deleteAccountTarget}
-        title="Supprimer le compte"
-        message={`Supprimer "${deleteAccountTarget?.name}" ?`}
-        confirmText="Supprimer"
+        title={t('account.deleteConfirm')}
+        message={t('common.deleteItem', { name: deleteAccountTarget?.name })}
+        confirmText={t('common.delete')}
         isDestructive
         onClose={() => setDeleteAccountTarget(null)}
         onConfirm={async () => {

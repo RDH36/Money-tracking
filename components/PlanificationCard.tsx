@@ -1,4 +1,5 @@
 import { Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -18,9 +19,9 @@ interface PlanificationCardProps {
   formatMoney: (amount: number) => string;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' });
 }
 
 function isExpired(deadline: string | null): boolean {
@@ -36,6 +37,7 @@ export function PlanificationCard({
   onDelete,
   formatMoney,
 }: PlanificationCardProps) {
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
@@ -64,18 +66,18 @@ export function PlanificationCard({
                   className="text-xs font-medium"
                   style={{ color: isPending ? theme.colors.primary : theme.colors.secondary }}
                 >
-                  {isPending ? 'En attente' : 'Terminé'}
+                  {isPending ? t('planification.pending') : t('planification.completed')}
                 </Text>
               </Box>
               {expired && (
                 <Box className="px-2 py-0.5 rounded-full bg-error-100">
-                  <Text className="text-xs font-medium text-error-600">Expiré</Text>
+                  <Text className="text-xs font-medium text-error-600">{t('planification.expired')}</Text>
                 </Box>
               )}
             </HStack>
             <HStack space="md" className="items-center">
               <Text className="text-typography-500 text-sm">
-                {planification.item_count} élément{planification.item_count > 1 ? 's' : ''}
+                {t('planification.itemCount', { count: planification.item_count })}
               </Text>
               {planification.deadline && (
                 <HStack space="xs" className="items-center">
@@ -85,7 +87,7 @@ export function PlanificationCard({
                     color={expired ? '#DC2626' : colors.textMuted}
                   />
                   <Text className="text-sm" style={{ color: expired ? '#DC2626' : colors.textMuted }}>
-                    {formatDate(planification.deadline)}
+                    {formatDate(planification.deadline, i18n.language)}
                   </Text>
                 </HStack>
               )}
@@ -121,7 +123,7 @@ export function PlanificationCard({
                     className="px-3 py-1 rounded-full"
                     style={{ backgroundColor: theme.colors.primary }}
                   >
-                    <Text className="text-white text-xs font-medium">Valider</Text>
+                    <Text className="text-white text-xs font-medium">{t('planification.validate')}</Text>
                   </Pressable>
                 )}
               </HStack>

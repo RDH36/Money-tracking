@@ -1,4 +1,5 @@
 import { Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -6,8 +7,6 @@ import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { useBalanceHidden } from '@/stores/settingsStore';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 import { SettingSection } from './SettingSection';
 import type { AccountWithBalance } from '@/types';
 
@@ -18,20 +17,26 @@ interface AccountsSectionProps {
 }
 
 export function AccountsSection({ accounts, formatMoney, onDelete }: AccountsSectionProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
-  const effectiveScheme = useEffectiveColorScheme();
-  const colors = getDarkModeColors(effectiveScheme === 'dark');
 
   const getAccountColor = (type: string) => {
     return type === 'bank' ? theme.colors.primary : theme.colors.secondary;
   };
 
+  const getAccountName = (account: AccountWithBalance) => {
+    if (account.is_default === 1) {
+      return account.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash');
+    }
+    return account.name;
+  };
+
   if (accounts.length === 0) return null;
 
   return (
-    <SettingSection title="Mes comptes">
+    <SettingSection title={t('settings.accounts')}>
       {accounts.map((account, index) => {
         const color = getAccountColor(account.type);
         const isLast = index === accounts.length - 1;
@@ -53,9 +58,9 @@ export function AccountsSection({ accounts, formatMoney, onDelete }: AccountsSec
                 />
               </Box>
               <VStack>
-                <Text className="font-medium text-typography-900">{account.name}</Text>
+                <Text className="font-medium text-typography-900">{getAccountName(account)}</Text>
                 <Text className="text-xs text-typography-500">
-                  {account.type === 'bank' ? 'Bancaire' : 'Espèce'}
+                  {account.type === 'bank' ? t('account.bank') : t('account.cash')}
                 </Text>
               </VStack>
             </HStack>

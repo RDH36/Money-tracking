@@ -4,7 +4,7 @@ import { ActivityIndicator, StatusBar, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import { ThemeProvider } from "@/contexts";
+import { ThemeProvider, LanguageProvider } from "@/contexts";
 import "@/global.css";
 import { DatabaseProvider } from "@/lib/database/sqlite";
 
@@ -23,6 +23,7 @@ export default function RootLayout() {
         <StatusBar barStyle="dark-content" />
         <Suspense fallback={<LoadingFallback />}>
           <DatabaseProvider>
+            <LanguageProvider>
             <ThemeProvider>
               <Stack
                 screenOptions={{
@@ -37,6 +38,7 @@ export default function RootLayout() {
                 <Stack.Screen name="planification/[id]" />
               </Stack>
             </ThemeProvider>
+            </LanguageProvider>
           </DatabaseProvider>
         </Suspense>
       </GluestackUIProvider>

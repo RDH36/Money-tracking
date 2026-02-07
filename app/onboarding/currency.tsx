@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -18,6 +19,7 @@ export default function CurrencyScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { setCurrency } = useSettings();
+  const { t } = useTranslation();
   const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,12 +37,12 @@ export default function CurrencyScreen() {
     >
       <Box className="flex-1 p-6">
         <VStack space="md" className="mb-6">
-          <Text className="text-typography-500">Configuration</Text>
+          <Text className="text-typography-500">{t('onboarding.configuration')}</Text>
           <Heading size="xl" className="text-typography-900">
-            Choisissez votre devise
+            {t('onboarding.chooseCurrency')}
           </Heading>
           <Text className="text-typography-600">
-            Sélectionnez la devise que vous utiliserez pour suivre vos dépenses
+            {t('onboarding.currencyDescription')}
           </Text>
         </VStack>
 
@@ -84,7 +86,7 @@ export default function CurrencyScreen() {
                       className="text-sm"
                       style={{ color: isSelected ? '#555' : '#888' }}
                     >
-                      {currency.name}
+                      {t(`currencies.${currency.code}`)}
                     </Text>
                   </VStack>
                   <Box
@@ -105,7 +107,7 @@ export default function CurrencyScreen() {
         </VStack>
 
         <Text className="text-center text-typography-400 text-sm mb-4">
-          Vous pourrez changer de devise dans les paramètres
+          {t('onboarding.currencyChangeHint')}
         </Text>
 
         <HStack space="md">
@@ -116,7 +118,7 @@ export default function CurrencyScreen() {
             onPress={() => router.back()}
             isDisabled={isLoading}
           >
-            <ButtonText>Retour</ButtonText>
+            <ButtonText>{t('onboarding.back')}</ButtonText>
           </Button>
           <Button
             size="xl"
@@ -126,7 +128,7 @@ export default function CurrencyScreen() {
             isDisabled={isLoading}
           >
             <ButtonText className="text-white">
-              {isLoading ? 'Chargement...' : 'Suivant'}
+              {isLoading ? t('common.loading') : t('onboarding.next')}
             </ButtonText>
           </Button>
         </HStack>

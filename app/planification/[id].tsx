@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -22,11 +23,16 @@ import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import type { TransactionType } from '@/types';
 
-function formatDate(dateStr: string): string {
+const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
+
+function formatDate(dateStr: string, language: string = 'fr'): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  const localeMap: { [key: string]: string } = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', de: 'de-DE' };
+  const locale = localeMap[language] || 'fr-FR';
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function isExpired(deadline: string | null): boolean {
@@ -38,6 +44,7 @@ export default function PlanificationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const currency = useCurrency();
   const { balance, refresh: refreshBalance } = useBalance();
@@ -49,6 +56,14 @@ export default function PlanificationDetailScreen() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
+
+  const getCategoryName = (categoryId: string | null, categoryName: string | null) => {
+    if (!categoryId) return t('common.noCategory');
+    if (DEFAULT_CATEGORY_IDS.includes(categoryId)) {
+      return t(`categories.${categoryId}`);
+    }
+    return categoryName || t('common.noCategory');
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -123,8 +138,8 @@ export default function PlanificationDetailScreen() {
     return (
       <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
         <Center className="flex-1">
-          <Text className="text-typography-500">Planification introuvable</Text>
-          <Button className="mt-4" onPress={() => router.back()}><ButtonText>Retour</ButtonText></Button>
+          <Text className="text-typography-500">{t('planification.notFound')}</Text>
+          <Button className="mt-4" onPress={() => router.back()}><ButtonText>{t('onboarding.back')}</ButtonText></Button>
         </Center>
       </View>
     );
@@ -144,7 +159,7 @@ export default function PlanificationDetailScreen() {
                 <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
               </Pressable>
               <Heading size="lg" className="text-typography-900 flex-1 ml-2" numberOfLines={1}>
-                {planification?.title || 'Chargement...'}
+                {planification?.title || t('common.loading')}
               </Heading>
             </HStack>
 
@@ -154,13 +169,13 @@ export default function PlanificationDetailScreen() {
                   <HStack space="sm" className="items-center flex-1">
                     <Ionicons name="calendar-outline" size={20} color={expired ? '#DC2626' : theme.colors.primary} />
                     <VStack>
-                      <Text className="text-typography-600 text-sm">Date butoir</Text>
+                      <Text className="text-typography-600 text-sm">{t('planification.deadline')}</Text>
                       {planification?.deadline ? (
                         <Text className="font-semibold" style={{ color: expired ? '#DC2626' : theme.colors.primary }}>
-                          {formatDate(planification.deadline)}{expired && ' (Expiré)'}
+                          {formatDate(planification.deadline, i18n.language)}{expired && ` (${t('planification.expired')})`}
                         </Text>
                       ) : (
-                        <Text className="text-typography-500">Non définie</Text>
+                        <Text className="text-typography-500">{t('planification.notDefined')}</Text>
                       )}
                     </VStack>
                   </HStack>
@@ -185,7 +200,7 @@ export default function PlanificationDetailScreen() {
               <Box className="p-3 rounded-xl bg-background-100">
                 <HStack space="sm" className="items-start">
                   <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  <Text className="text-typography-600 flex-1">Cette planification a été validée et les achats ont été déduits du solde.</Text>
+                  <Text className="text-typography-600 flex-1">{t('planification.validatedMessage')}</Text>
                 </HStack>
               </Box>
             )}
@@ -193,32 +208,32 @@ export default function PlanificationDetailScreen() {
             <Box className="p-4 rounded-2xl" style={{ backgroundColor: theme.colors.primaryLight }}>
               <VStack space="md">
                 <HStack className="justify-between">
-                  <Text className="text-typography-600">Solde actuel</Text>
+                  <Text className="text-typography-600">{t('planification.currentBalance')}</Text>
                   <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
                 </HStack>
                 {(totalExpenses > 0 || totalIncome > 0) && isPending && (
                   <>
                     {totalExpenses > 0 && (
                       <HStack className="justify-between">
-                        <Text className="text-typography-600">Dépenses prévues</Text>
+                        <Text className="text-typography-600">{t('planification.plannedExpenses')}</Text>
                         <Text className="text-error-600 font-semibold">- {formatMoney(totalExpenses)}</Text>
                       </HStack>
                     )}
                     {totalIncome > 0 && (
                       <HStack className="justify-between">
-                        <Text className="text-typography-600">Revenus prévus</Text>
+                        <Text className="text-typography-600">{t('planification.plannedIncome')}</Text>
                         <Text className="text-success-600 font-semibold">+ {formatMoney(totalIncome)}</Text>
                       </HStack>
                     )}
                     <Box className="h-px bg-outline-200" />
                     <HStack className="justify-between items-center">
-                      <Text className="text-typography-700 font-medium">Solde après</Text>
+                      <Text className="text-typography-700 font-medium">{t('planification.balanceAfter')}</Text>
                       <Text className="text-2xl font-bold" style={{ color: isNegative ? '#DC2626' : theme.colors.primary }}>{formatMoney(projectedBalance)}</Text>
                     </HStack>
                     {isNegative && (
                       <HStack space="xs" className="items-center">
                         <Ionicons name="warning" size={16} color="#DC2626" />
-                        <Text className="text-error-600 text-sm">Attention : solde négatif prévu !</Text>
+                        <Text className="text-error-600 text-sm">{t('planification.negativeWarning')}</Text>
                       </HStack>
                     )}
                   </>
@@ -228,7 +243,7 @@ export default function PlanificationDetailScreen() {
 
             {isPending && (
               <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">Ajouter un élément</Text>
+                <Text className="text-typography-700 font-semibold text-lg">{t('planification.addElement')}</Text>
                 <HStack space="sm" className="justify-center">
                   <Pressable onPress={() => setItemType('expense')} className="flex-1">
                     <Box
@@ -248,7 +263,7 @@ export default function PlanificationDetailScreen() {
                           className="font-semibold"
                           style={{ color: itemType === 'expense' ? '#EF4444' : colors.textMuted }}
                         >
-                          Dépense
+                          {t('add.expense')}
                         </Text>
                       </HStack>
                     </Box>
@@ -271,50 +286,50 @@ export default function PlanificationDetailScreen() {
                           className="font-semibold"
                           style={{ color: itemType === 'income' ? '#22C55E' : colors.textMuted }}
                         >
-                          Revenu
+                          {t('add.income')}
                         </Text>
                       </HStack>
                     </Box>
                   </Pressable>
                 </HStack>
                 <Center>
-                  <Text className="text-typography-500 text-sm mb-2">Montant ({currency.code})</Text>
+                  <Text className="text-typography-500 text-sm mb-2">{t('planification.amount')} ({currency.code})</Text>
                   <Input size="xl" variant="underlined" className="w-full max-w-[200px]">
                     <InputField placeholder="0" keyboardType="decimal-pad" value={amount} onChangeText={(t) => setAmount(formatAmountInput(t))} className="text-3xl text-center font-bold" textAlign="center" />
                   </Input>
                 </Center>
                 {itemType === 'expense' ? (
                   <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">Catégorie</Text>
+                    <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
                     <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
                   </VStack>
                 ) : (
                   <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">Catégorie</Text>
+                    <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
                     <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
                       <HStack space="md" className="items-center">
                         <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
                           <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
                         </Box>
-                        <Text className="font-medium text-typography-900">{incomeCategory?.name || 'Revenu'}</Text>
+                        <Text className="font-medium text-typography-900">{t('add.income')}</Text>
                       </HStack>
                     </Box>
                   </VStack>
                 )}
                 <VStack space="sm">
-                  <Text className="text-typography-700 font-medium">Note (optionnel)</Text>
+                  <Text className="text-typography-700 font-medium">{t('add.noteOptional')}</Text>
                   <Input size="md"><InputField placeholder="Ex: Restaurant..." value={note} onChangeText={setNote} maxLength={20} /></Input>
-                  <Text className="text-typography-400 text-xs text-right">{note.length}/20 caractères</Text>
+                  <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: note.length, max: 20 })}</Text>
                 </VStack>
                 <Button size="lg" className="w-full" style={{ backgroundColor: itemType === 'income' ? '#22C55E' : theme.colors.primary }} onPress={handleAddItem} isDisabled={!isValid || isLoading}>
-                  <ButtonText className="text-white font-semibold">Ajouter</ButtonText>
+                  <ButtonText className="text-white font-semibold">{t('planification.add')}</ButtonText>
                 </Button>
               </VStack>
             )}
 
             {items.length > 0 && (
               <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">Éléments ({items.length})</Text>
+                <Text className="text-typography-700 font-semibold text-lg">{t('planification.elements', { count: items.length })}</Text>
                 {items.map((item) => {
                   const isIncome = item.type === 'income';
                   return (
@@ -324,7 +339,7 @@ export default function PlanificationDetailScreen() {
                           {item.category_icon && <Ionicons name={item.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
                         </Box>
                         <VStack className="flex-1">
-                          <Text className="text-typography-900 font-medium">{item.category_name || 'Sans catégorie'}</Text>
+                          <Text className="text-typography-900 font-medium">{getCategoryName(item.category_id, item.category_name)}</Text>
                           {item.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{item.note}</Text>}
                         </VStack>
                       </HStack>
@@ -343,7 +358,7 @@ export default function PlanificationDetailScreen() {
             {items.length === 0 && isPending && (
               <Center className="py-8">
                 <Ionicons name="list-outline" size={48} color={colors.textMuted} />
-                <Text className="text-typography-500 text-center mt-4">Ajoutez des éléments à votre planification</Text>
+                <Text className="text-typography-500 text-center mt-4">{t('planification.addElementsHint')}</Text>
               </Center>
             )}
 
@@ -352,13 +367,13 @@ export default function PlanificationDetailScreen() {
                 <Button size="lg" variant="outline" className="w-full" onPress={() => router.back()}>
                   <HStack space="sm" className="items-center">
                     <Ionicons name="save-outline" size={20} color={theme.colors.primary} />
-                    <ButtonText style={{ color: theme.colors.primary }}>Sauvegarder</ButtonText>
+                    <ButtonText style={{ color: theme.colors.primary }}>{t('planification.save')}</ButtonText>
                   </HStack>
                 </Button>
                 <Button size="lg" className="w-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowValidateDialog(true)}>
                   <HStack space="sm" className="items-center">
                     <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                    <ButtonText className="text-white font-semibold">Valider et déduire du solde</ButtonText>
+                    <ButtonText className="text-white font-semibold">{t('planification.validateAndDeduct')}</ButtonText>
                   </HStack>
                 </Button>
               </VStack>
@@ -366,7 +381,7 @@ export default function PlanificationDetailScreen() {
         </VStack>
       </KeyboardAwareScrollView>
 
-      <ConfirmDialog isOpen={!!deleteItemId} title="Supprimer" message="Voulez-vous supprimer cet achat ?" confirmText="Supprimer" isDestructive onClose={() => setDeleteItemId(null)} onConfirm={handleDeleteConfirm} />
+      <ConfirmDialog isOpen={!!deleteItemId} title={t('common.delete')} message={t('planification.deleteItemConfirm')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteItemId(null)} onConfirm={handleDeleteConfirm} />
 
       <ValidatePlanificationDialog
         isOpen={showValidateDialog}

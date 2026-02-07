@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -11,13 +12,17 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
 
 export default function CategoriesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
+
+  const defaultCategoryIds = new Set(DEFAULT_CATEGORIES.map((c) => c.id));
 
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
     new Set(categories.map((c) => c.id))
@@ -52,12 +57,12 @@ export default function CategoriesScreen() {
     >
       <Box className="flex-1 p-6">
         <VStack space="md" className="mb-4">
-          <Text className="text-typography-500">Étape 3/3</Text>
+          <Text className="text-typography-500">{t('onboarding.step')} 3/3</Text>
           <Heading size="xl" className="text-typography-900">
-            Choisissez vos catégories
+            {t('onboarding.chooseCategories')}
           </Heading>
           <Text className="text-typography-600">
-            Sélectionnez les catégories que vous utiliserez
+            {t('onboarding.categoriesDescription')}
           </Text>
         </VStack>
 
@@ -93,7 +98,7 @@ export default function CategoriesScreen() {
                         className="font-semibold"
                         style={{ color: isSelected ? '#333' : '#555' }}
                       >
-                        {category.name}
+                        {defaultCategoryIds.has(category.id) ? t(`categories.${category.id}`) : category.name}
                       </Text>
                     </VStack>
                     <Box
@@ -122,7 +127,7 @@ export default function CategoriesScreen() {
             onPress={() => router.back()}
             isDisabled={isLoading}
           >
-            <ButtonText>Retour</ButtonText>
+            <ButtonText>{t('onboarding.back')}</ButtonText>
           </Button>
           <Button
             size="xl"
@@ -131,7 +136,7 @@ export default function CategoriesScreen() {
             onPress={handleFinish}
             isDisabled={isLoading || selectedCategories.size === 0}
           >
-            <ButtonText className="text-white">{isLoading ? 'Chargement...' : 'Terminer'}</ButtonText>
+            <ButtonText className="text-white">{isLoading ? t('common.loading') : t('onboarding.finish')}</ButtonText>
           </Button>
         </HStack>
       </Box>

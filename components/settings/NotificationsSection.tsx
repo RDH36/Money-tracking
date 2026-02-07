@@ -8,6 +8,7 @@ import { SettingSection } from './SettingSection';
 import { SettingRow } from './SettingRow';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { useTranslation } from 'react-i18next';
 
 const REMINDER_OPTIONS: { value: ReminderFrequency; label: string }[] = [
   { value: '1h', label: '1h' },
@@ -22,6 +23,7 @@ interface NotificationsSectionProps {
 }
 
 export function NotificationsSection({ reminderFrequency, onReminderChange }: NotificationsSectionProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
@@ -30,10 +32,10 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
   const chipContainerBg = isDark ? '#2C2C2E' : '#E5E5EA';
 
   return (
-    <SettingSection title="Notifications">
+    <SettingSection title={t('settings.notifications')}>
       <Box className="px-4 py-3 border-b border-outline-100">
         <HStack className="justify-between items-center">
-          <Text className="text-typography-900">Rappels dépenses</Text>
+          <Text className="text-typography-900">{t('settings.expenseReminders')}</Text>
           <HStack className="rounded-lg p-0.5" style={{ backgroundColor: chipContainerBg }}>
             {REMINDER_OPTIONS.map((opt) => {
               const isSelected = reminderFrequency === opt.value;
@@ -57,8 +59,8 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
         </HStack>
       </Box>
       <SettingRow
-        label="Rappels planification"
-        rightText="Automatique"
+        label={t('settings.planReminders')}
+        rightText={t('settings.automatic')}
         isLast
       />
     </SettingSection>

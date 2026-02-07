@@ -1,4 +1,5 @@
 import { ScrollView, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -6,7 +7,10 @@ import { VStack } from '@/components/ui/vstack';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import type { Category } from '@/types';
+
+const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface CategoryPickerProps {
   categories: Category[];
@@ -19,9 +23,17 @@ export function CategoryPicker({
   selectedId,
   onSelect,
 }: CategoryPickerProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
+
+  const getCategoryName = (cat: Category) => {
+    if (DEFAULT_CATEGORY_IDS.includes(cat.id)) {
+      return t(`categories.${cat.id}`);
+    }
+    return cat.name;
+  };
 
   const handlePress = (id: string) => {
     if (selectedId === id) {
@@ -68,7 +80,7 @@ export function CategoryPicker({
                 }}
                 numberOfLines={1}
               >
-                {category.name}
+                {getCategoryName(category)}
               </Text>
             </VStack>
           </Pressable>

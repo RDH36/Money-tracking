@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Linking, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { Heading } from '@/components/ui/heading';
@@ -13,6 +14,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const openLink = (url: string) => {
     Linking.openURL(url);
@@ -28,32 +30,32 @@ export default function WelcomeScreen() {
           <Center>
             <Text className="text-6xl mb-4">💰</Text>
             <Heading size="2xl" className="text-center text-typography-900">
-              Mitsitsy
+              {t('onboarding.appName')}
             </Heading>
             <Text className="text-center text-typography-600 mt-2">
-              Gérez vos finances simplement
+              {t('onboarding.tagline')}
             </Text>
           </Center>
 
           <VStack space="md" className="mt-8">
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Saisie rapide des dépenses et revenus
+                ✓ {t('onboarding.feature1')}
               </Text>
             </Box>
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Dashboard avec graphiques par catégorie
+                ✓ {t('onboarding.feature2')}
               </Text>
             </Box>
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ Rappels pour ne rien oublier
+                ✓ {t('onboarding.feature3')}
               </Text>
             </Box>
             <Box className="bg-background-50 p-4 rounded-xl">
               <Text className="text-typography-700">
-                ✓ 100% hors ligne, vos données restent privées
+                ✓ {t('onboarding.feature4')}
               </Text>
             </Box>
           </VStack>
@@ -66,17 +68,17 @@ export default function WelcomeScreen() {
             style={{ backgroundColor: theme.colors.primary }}
             onPress={() => router.push('/tutorial')}
           >
-            <ButtonText className="text-white">Commencer</ButtonText>
+            <ButtonText className="text-white">{t('onboarding.start')}</ButtonText>
           </Button>
 
           <Text className="text-typography-400 text-xs text-center">
-            En continuant, vous acceptez nos{' '}
+            {t('onboarding.termsPrefix')}{' '}
             <Pressable onPress={() => openLink('https://www.mitsitsy.app/terms')}>
-              <Text className="text-typography-500 text-xs underline">CGU</Text>
+              <Text className="text-typography-500 text-xs underline">{t('onboarding.termsLink')}</Text>
             </Pressable>
-            {' '}et notre{' '}
+            {' '}{t('onboarding.and')}{' '}
             <Pressable onPress={() => openLink('https://www.mitsitsy.app/privacy')}>
-              <Text className="text-typography-500 text-xs underline">Politique de Confidentialité</Text>
+              <Text className="text-typography-500 text-xs underline">{t('onboarding.privacyLink')}</Text>
             </Pressable>
           </Text>
         </VStack>

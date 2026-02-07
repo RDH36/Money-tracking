@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { useTranslation } from 'react-i18next';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -11,6 +12,7 @@ export default function TabsLayout() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -34,7 +36,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Accueil',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
@@ -43,7 +45,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="add"
         options={{
-          title: 'Ajouter',
+          title: t('tabs.add'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={28} color={color} />
           ),
@@ -52,7 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="simulation"
         options={{
-          title: 'Planifier',
+          title: t('tabs.plan'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'clipboard' : 'clipboard-outline'} size={24} color={color} />
           ),
@@ -61,7 +63,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Historique',
+          title: t('tabs.history'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'list' : 'list-outline'} size={24} color={color} />
           ),
@@ -70,7 +72,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Paramètres',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
           ),
