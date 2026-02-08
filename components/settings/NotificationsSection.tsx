@@ -29,14 +29,12 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
 
-  const chipContainerBg = isDark ? '#2C2C2E' : '#E5E5EA';
-
   return (
     <SettingSection title={t('settings.notifications')}>
       <Box className="px-4 py-3 border-b border-outline-100">
         <HStack className="justify-between items-center">
           <Text className="text-typography-900">{t('settings.expenseReminders')}</Text>
-          <HStack className="rounded-lg p-0.5" style={{ backgroundColor: chipContainerBg }}>
+          <HStack className="rounded-lg p-0.5" style={{ backgroundColor: colors.switchOff }}>
             {REMINDER_OPTIONS.map((opt) => {
               const isSelected = reminderFrequency === opt.value;
               return (
@@ -47,7 +45,7 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
                   >
                     <Text
                       className="text-xs font-medium"
-                      style={{ color: isSelected ? '#FFFFFF' : colors.textMuted }}
+                      style={{ color: isSelected ? colors.switchThumb : colors.textMuted }}
                     >
                       {opt.label}
                     </Text>

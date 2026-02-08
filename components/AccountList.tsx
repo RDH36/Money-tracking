@@ -1,4 +1,5 @@
 import { Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -16,6 +17,7 @@ interface AccountListProps {
 
 export function AccountList({ accounts, formatMoney, onDelete }: AccountListProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
 
@@ -51,7 +53,7 @@ export function AccountList({ accounts, formatMoney, onDelete }: AccountListProp
                 <VStack>
                   <Text className="font-semibold text-typography-900">{account.name}</Text>
                   <Text className="text-xs text-typography-500">
-                    {account.type === 'bank' ? 'Bancaire' : 'Espèce'}
+                    {account.type === 'bank' ? t('account.bank') : t('account.cash')}
                   </Text>
                 </VStack>
               </HStack>

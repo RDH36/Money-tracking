@@ -28,16 +28,32 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
 
   const getCategoryName = () => {
     if (!transaction.category_id) return t('common.noCategory');
+    // Handle system income category
+    if (transaction.category_id === 'system-income') {
+      return t('add.income');
+    }
     if (DEFAULT_CATEGORY_IDS.includes(transaction.category_id)) {
       return t(`categories.${transaction.category_id}`);
     }
     return transaction.category_name || t('common.noCategory');
   };
 
+  const getAccountDisplayName = (name: string | null, type: string | null) => {
+    if (!name) return t('add.account');
+    // Translate default account names
+    if ((name === 'Banque' || name === 'Bank') && type === 'bank') {
+      return t('account.defaultBank');
+    }
+    if ((name === 'Espèce' || name === 'Cash') && type === 'cash') {
+      return t('account.defaultCash');
+    }
+    return name;
+  };
+
   const getTransferLabel = () => {
     if (!isTransfer) return null;
-    const from = transaction.account_name || 'Compte';
-    const to = transaction.linked_account_name || 'Compte';
+    const from = getAccountDisplayName(transaction.account_name, transaction.account_type);
+    const to = transaction.linked_account_name || t('add.account');
     return `${from} → ${to}`;
   };
 
@@ -80,7 +96,7 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
           )}
           {!isTransfer && !isExpense && transaction.account_name && (
             <Text className="text-success-600 text-sm font-medium">
-              → {transaction.account_name}
+              → {getAccountDisplayName(transaction.account_name, transaction.account_type)}
             </Text>
           )}
           {transaction.note && !isTransfer && (

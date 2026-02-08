@@ -10,7 +10,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
-import { useAccounts, useTransactions, useSettings, useExpensesByCategory } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
 import { ExpenseChart } from '@/components/ExpenseChart';
 import { AddAccountModal } from '@/components/AddAccountModal';
@@ -24,6 +24,7 @@ export default function DashboardScreen() {
   const { transactions, refresh: refreshTransactions, isFetching } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
   const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
+  const { currentTip, showTip } = useTips('dashboard');
   const [showAddAccount, setShowAddAccount] = useState(false);
 
   const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
@@ -67,17 +68,25 @@ export default function DashboardScreen() {
         <VStack className="p-6" space="lg">
           <Heading size="xl" className="text-typography-900">{t('dashboard.title')}</Heading>
 
-          <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
-            <HStack className="justify-between items-start">
-              <VStack>
-                <Text className="text-white text-sm mb-1">{t('dashboard.totalBalance')}</Text>
-                <Heading size="2xl" className="text-white">{balanceHidden ? hiddenAmount : formattedTotal}</Heading>
-              </VStack>
-              <Pressable onPress={toggleBalanceVisibility} className="p-2">
-                <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
-              </Pressable>
-            </HStack>
-          </Box>
+          <VStack>
+            <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
+              <HStack className="justify-between items-start">
+                <VStack>
+                  <Text className="text-white text-sm mb-1">{t('dashboard.totalBalance')}</Text>
+                  <Heading size="2xl" className="text-white">{balanceHidden ? hiddenAmount : formattedTotal}</Heading>
+                </VStack>
+                <Pressable onPress={toggleBalanceVisibility} className="p-2">
+                  <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
+                </Pressable>
+              </HStack>
+            </Box>
+            {showTip && currentTip && (
+              <HStack className="mt-2 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.secondary + '20' }} space="sm">
+                <Ionicons name="bulb" size={16} color={theme.colors.secondary} />
+                <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
+              </HStack>
+            )}
+          </VStack>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {accounts.map((account) => (

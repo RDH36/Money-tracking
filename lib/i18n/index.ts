@@ -4,10 +4,12 @@ import * as Localization from 'expo-localization';
 
 import fr from './translations/fr.json';
 import en from './translations/en.json';
+import mg from './translations/mg.json';
 
 export const LANGUAGES = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'mg', name: 'Malagasy', flag: '🇲🇬' },
 ] as const;
 
 export type LanguageCode = (typeof LANGUAGES)[number]['code'];
@@ -17,6 +19,7 @@ export const DEFAULT_LANGUAGE: LanguageCode = 'fr';
 const resources = {
   fr: { translation: fr },
   en: { translation: en },
+  mg: { translation: mg },
 };
 
 export function getDeviceLanguage(): LanguageCode {

@@ -31,6 +31,9 @@ export default function TabsLayout() {
           fontSize: 12,
         },
         animation: 'shift',
+        sceneStyle: {
+          backgroundColor: colors.background,
+        },
       }}
     >
       <Tabs.Screen

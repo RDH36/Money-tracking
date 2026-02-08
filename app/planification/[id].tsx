@@ -59,6 +59,10 @@ export default function PlanificationDetailScreen() {
 
   const getCategoryName = (categoryId: string | null, categoryName: string | null) => {
     if (!categoryId) return t('common.noCategory');
+    // Handle system income category
+    if (categoryId === 'system-income') {
+      return t('add.income');
+    }
     if (DEFAULT_CATEGORY_IDS.includes(categoryId)) {
       return t(`categories.${categoryId}`);
     }

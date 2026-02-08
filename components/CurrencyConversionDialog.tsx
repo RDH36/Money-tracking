@@ -90,7 +90,7 @@ export function CurrencyConversionDialog({
             ) : exchangeRate ? (
               <VStack space="xs" className="bg-background-100 p-3 rounded-lg">
                 <Text className="text-typography-700 text-sm text-center font-medium">
-                  Taux de change actuel :
+                  {t('currency.currentRate')}
                 </Text>
                 <Text className="text-typography-900 text-center font-bold">
                   1 {fromCurrency.code} = {exchangeRate.toFixed(6)} {toCurrency.code}
@@ -108,7 +108,7 @@ export function CurrencyConversionDialog({
             {error && (
               <HStack space="sm" className="items-center bg-error-50 p-3 rounded-lg">
                 <Ionicons name="alert-circle" size={20} color="#DC2626" />
-                <Text className="text-error-700 flex-1 text-sm">{error}</Text>
+                <Text className="text-error-700 flex-1 text-sm">{t(error)}</Text>
               </HStack>
             )}
           </VStack>

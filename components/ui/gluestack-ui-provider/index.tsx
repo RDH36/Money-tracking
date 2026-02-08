@@ -6,6 +6,7 @@ import { OverlayProvider } from '@gluestack-ui/core/overlay/creator';
 import { ToastProvider } from '@gluestack-ui/core/toast/creator';
 import { useColorScheme } from 'nativewind';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 export type ModeType = 'light' | 'dark' | 'system';
 
@@ -32,8 +33,10 @@ export function GluestackUIProvider({
     setColorScheme(effectiveColorScheme);
   }, [effectiveColorScheme, setColorScheme]);
 
+  const isDark = effectiveColorScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
+
   const dynamicStyles = useMemo(() => {
-    const isDark = effectiveColorScheme === 'dark';
     const baseConfig = rawConfig[effectiveColorScheme];
     const secondaryColors = generateSecondaryColors(theme.colors.secondary, isDark);
 
@@ -41,13 +44,13 @@ export function GluestackUIProvider({
       ...baseConfig,
       ...secondaryColors,
     });
-  }, [effectiveColorScheme, theme.colors.secondary]);
+  }, [effectiveColorScheme, theme.colors.secondary, isDark]);
 
   return (
     <View
       style={[
         dynamicStyles,
-        { flex: 1, height: '100%', width: '100%' },
+        { flex: 1, height: '100%', width: '100%', backgroundColor: colors.background },
         props.style,
       ]}
     >

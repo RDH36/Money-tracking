@@ -138,7 +138,7 @@ export function ValidatePlanificationDialog({
             </VStack>
             {error && (
               <Box className="p-3 rounded-xl bg-error-100">
-                <Text className="text-error-700 text-center">{error}</Text>
+                <Text className="text-error-700 text-center">{t(error)}</Text>
               </Box>
             )}
           </VStack>

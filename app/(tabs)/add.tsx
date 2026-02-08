@@ -16,12 +16,12 @@ import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
-import { useCategories, useTransactions, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { useCategories, useTransactions, useAccounts, useTips, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
+import { getDarkModeColors } from '@/constants/darkMode';
 import type { TransactionType } from '@/types';
 
 type ScreenMode = 'transaction' | 'transfer';
@@ -37,6 +37,7 @@ export default function AddTransactionScreen() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
+  const { currentTip, showTip } = useTips('add');
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
   const [type, setType] = useState<TransactionType>('expense');
@@ -128,50 +129,58 @@ export default function AddTransactionScreen() {
                 {mode === 'transaction' ? t('add.newTransaction') : t('add.transfer')}
               </Heading>
 
-              <Box className="bg-background-100 p-1 rounded-xl">
-                <HStack>
-                  <Pressable onPress={() => { setMode('transaction'); setError(null); }} className="flex-1">
-                    <Box
-                      className="py-3 rounded-lg items-center"
-                      style={mode === 'transaction' ? { backgroundColor: theme.colors.primary } : {}}
-                    >
-                      <HStack space="sm" className="items-center">
-                        <Ionicons
-                          name="receipt-outline"
-                          size={18}
-                          color={mode === 'transaction' ? colors.cardBg : colors.textMuted}
-                        />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: mode === 'transaction' ? colors.cardBg : colors.textMuted }}
-                        >
-                          {t('add.transaction')}
-                        </Text>
-                      </HStack>
-                    </Box>
-                  </Pressable>
-                  <Pressable onPress={() => { setMode('transfer'); setError(null); }} className="flex-1">
-                    <Box
-                      className="py-3 rounded-lg items-center"
-                      style={mode === 'transfer' ? { backgroundColor: theme.colors.secondary } : {}}
-                    >
-                      <HStack space="sm" className="items-center">
-                        <Ionicons
-                          name="swap-horizontal-outline"
-                          size={18}
-                          color={mode === 'transfer' ? colors.cardBg : colors.textMuted}
-                        />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: mode === 'transfer' ? colors.cardBg : colors.textMuted }}
-                        >
-                          {t('add.transfer')}
-                        </Text>
-                      </HStack>
-                    </Box>
-                  </Pressable>
+              <VStack>
+                <Box className="bg-background-100 p-1 rounded-xl">
+                  <HStack>
+                    <Pressable onPress={() => { setMode('transaction'); setError(null); }} className="flex-1">
+                      <Box
+                        className="py-3 rounded-lg items-center"
+                        style={mode === 'transaction' ? { backgroundColor: theme.colors.primary } : {}}
+                      >
+                        <HStack space="sm" className="items-center">
+                          <Ionicons
+                            name="receipt-outline"
+                            size={18}
+                            color={mode === 'transaction' ? colors.cardBg : colors.textMuted}
+                          />
+                          <Text
+                            className="font-semibold"
+                            style={{ color: mode === 'transaction' ? colors.cardBg : colors.textMuted }}
+                          >
+                            {t('add.transaction')}
+                          </Text>
+                        </HStack>
+                      </Box>
+                    </Pressable>
+                    <Pressable onPress={() => { setMode('transfer'); setError(null); }} className="flex-1">
+                      <Box
+                        className="py-3 rounded-lg items-center"
+                        style={mode === 'transfer' ? { backgroundColor: theme.colors.secondary } : {}}
+                      >
+                        <HStack space="sm" className="items-center">
+                          <Ionicons
+                            name="swap-horizontal-outline"
+                            size={18}
+                            color={mode === 'transfer' ? colors.cardBg : colors.textMuted}
+                          />
+                          <Text
+                            className="font-semibold"
+                            style={{ color: mode === 'transfer' ? colors.cardBg : colors.textMuted }}
+                          >
+                            {t('add.transfer')}
+                          </Text>
+                        </HStack>
+                      </Box>
+                    </Pressable>
+                  </HStack>
+                </Box>
+                {showTip && currentTip && (
+                <HStack className="mt-2 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.secondary + '20' }} space="sm">
+                  <Ionicons name="bulb" size={16} color={theme.colors.secondary} />
+                  <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
                 </HStack>
-              </Box>
+              )}
+              </VStack>
 
               {mode === 'transaction' && (
                 <HStack space="sm" className="justify-center">
@@ -292,7 +301,7 @@ export default function AddTransactionScreen() {
               {error && (
                 <Center className="bg-error-100 p-3 rounded-xl">
                   <Text className="text-error-700 font-medium">
-                    {error}
+                    {t(error)}
                   </Text>
                 </Center>
               )}

@@ -11,6 +11,7 @@ interface SettingsState {
   colorMode: ColorMode;
   reminderFrequency: ReminderFrequency;
   currencyCode: string;
+  tipsEnabled: boolean;
   isLoading: boolean;
   isInitialized: boolean;
 
@@ -23,7 +24,8 @@ interface SettingsState {
   setColorMode: (mode: ColorMode) => void;
   setReminderFrequency: (frequency: ReminderFrequency) => void;
   setCurrencyCode: (code: string) => void;
-  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency, currencyCode: string, colorMode: ColorMode) => void;
+  setTipsEnabled: (enabled: boolean) => void;
+  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency, currencyCode: string, colorMode: ColorMode, tipsEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -33,6 +35,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   colorMode: 'system' as ColorMode,
   reminderFrequency: '1h' as ReminderFrequency,
   currencyCode: DEFAULT_CURRENCY,
+  tipsEnabled: true,
   isLoading: true,
   isInitialized: false,
 
@@ -68,13 +71,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode) => {
+  setTipsEnabled: (enabled) => set({ tipsEnabled: enabled }),
+
+  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode, tipsEnabled) => {
     set({
       balanceHidden,
       themeId: THEMES.some((t) => t.id === themeId) ? themeId : DEFAULT_THEME_ID,
       colorMode: ['light', 'dark', 'system'].includes(colorMode) ? colorMode : 'system',
       reminderFrequency: reminderFrequency || '1h',
       currencyCode: CURRENCIES.some((c) => c.code === currencyCode) ? currencyCode : DEFAULT_CURRENCY,
+      tipsEnabled: tipsEnabled ?? true,
       isLoading: false,
       isInitialized: true,
     });
@@ -90,3 +96,4 @@ export const useColorMode = () => useSettingsStore((state) => state.colorMode);
 export const useReminderFrequency = () => useSettingsStore((state) => state.reminderFrequency);
 export const useCurrencyCode = () => useSettingsStore((state) => state.currencyCode);
 export const useCurrency = () => useSettingsStore((state) => getCurrencyByCode(state.currencyCode));
+export const useTipsEnabled = () => useSettingsStore((state) => state.tipsEnabled);

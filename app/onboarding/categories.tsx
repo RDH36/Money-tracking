@@ -13,12 +13,16 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 export default function CategoriesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const effectiveScheme = useEffectiveColorScheme();
+  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
 
@@ -78,8 +82,8 @@ export default function CategoriesScreen() {
                   <HStack
                     className="p-4 rounded-xl border-2"
                     style={{
-                      backgroundColor: isSelected ? theme.colors.primaryLight : '#FFFFFF',
-                      borderColor: isSelected ? theme.colors.primary : '#E5E5E5',
+                      backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
+                      borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
                     }}
                     space="md"
                   >
@@ -94,10 +98,7 @@ export default function CategoriesScreen() {
                       />
                     </Box>
                     <VStack className="flex-1 justify-center">
-                      <Text
-                        className="font-semibold"
-                        style={{ color: isSelected ? '#333' : '#555' }}
-                      >
+                      <Text className="font-semibold text-typography-900">
                         {defaultCategoryIds.has(category.id) ? t(`categories.${category.id}`) : category.name}
                       </Text>
                     </VStack>
@@ -105,7 +106,7 @@ export default function CategoriesScreen() {
                       className="w-6 h-6 rounded-full border-2 items-center justify-center"
                       style={{
                         backgroundColor: isSelected ? theme.colors.primary : 'transparent',
-                        borderColor: isSelected ? theme.colors.primary : '#CCC',
+                        borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
                       }}
                     >
                       {isSelected && (

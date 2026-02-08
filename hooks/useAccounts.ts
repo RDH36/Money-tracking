@@ -123,12 +123,12 @@ export function useAccounts() {
         );
 
         if (!fromAccountResult) {
-          return { success: false, transferId: null, error: 'Compte source introuvable' };
+          return { success: false, transferId: null, error: 'errors.sourceAccountNotFound' };
         }
 
         const currentBalance = fromAccountResult.initial_balance + fromAccountResult.total_income - fromAccountResult.total_expense;
         if (currentBalance < amount) {
-          return { success: false, transferId: null, error: 'Solde insuffisant' };
+          return { success: false, transferId: null, error: 'errors.insufficientBalance' };
         }
 
         const now = new Date().toISOString();
@@ -152,7 +152,7 @@ export function useAccounts() {
         return { success: true, transferId };
       } catch (error) {
         console.error('Error creating transfer:', error);
-        return { success: false, transferId: null, error: 'Erreur lors du transfert' };
+        return { success: false, transferId: null, error: 'errors.transferFailed' };
       }
     },
     [db, fetchAccounts]

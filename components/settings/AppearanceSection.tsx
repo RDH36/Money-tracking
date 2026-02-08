@@ -11,28 +11,34 @@ import { useTheme } from '@/contexts';
 import { SettingSection } from './SettingSection';
 import { ColorMode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 interface AppearanceSectionProps {
   themeId: string;
   colorMode: ColorMode;
   currencyCode: string;
+  tipsEnabled: boolean;
   onThemeChange: (id: string) => void;
   onColorModeChange: (mode: ColorMode) => void;
   onCurrencyChange: (code: string) => void;
+  onTipsEnabledChange: (enabled: boolean) => void;
 }
 
 export function AppearanceSection({
   themeId,
   colorMode,
   currencyCode,
+  tipsEnabled,
   onThemeChange,
   onColorModeChange,
   onCurrencyChange,
+  onTipsEnabledChange,
 }: AppearanceSectionProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
+  const darkModeColors = getDarkModeColors(isDark);
 
   const COLOR_MODES: { value: ColorMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { value: 'light', label: t('settings.light'), icon: 'sunny' },
@@ -86,33 +92,35 @@ export function AppearanceSection({
       <Box className="px-4 py-3 border-b border-outline-100">
         <Text className="text-typography-900 mb-3">{t('settings.color')}</Text>
         <HStack space="sm" className="flex-wrap">
-          {THEMES.map((t) => {
-            const isSelected = themeId === t.id;
+          {THEMES.map((themeItem) => {
+            const isSelected = themeId === themeItem.id;
+            // Map theme id to translation key
+            const colorNameKey = `settings.color${themeItem.id.charAt(0).toUpperCase() + themeItem.id.slice(1)}`;
             return (
-              <Pressable key={t.id} onPress={() => onThemeChange(t.id)}>
+              <Pressable key={themeItem.id} onPress={() => onThemeChange(themeItem.id)}>
                 <VStack
                   className="items-center p-2 rounded-xl border-2"
                   style={{
-                    borderColor: isSelected ? t.colors.primary : cardBorder,
-                    backgroundColor: isSelected ? t.colors.primaryLight : cardBg,
+                    borderColor: isSelected ? themeItem.colors.primary : cardBorder,
+                    backgroundColor: isSelected ? themeItem.colors.primaryLight : cardBg,
                     width: 72,
                   }}
                   space="xs"
                 >
                   <HStack space="xs">
-                    <Box className="w-5 h-5 rounded-full" style={{ backgroundColor: t.colors.primary }} />
-                    <Box className="w-5 h-5 rounded-full" style={{ backgroundColor: t.colors.secondary }} />
+                    <Box className="w-5 h-5 rounded-full" style={{ backgroundColor: themeItem.colors.primary }} />
+                    <Box className="w-5 h-5 rounded-full" style={{ backgroundColor: themeItem.colors.secondary }} />
                   </HStack>
                   <Text
                     className="text-[10px] font-medium"
-                    style={{ color: isSelected ? t.colors.primary : textMuted }}
+                    style={{ color: isSelected ? themeItem.colors.primary : textMuted }}
                   >
-                    {t.name}
+                    {t(colorNameKey)}
                   </Text>
                   {isSelected && (
                     <Box
                       className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
-                      style={{ backgroundColor: t.colors.primary }}
+                      style={{ backgroundColor: themeItem.colors.primary }}
                     >
                       <Ionicons name="checkmark" size={10} color="#FFF" />
                     </Box>
@@ -125,7 +133,7 @@ export function AppearanceSection({
       </Box>
 
       {/* Devise */}
-      <Box className="px-4 py-3">
+      <Box className="px-4 py-3 border-b border-outline-100">
         <Text className="text-typography-900 mb-2">{t('settings.currency')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {CURRENCIES.map((c) => {
@@ -157,6 +165,22 @@ export function AppearanceSection({
           })}
         </ScrollView>
       </Box>
+
+      {/* Tips toggle */}
+      <Pressable onPress={() => onTipsEnabledChange(!tipsEnabled)}>
+        <HStack className="px-4 py-3 justify-between items-center">
+          <Text className="text-typography-900">{t('settings.showTips')}</Text>
+          <Box
+            className="w-12 h-7 rounded-full p-0.5 justify-center"
+            style={{ backgroundColor: tipsEnabled ? theme.colors.primary : darkModeColors.switchOff }}
+          >
+            <Box
+              className="w-6 h-6 rounded-full shadow"
+              style={{ alignSelf: tipsEnabled ? 'flex-end' : 'flex-start', backgroundColor: darkModeColors.switchThumb }}
+            />
+          </Box>
+        </HStack>
+      </Pressable>
     </SettingSection>
   );
 }

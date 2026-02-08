@@ -186,12 +186,12 @@ export function usePlanifications() {
           );
 
           if (!accountResult) {
-            return { success: false, error: 'Compte introuvable' };
+            return { success: false, error: 'errors.accountNotFound' };
           }
 
           const currentBalance = accountResult.initial_balance + accountResult.total_income - accountResult.total_expense;
           if (currentBalance < netExpense) {
-            return { success: false, error: 'Solde insuffisant' };
+            return { success: false, error: 'errors.insufficientBalance' };
           }
         }
 
@@ -216,7 +216,7 @@ export function usePlanifications() {
         return { success: true };
       } catch (err) {
         console.error('Error validating planification:', err);
-        return { success: false, error: 'Erreur lors de la validation' };
+        return { success: false, error: 'errors.validationFailed' };
       } finally {
         setIsLoading(false);
       }

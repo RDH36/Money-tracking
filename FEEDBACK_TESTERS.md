@@ -31,7 +31,7 @@
 - [x] Walkthrough interactif au premier lancement (4 slides animés avec swipe)
 - [x] Option "Skip" avec accès ultérieur dans Settings ("Revoir le tutoriel")
 - [x] Animations fluides (icône pulsante, features staggerées, dots animés)
-- [ ] Tooltips contextuels sur les fonctionnalités clés (optionnel)
+- [x] Tooltips contextuels sur les fonctionnalités clés (tooltip solde)
 
 **Pourquoi:** Réduit la frustration des nouveaux utilisateurs, améliore la rétention.
 
@@ -40,10 +40,11 @@
 ## Priorité 3 - Moyenne (Expansion)
 
 ### Support Multi-Langue
-- [ ] Sélecteur de langue dans Settings
-- [ ] Traduction FR/EN minimum
-- [ ] Détection automatique selon device (optionnel)
-- [ ] Localisation des messages d'erreur et notifications
+- [x] Sélecteur de langue dans Settings
+- [x] Traduction FR/EN minimum
+- [x] Détection automatique selon device
+- [x] Localisation des messages d'erreur et notifications
+- [x] Fichier MG (Malagasy) préparé pour traduction
 
 **Pourquoi:** Élargit l'audience internationale.
 
@@ -52,15 +53,15 @@
 ## Priorité 4 - Nice to Have
 
 ### Mécanisme de Feedback In-App
-- [ ] Bouton "Signaler un problème" dans Settings
-- [ ] Formulaire de suggestion
+- [x] Bouton "Signaler un problème" dans Settings
+- [ ] Formulaire de suggestion (optionnel)
 
 ### Intégration Réseaux Sociaux
 - [ ] Partage des objectifs/achievements
 - [ ] Export des statistiques
 
 ### Améliorations Visuelles
-- [ ] Audit cohérence UI
+- [x] Audit cohérence UI (dark mode colors harmonisés)
 - [x] Animations et transitions fluides (Onboarding animé)
 
 ---
@@ -82,4 +83,7 @@
 | P1 | CGU | Terminé | 1.0.3 |
 | P2 | Dark Mode | Terminé | 1.0.3 |
 | P2 | Onboarding | Terminé | 1.0.4 |
-| P3 | Multi-Langue | En attente | - |
+| P2 | Tooltips | Terminé | 1.0.5 |
+| P3 | Multi-Langue | Terminé | 1.0.5 |
+| P4 | Feedback In-App | Terminé | 1.0.5 |
+| P4 | UI Audit | Terminé | 1.0.5 |

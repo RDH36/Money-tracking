@@ -89,12 +89,12 @@ export function useTransactions() {
           );
 
           if (!accountResult) {
-            return { success: false, id: null, error: 'Compte introuvable' };
+            return { success: false, id: null, error: 'errors.accountNotFound' };
           }
 
           const currentBalance = accountResult.initial_balance + accountResult.total_income - accountResult.total_expense;
           if (currentBalance < amount) {
-            return { success: false, id: null, error: 'Solde insuffisant' };
+            return { success: false, id: null, error: 'errors.insufficientBalance' };
           }
         }
 
@@ -111,8 +111,8 @@ export function useTransactions() {
         return { success: true, id };
       } catch (err) {
         console.error('Error creating transaction:', err);
-        setError('Erreur lors de la sauvegarde');
-        return { success: false, id: null, error: 'Erreur lors de la sauvegarde' };
+        setError('errors.saveFailed');
+        return { success: false, id: null, error: 'errors.saveFailed' };
       } finally {
         setIsLoading(false);
       }

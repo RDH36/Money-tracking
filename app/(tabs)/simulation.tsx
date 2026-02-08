@@ -16,7 +16,7 @@ import { Center } from '@/components/ui/center';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { PlanificationCard } from '@/components/PlanificationCard';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
-import { usePlanifications, useBalance, useAccounts } from '@/hooks';
+import { usePlanifications, useBalance, useAccounts, useTips } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
@@ -45,6 +45,7 @@ export default function PlanificationScreen() {
     refresh,
     isLoading,
   } = usePlanifications();
+  const { currentTip, showTip } = useTips('planification');
 
   useFocusEffect(
     useCallback(() => {
@@ -103,14 +104,22 @@ export default function PlanificationScreen() {
     <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
         <VStack className="p-6" space="xl">
-          <HStack className="justify-between items-center">
-            <Heading size="xl" className="text-typography-900">{t('planification.title')}</Heading>
-            {!showNewForm && (
-              <Pressable onPress={() => setShowNewForm(true)}>
-                <Ionicons name="add-circle" size={32} color={theme.colors.primary} />
-              </Pressable>
+          <VStack>
+            <HStack className="justify-between items-center">
+              <Heading size="xl" className="text-typography-900">{t('planification.title')}</Heading>
+              {!showNewForm && (
+                <Pressable onPress={() => setShowNewForm(true)}>
+                  <Ionicons name="add-circle" size={32} color={theme.colors.primary} />
+                </Pressable>
+              )}
+            </HStack>
+            {showTip && currentTip && (
+              <HStack className="mt-3 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.primary + '20' }} space="sm">
+                <Ionicons name="bulb" size={16} color={theme.colors.primary} />
+                <Text className="flex-1 text-xs" style={{ color: theme.colors.primary }}>{t(currentTip)}</Text>
+              </HStack>
             )}
-          </HStack>
+          </VStack>
 
           <Box className="p-4 rounded-2xl" style={{ backgroundColor: theme.colors.primaryLight }}>
             <VStack space="md">

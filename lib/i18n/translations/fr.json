@@ -72,14 +72,23 @@
     "dark": "Sombre",
     "auto": "Auto",
     "color": "Couleur",
+    "colorTurquoise": "Turquoise",
+    "colorBlue": "Bleu",
+    "colorPurple": "Violet",
+    "colorOrange": "Orange",
     "currency": "Devise",
     "language": "Langue",
     "french": "Français",
     "english": "English",
+    "malagasy": "Malagasy",
     "notifications": "Notifications",
     "expenseReminders": "Rappels dépenses",
     "planReminders": "Rappels planification",
     "automatic": "Automatique",
+    "privacy": "Confidentialité",
+    "hideBalance": "Masquer le solde",
+    "feedback": "Retour d'expérience",
+    "reportProblem": "Signaler un problème",
     "about": "À propos",
     "version": "Version",
     "reviewTutorial": "Revoir le tutoriel",
@@ -88,7 +97,8 @@
     "termsOfUse": "Conditions d'utilisation",
     "accounts": "Mes comptes",
     "categories": "Catégories",
-    "customCategories": "Catégories personnalisées"
+    "customCategories": "Catégories personnalisées",
+    "showTips": "Afficher les astuces"
   },
   "account": {
     "new": "Nouveau compte",
@@ -126,6 +136,7 @@
     "conversion": "Conversion de devise",
     "conversionInfo": "Cette action nécessite une connexion internet pour récupérer les taux de change.",
     "fetchingRate": "Récupération du taux...",
+    "currentRate": "Taux de change actuel :",
     "example": "Exemple :",
     "convertInfo": "Tous vos soldes seront convertis de {{from}} en {{to}}.",
     "converting": "Conversion...",
@@ -227,6 +238,30 @@
     "startButton": "Commencer",
     "finalMessage": "Votre tranquillité financière commence maintenant."
   },
+  "tooltips": {
+    "addFirstTransaction": "Appuyez ici pour ajouter votre première dépense ou revenu !",
+    "transferBetweenAccounts": "Vous pouvez transférer de l'argent entre vos comptes ici",
+    "planificationIntro": "Planifiez vos achats futurs et suivez votre budget",
+    "categoryPicker": "Appuyez sur une catégorie pour la sélectionner, appuyez à nouveau pour désélectionner",
+    "balanceTapToHide": "Astuce : Appuyez sur votre solde pour masquer/afficher le montant"
+  },
+  "tips": {
+    "dashboard": {
+      "tapBalance": "Appuyez sur votre solde pour le masquer",
+      "pullToRefresh": "Tirez vers le bas pour actualiser",
+      "addAccount": "Appuyez sur + pour ajouter un nouveau compte"
+    },
+    "add": {
+      "transferMoney": "Transférez de l'argent entre vos comptes",
+      "addNote": "Ajoutez une note pour vous souvenir du contexte",
+      "quickCategory": "Appuyez sur une catégorie pour la sélectionner"
+    },
+    "planification": {
+      "intro": "Planifiez vos achats à l'avance",
+      "deadline": "Définissez une date limite pour être notifié",
+      "validate": "Validez pour déduire du solde"
+    }
+  },
   "notifications": {
     "reminder1Title": "N'oublie pas !",
     "reminder1Body": "As-tu des dépenses à enregistrer ?",
@@ -263,6 +298,24 @@
   "errors": {
     "noInternet": "Pas de connexion internet",
     "conversionFailed": "Erreur lors de la conversion des soldes",
-    "unknown": "Erreur inconnue"
+    "unknown": "Erreur inconnue",
+    "insufficientBalance": "Solde insuffisant",
+    "accountNotFound": "Compte introuvable",
+    "sourceAccountNotFound": "Compte source introuvable",
+    "saveFailed": "Erreur lors de la sauvegarde",
+    "transferFailed": "Erreur lors du transfert",
+    "validationFailed": "Erreur lors de la validation"
+  },
+  "feedback": {
+    "modalTitle": "Envoyer un feedback",
+    "messageLabel": "Votre message",
+    "messagePlaceholder": "Décrivez votre problème ou suggestion...",
+    "emailLabel": "Email (optionnel)",
+    "emailPlaceholder": "Pour recevoir une réponse",
+    "sending": "Envoi...",
+    "send": "Envoyer",
+    "successMessage": "Merci pour votre feedback !",
+    "errorMessage": "Erreur lors de l'envoi",
+    "requiresInternet": "Connexion internet requise"
   }
 }

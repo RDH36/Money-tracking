@@ -62,7 +62,7 @@ export function useOnboarding() {
         return true;
       } catch (err) {
         console.error('Error saving onboarding data:', err);
-        setError('Erreur lors de la sauvegarde');
+        setError('errors.saveFailed');
         return false;
       } finally {
         setIsLoading(false);

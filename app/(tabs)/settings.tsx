@@ -17,6 +17,7 @@ import {
   LanguageSection,
   NotificationsSection,
   PrivacySection,
+  FeedbackSection,
   AboutSection,
 } from '@/components/settings';
 import { fetchExchangeRate } from '@/lib/exchangeRate';
@@ -36,6 +37,8 @@ export default function SettingsScreen() {
     setReminderFrequency,
     currencyCode,
     changeCurrencyWithConversion,
+    tipsEnabled,
+    setTipsEnabled,
   } = useSettings();
   const { accounts, formatMoney, refresh: refreshAccounts, deleteAccount, convertAllBalances } = useAccounts();
   const {
@@ -80,7 +83,7 @@ export default function SettingsScreen() {
     const isConnected = await checkInternetConnection();
     if (!isConnected) {
       setIsFetchingRate(false);
-      setConversionError('Pas de connexion internet');
+      setConversionError('errors.noInternet');
       return;
     }
 
@@ -88,7 +91,7 @@ export default function SettingsScreen() {
       const rate = await fetchExchangeRate(currencyCode, code);
       setExchangeRate(rate);
     } catch (error) {
-      setConversionError(error instanceof Error ? error.message : 'Erreur inconnue');
+      setConversionError('errors.unknown');
     } finally {
       setIsFetchingRate(false);
     }
@@ -100,14 +103,14 @@ export default function SettingsScreen() {
     try {
       const success = await convertAllBalances(exchangeRate);
       if (!success) {
-        setConversionError('Erreur lors de la conversion');
+        setConversionError('errors.conversionFailed');
         return;
       }
       await changeCurrencyWithConversion(pendingCurrencyCode, async () => true);
       setPendingCurrencyCode(null);
       setExchangeRate(undefined);
     } catch (error) {
-      setConversionError(error instanceof Error ? error.message : 'Erreur inconnue');
+      setConversionError('errors.unknown');
     } finally {
       setIsConverting(false);
     }
@@ -138,9 +141,11 @@ export default function SettingsScreen() {
           themeId={themeId}
           colorMode={colorMode}
           currencyCode={currencyCode}
+          tipsEnabled={tipsEnabled}
           onThemeChange={setTheme}
           onColorModeChange={setColorMode}
           onCurrencyChange={handleCurrencyPress}
+          onTipsEnabledChange={setTipsEnabled}
         />
 
         <LanguageSection />
@@ -154,6 +159,8 @@ export default function SettingsScreen() {
           balanceHidden={balanceHidden}
           onToggle={toggleBalanceVisibility}
         />
+
+        <FeedbackSection />
 
         <AboutSection />
       </ScrollView>

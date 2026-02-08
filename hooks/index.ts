@@ -9,3 +9,5 @@ export { useExpensesByCategory } from './useExpensesByCategory';
 export { useSimulation } from './useSimulation';
 export { usePlanifications, usePlanificationDetail } from './usePlanifications';
 export { useAccounts } from './useAccounts';
+export { useTips } from './useTips';
+export type { TipCategory } from './useTips';

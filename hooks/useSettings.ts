@@ -14,6 +14,7 @@ export function useSettings() {
     colorMode,
     reminderFrequency,
     currencyCode,
+    tipsEnabled,
     isInitialized,
     initialize,
     setBalanceHidden,
@@ -21,6 +22,7 @@ export function useSettings() {
     setColorMode: setStoreColorMode,
     setReminderFrequency: setStoreReminderFrequency,
     setCurrencyCode: setStoreCurrencyCode,
+    setTipsEnabled: setStoreTipsEnabled,
   } = useSettingsStore();
 
   useEffect(() => {
@@ -28,22 +30,24 @@ export function useSettings() {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['balance_hidden']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['theme_id']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['reminder_frequency']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['currency']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['color_mode']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['tips_enabled']),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const mode = (colorModeResult?.value as ColorMode) || 'system';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode);
+        const tips = tipsResult?.value !== '0';
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips);
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system');
+        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system', true);
         scheduleReminders('1h');
       }
     };
@@ -157,24 +161,43 @@ export function useSettings() {
     ): Promise<{ success: boolean; error?: string }> => {
       const isConnected = await checkInternetConnection();
       if (!isConnected) {
-        return { success: false, error: 'Pas de connexion internet' };
+        return { success: false, error: 'errors.noInternet' };
       }
 
       try {
         const rate = await fetchExchangeRate(currencyCode, newCode);
         const converted = await convertBalances(rate);
         if (!converted) {
-          return { success: false, error: 'Erreur lors de la conversion des soldes' };
+          return { success: false, error: 'errors.conversionFailed' };
         }
 
         await setCurrency(newCode);
         return { success: true };
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Erreur inconnue';
-        return { success: false, error: message };
+        return { success: false, error: 'errors.unknown' };
       }
     },
     [currencyCode, setCurrency]
+  );
+
+  const setTipsEnabled = useCallback(
+    async (enabled: boolean) => {
+      try {
+        const now = new Date().toISOString();
+
+        await db.runAsync(
+          `INSERT INTO settings (key, value, updated_at)
+           VALUES (?, ?, ?)
+           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
+          ['tips_enabled', enabled ? '1' : '0', now, enabled ? '1' : '0', now]
+        );
+
+        setStoreTipsEnabled(enabled);
+      } catch (error) {
+        console.error('Error saving tips enabled:', error);
+      }
+    },
+    [db, setStoreTipsEnabled]
   );
 
   return {
@@ -183,12 +206,14 @@ export function useSettings() {
     colorMode,
     reminderFrequency,
     currencyCode,
+    tipsEnabled,
     toggleBalanceVisibility,
     setTheme,
     setColorMode,
     setReminderFrequency,
     setCurrency,
     changeCurrencyWithConversion,
+    setTipsEnabled,
     isLoading: !isInitialized,
   };
 }

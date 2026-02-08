@@ -13,6 +13,8 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
 import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
 import { useSettings } from '@/hooks';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 export default function CurrencyScreen() {
   const router = useRouter();
@@ -20,6 +22,9 @@ export default function CurrencyScreen() {
   const { theme } = useTheme();
   const { setCurrency } = useSettings();
   const { t } = useTranslation();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,35 +62,29 @@ export default function CurrencyScreen() {
                 <HStack
                   className="p-4 rounded-xl border-2"
                   style={{
-                    backgroundColor: isSelected ? theme.colors.primaryLight : '#FFFFFF',
-                    borderColor: isSelected ? theme.colors.primary : '#E5E5E5',
+                    backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
+                    borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
                   }}
                   space="md"
                 >
                   <Box
                     className="w-14 h-14 rounded-full items-center justify-center"
                     style={{
-                      backgroundColor: isSelected ? theme.colors.primary : '#F5F5F5',
+                      backgroundColor: isSelected ? theme.colors.primary : colors.chipBg,
                     }}
                   >
                     <Text
                       className="text-2xl font-bold"
-                      style={{ color: isSelected ? '#FFFFFF' : '#666' }}
+                      style={{ color: isSelected ? '#FFFFFF' : colors.textMuted }}
                     >
                       {currency.symbol}
                     </Text>
                   </Box>
                   <VStack className="flex-1 justify-center">
-                    <Text
-                      className="font-bold text-lg"
-                      style={{ color: isSelected ? '#333' : '#555' }}
-                    >
+                    <Text className="font-bold text-lg text-typography-900">
                       {currency.code}
                     </Text>
-                    <Text
-                      className="text-sm"
-                      style={{ color: isSelected ? '#555' : '#888' }}
-                    >
+                    <Text className="text-sm text-typography-500">
                       {t(`currencies.${currency.code}`)}
                     </Text>
                   </VStack>
@@ -93,7 +92,7 @@ export default function CurrencyScreen() {
                     className="w-6 h-6 rounded-full border-2 items-center justify-center"
                     style={{
                       backgroundColor: isSelected ? theme.colors.primary : 'transparent',
-                      borderColor: isSelected ? theme.colors.primary : '#CCC',
+                      borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
                     }}
                   >
                     {isSelected && (
