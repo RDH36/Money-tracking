@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
 
 const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
@@ -30,6 +31,7 @@ export function ExpenseChart({ data, title }: ExpenseChartProps) {
   const currencyCode = useCurrencyCode();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   const getCategoryName = (item: CategoryData) => {
     if (!item.id) return t('common.noCategory');
@@ -64,7 +66,7 @@ export function ExpenseChart({ data, title }: ExpenseChartProps) {
           donut
           radius={70}
           innerRadius={45}
-          innerCircleColor={isDark ? '#1C1C1E' : '#FFFFFF'}
+          innerCircleColor={colors.cardBg}
           centerLabelComponent={() => (
             <VStack className="items-center">
               <Text className="text-typography-500 text-xs">Total</Text>

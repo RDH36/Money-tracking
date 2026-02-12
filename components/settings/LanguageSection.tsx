@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/text';
 import { useTheme, useLanguage } from '@/contexts';
 import { SettingSection } from './SettingSection';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import { LANGUAGES, LanguageCode } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
 
@@ -16,10 +17,7 @@ export function LanguageSection() {
   const { language, setLanguage } = useLanguage();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
-
-  const cardBg = isDark ? '#1C1C1E' : '#FFF';
-  const cardBorder = isDark ? '#38383A' : '#E5E5E5';
-  const textMuted = isDark ? '#8E8E93' : '#666';
+  const colors = getDarkModeColors(isDark);
 
   return (
     <SettingSection title={t('settings.language')}>
@@ -36,15 +34,15 @@ export function LanguageSection() {
                 <VStack
                   className="items-center py-3 rounded-xl border-2"
                   style={{
-                    borderColor: isSelected ? theme.colors.primary : cardBorder,
-                    backgroundColor: isSelected ? theme.colors.primaryLight : cardBg,
+                    borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
+                    backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
                   }}
                   space="xs"
                 >
                   <Text className="text-2xl">{lang.flag}</Text>
                   <Text
                     className="text-xs font-medium"
-                    style={{ color: isSelected ? theme.colors.primary : textMuted }}
+                    style={{ color: isSelected ? theme.colors.primary : colors.textMuted }}
                   >
                     {lang.name}
                   </Text>

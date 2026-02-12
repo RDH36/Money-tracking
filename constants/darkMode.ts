@@ -3,7 +3,7 @@ export const DARK_COLORS = {
   background: '#121212',
   cardBg: '#1C1C1E',
   cardBorder: '#38383A',
-  textMuted: '#8E8E93',
+  textMuted: '#C7C7CC',
   chipBg: '#2C2C2E',
   inputBg: '#1C1C1E',
   switchOff: '#39393D',

@@ -46,12 +46,6 @@ export function AppearanceSection({
     { value: 'system', label: t('settings.auto'), icon: 'phone-portrait-outline' },
   ];
 
-  // Dark mode aware colors
-  const cardBg = isDark ? '#1C1C1E' : '#FFF';
-  const cardBorder = isDark ? '#38383A' : '#E5E5E5';
-  const textMuted = isDark ? '#8E8E93' : '#666';
-  const chipBg = isDark ? '#2C2C2E' : '#F2F2F7';
-
   return (
     <SettingSection title={t('settings.appearance')}>
       {/* Mode d'affichage */}
@@ -65,19 +59,19 @@ export function AppearanceSection({
                 <VStack
                   className="items-center py-3 rounded-xl border-2"
                   style={{
-                    borderColor: isSelected ? theme.colors.primary : cardBorder,
-                    backgroundColor: isSelected ? theme.colors.primaryLight : cardBg,
+                    borderColor: isSelected ? theme.colors.primary : darkModeColors.cardBorder,
+                    backgroundColor: isSelected ? theme.colors.primaryLight : darkModeColors.cardBg,
                   }}
                   space="xs"
                 >
                   <Ionicons
                     name={mode.icon}
                     size={20}
-                    color={isSelected ? theme.colors.primary : textMuted}
+                    color={isSelected ? theme.colors.primary : darkModeColors.textMuted}
                   />
                   <Text
                     className="text-xs font-medium"
-                    style={{ color: isSelected ? theme.colors.primary : textMuted }}
+                    style={{ color: isSelected ? theme.colors.primary : darkModeColors.textMuted }}
                   >
                     {mode.label}
                   </Text>
@@ -101,8 +95,8 @@ export function AppearanceSection({
                 <VStack
                   className="items-center p-2 rounded-xl border-2"
                   style={{
-                    borderColor: isSelected ? themeItem.colors.primary : cardBorder,
-                    backgroundColor: isSelected ? themeItem.colors.primaryLight : cardBg,
+                    borderColor: isSelected ? themeItem.colors.primary : darkModeColors.cardBorder,
+                    backgroundColor: isSelected ? themeItem.colors.primaryLight : darkModeColors.cardBg,
                     width: 72,
                   }}
                   space="xs"
@@ -113,7 +107,7 @@ export function AppearanceSection({
                   </HStack>
                   <Text
                     className="text-[10px] font-medium"
-                    style={{ color: isSelected ? themeItem.colors.primary : textMuted }}
+                    style={{ color: isSelected ? themeItem.colors.primary : darkModeColors.textMuted }}
                   >
                     {t(colorNameKey)}
                   </Text>
@@ -143,19 +137,19 @@ export function AppearanceSection({
                 <HStack
                   className="px-3 py-2 rounded-full items-center"
                   style={{
-                    backgroundColor: isSelected ? theme.colors.primary : chipBg,
+                    backgroundColor: isSelected ? theme.colors.primary : darkModeColors.chipBg,
                   }}
                   space="xs"
                 >
                   <Text
                     className="text-sm font-bold"
-                    style={{ color: isSelected ? '#FFF' : textMuted }}
+                    style={{ color: isSelected ? '#FFF' : darkModeColors.textMuted }}
                   >
                     {c.symbol}
                   </Text>
                   <Text
                     className="text-xs"
-                    style={{ color: isSelected ? '#FFF' : textMuted }}
+                    style={{ color: isSelected ? '#FFF' : darkModeColors.textMuted }}
                   >
                     {c.code}
                   </Text>
