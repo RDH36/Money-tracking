@@ -15,12 +15,14 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { Input, InputField } from '@/components/ui/input';
 import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
+import { VoiceInputButton } from '@/components/VoiceInputButton';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import type { ParsedVoiceInput } from '@/lib/voiceParser';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
@@ -124,6 +126,14 @@ export default function PlanificationDetailScreen() {
       router.back();
     }
     return result;
+  };
+
+  const handleVoiceResult = async (items: ParsedVoiceInput[]) => {
+    for (const item of items) {
+      const amountInCents = Math.round(item.amount * 100);
+      const finalCategoryId = item.type === 'income' ? SYSTEM_CATEGORY_INCOME_ID : item.categoryId;
+      await addItem(amountInCents, item.type, finalCategoryId, item.note);
+    }
   };
 
   const isValid = amount && getNumericValue(amount) > 0;
@@ -248,6 +258,8 @@ export default function PlanificationDetailScreen() {
             {isPending && (
               <VStack space="md">
                 <Text className="text-typography-700 font-semibold text-lg">{t('planification.addElement')}</Text>
+                <VoiceInputButton onResult={handleVoiceResult} categories={expenseCategories} lang={i18n.language} />
+                <Text className="text-typography-400 text-xs text-center">{t('voice.or')}</Text>
                 <HStack space="sm" className="justify-center">
                   <Pressable onPress={() => setItemType('expense')} className="flex-1">
                     <Box

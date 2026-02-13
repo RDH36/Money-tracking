@@ -173,6 +173,7 @@
     "save": "Tehirizina",
     "validateAndDeduct": "Hamarina sy hanesotra amin'ny vola",
     "negativeWarning": "Tandremo: vola sisa ho negative!",
+    "itemsAdded": "{{count}} zavatra nampiana",
     "deductFromAccount": "Hanesotra {{amount}} avy amin'ny kaonty iza?",
     "insufficientBalance": "Tsy ampy ny vola",
     "validating": "Manamarina...",
@@ -317,5 +318,15 @@
     "successMessage": "Misaotra anao tamin'ny hevitra!",
     "errorMessage": "Nisy olana tamin'ny fandefasana",
     "requiresInternet": "Mila fifandraisana internet"
+  },
+  "voice": {
+    "tapToSpeak": "Tsindrio dia mitenena",
+    "listening": "Mihaino...",
+    "parseError": "Tsy azo ny teny. Andramo: vola + sokajy",
+    "noPermission": "Tsy navela ny mikrofona",
+    "hint": "Oh: \"20000 sakafo\" na \"vola miditra 50000\"",
+    "or": "na soraty",
+    "result": "Valiny",
+    "notSupported": "Tsy misy fanamarihana feo"
   }
 }

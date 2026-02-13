@@ -173,6 +173,7 @@
     "save": "Save",
     "validateAndDeduct": "Validate and deduct from balance",
     "negativeWarning": "Warning: negative balance expected!",
+    "itemsAdded": "{{count}} item(s) added",
     "deductFromAccount": "Deduct {{amount}} from which account?",
     "insufficientBalance": "Insufficient balance",
     "validating": "Validating...",
@@ -317,5 +318,15 @@
     "successMessage": "Thank you for your feedback!",
     "errorMessage": "Error sending feedback",
     "requiresInternet": "Internet connection required"
+  },
+  "voice": {
+    "tapToSpeak": "Tap to speak",
+    "listening": "Listening...",
+    "parseError": "Could not understand. Try: amount + category",
+    "noPermission": "Microphone not allowed",
+    "hint": "E.g.: \"20000 food\" or \"income 50000\"",
+    "or": "or enter manually",
+    "result": "Result",
+    "notSupported": "Voice recognition not available"
   }
 }

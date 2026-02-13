@@ -47,7 +47,8 @@
           "color": "#14B8A6"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,

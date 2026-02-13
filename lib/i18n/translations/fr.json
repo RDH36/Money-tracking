@@ -173,6 +173,7 @@
     "save": "Sauvegarder",
     "validateAndDeduct": "Valider et déduire du solde",
     "negativeWarning": "Attention : solde négatif prévu !",
+    "itemsAdded": "{{count}} élément(s) ajouté(s)",
     "deductFromAccount": "Déduire {{amount}} de quel compte ?",
     "insufficientBalance": "Solde insuffisant",
     "validating": "Validation...",
@@ -317,5 +318,15 @@
     "successMessage": "Merci pour votre feedback !",
     "errorMessage": "Erreur lors de l'envoi",
     "requiresInternet": "Connexion internet requise"
+  },
+  "voice": {
+    "tapToSpeak": "Appuyez pour dicter",
+    "listening": "Écoute en cours...",
+    "parseError": "Impossible de comprendre. Essayez : montant + catégorie",
+    "noPermission": "Microphone non autorisé",
+    "hint": "Ex: \"20000 nourriture\" ou \"revenu 50000\"",
+    "or": "ou saisir manuellement",
+    "result": "Résultat",
+    "notSupported": "Reconnaissance vocale non disponible"
   }
 }
