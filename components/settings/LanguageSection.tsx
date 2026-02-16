@@ -23,7 +23,7 @@ export function LanguageSection() {
     <SettingSection title={t('settings.language')}>
       <Box className="px-4 py-3">
         <HStack space="sm">
-          {LANGUAGES.map((lang) => {
+          {LANGUAGES.filter((lang) => lang.code !== 'mg').map((lang) => {
             const isSelected = language === lang.code;
             return (
               <Pressable
