@@ -112,3 +112,14 @@ export interface PlanificationWithTotal extends Planification {
   total_income: number;
   item_count: number;
 }
+
+export interface ReceiptLineItem {
+  description: string;
+  amount: string;
+}
+
+export interface ReceiptData {
+  items: ReceiptLineItem[];
+  total?: string;
+  rawText: string;
+}

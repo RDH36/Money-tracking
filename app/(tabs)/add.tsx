@@ -16,6 +16,7 @@ import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
+import { ReceiptScanButton } from '@/components/ReceiptScanButton';
 import { useCategories, useTransactions, useAccounts, useTips, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
@@ -231,6 +232,16 @@ export default function AddTransactionScreen() {
                     </Box>
                   </Pressable>
                 </HStack>
+              )}
+
+              {mode === 'transaction' && (
+                <ReceiptScanButton
+                  onComplete={() => {
+                    refreshAccounts();
+                    setSuccess(true);
+                    setTimeout(() => setSuccess(false), 2000);
+                  }}
+                />
               )}
 
               <Center className="py-4">

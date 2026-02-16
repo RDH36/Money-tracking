@@ -47,7 +47,14 @@
           "color": "#14B8A6"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Mitsitsy accède à vos photos pour scanner les reçus.",
+          "cameraPermission": "Mitsitsy accède à votre caméra pour photographier les reçus."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

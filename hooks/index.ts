@@ -11,3 +11,4 @@ export { usePlanifications, usePlanificationDetail } from './usePlanifications';
 export { useAccounts } from './useAccounts';
 export { useTips } from './useTips';
 export type { TipCategory } from './useTips';
+export { useReceiptScanner } from './useReceiptScanner';

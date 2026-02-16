@@ -306,6 +306,28 @@
     "transferFailed": "Error during transfer",
     "validationFailed": "Error during validation"
   },
+  "receipt": {
+    "scanReceipt": "Scan receipt",
+    "takePhoto": "Take photo",
+    "importImage": "Import image",
+    "processing": "Analyzing...",
+    "extractedData": "Extracted data",
+    "amount": "Detected amount",
+    "note": "Description",
+    "confirm": "Use this data",
+    "cancel": "Cancel",
+    "noDataFound": "No data detected on this receipt",
+    "scanError": "Error analyzing receipt",
+    "permissionRequired": "Permission required to access camera or photos",
+    "rawText": "Raw text",
+    "or": "or",
+    "itemsFound": "{{count}} item(s) detected",
+    "total": "Total",
+    "tapToUse": "Tap an item to use it",
+    "selectAccount": "Deduct from which account?",
+    "validate": "Validate",
+    "validating": "Validating..."
+  },
   "feedback": {
     "modalTitle": "Send feedback",
     "messageLabel": "Your message",

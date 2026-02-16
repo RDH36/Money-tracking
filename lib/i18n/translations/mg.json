@@ -306,6 +306,28 @@
     "transferFailed": "Nisy olana tamin'ny famindram-bola",
     "validationFailed": "Nisy olana tamin'ny fanamarinam-bola"
   },
+  "receipt": {
+    "scanReceipt": "Hamaky faktiora",
+    "takePhoto": "Haka sary",
+    "importImage": "Hampiditra sary",
+    "processing": "Mandinika...",
+    "extractedData": "Angona voaray",
+    "amount": "Sarany hita",
+    "note": "Famariparitana",
+    "confirm": "Hampiasa ireo angona ireo",
+    "cancel": "Aoka",
+    "noDataFound": "Tsy nisy angona hita tao amin'ny faktiora",
+    "scanError": "Nisy olana tamin'ny famakiana ny faktiora",
+    "permissionRequired": "Mila alalana hahafahana mampiasa ny fakantsary na ny sary",
+    "rawText": "Lahatsoratra tsotra",
+    "or": "na",
+    "itemsFound": "{{count}} zavatra hita",
+    "total": "Totaliny",
+    "tapToUse": "Tsindrio ny zavatra iray mba hampiasana azy",
+    "selectAccount": "Hanesotra avy amin'ny kaonty iza?",
+    "validate": "Hamarina",
+    "validating": "Manamarina..."
+  },
   "feedback": {
     "modalTitle": "Handefa hevitra",
     "messageLabel": "Ny hafatrao",

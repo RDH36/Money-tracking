@@ -306,6 +306,28 @@
     "transferFailed": "Erreur lors du transfert",
     "validationFailed": "Erreur lors de la validation"
   },
+  "receipt": {
+    "scanReceipt": "Scanner un reçu",
+    "takePhoto": "Prendre une photo",
+    "importImage": "Importer une image",
+    "processing": "Analyse en cours...",
+    "extractedData": "Données extraites",
+    "amount": "Montant détecté",
+    "note": "Description",
+    "confirm": "Utiliser ces données",
+    "cancel": "Annuler",
+    "noDataFound": "Aucune donnée détectée sur ce reçu",
+    "scanError": "Erreur lors de l'analyse du reçu",
+    "permissionRequired": "Permission requise pour accéder à la caméra ou aux photos",
+    "rawText": "Texte brut",
+    "or": "ou",
+    "itemsFound": "{{count}} élément(s) détecté(s)",
+    "total": "Total",
+    "tapToUse": "Appuyez sur un élément pour l'utiliser",
+    "selectAccount": "Déduire de quel compte ?",
+    "validate": "Valider",
+    "validating": "Validation..."
+  },
   "feedback": {
     "modalTitle": "Envoyer un feedback",
     "messageLabel": "Votre message",
