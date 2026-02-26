@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useBalance, useCategories } from '@/hooks';
+import { useBalance } from './useBalance';
+import { useCategories } from './useCategories';
 import type { SimulatedExpense, Category } from '@/types';
 
 function generateId(): string {

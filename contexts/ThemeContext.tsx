@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -43,19 +43,23 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'color_mode',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'tips_enabled',
+          ]),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const colorMode = (colorModeResult?.value as ColorMode) || 'system';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, colorMode);
+        const tipsEnabled = tipsResult?.value !== '0';
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, colorMode, tipsEnabled);
 
         if (frequency !== 'off') {
           scheduleReminders(frequency);
         }
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY, 'system');
+        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY, 'system', true);
       }
     };
 
