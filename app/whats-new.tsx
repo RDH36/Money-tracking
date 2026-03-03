@@ -45,7 +45,7 @@ export default function WhatsNewScreen() {
         </Heading>
       </HStack>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
         <VStack space="xl">
           {CHANGELOG.map((entry) => (
             <VStack key={entry.version} space="sm">
