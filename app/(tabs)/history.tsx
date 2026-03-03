@@ -1,16 +1,18 @@
 import { useMemo, useCallback, useState } from 'react';
 import { View, SectionList, RefreshControl, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
+import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { AchievementsTab } from '@/components/AchievementsTab';
 import { useTransactions } from '@/hooks';
 import { useTheme } from '@/contexts';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -89,11 +91,15 @@ function groupByDate(transactions: TransactionWithCategory[], locale: string, t:
   });
 }
 
+type TabType = 'history' | 'achievements';
+
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { transactions, isFetching, refresh, deleteTransaction } = useTransactions();
   const { t, i18n } = useTranslation();
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<TabType>(params.tab === 'achievements' ? 'achievements' : 'history');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
   const [deleteGroupTarget, setDeleteGroupTarget] = useState<PlanificationGroupData | null>(null);
@@ -188,8 +194,41 @@ export default function HistoryScreen() {
       <VStack className="flex-1">
         <Box className="px-6 py-4 bg-background-0">
           <Heading size="xl" className="text-typography-900">{t('history.title')}</Heading>
+          <Box className="bg-background-100 p-1 rounded-xl mt-3">
+            <HStack>
+              <Pressable onPress={() => setActiveTab('history')} className="flex-1">
+                <Box
+                  className="py-2 rounded-lg items-center"
+                  style={activeTab === 'history' ? { backgroundColor: theme.colors.primary } : {}}
+                >
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: activeTab === 'history' ? '#FFFFFF' : '#9CA3AF' }}
+                  >
+                    {t('history.title')}
+                  </Text>
+                </Box>
+              </Pressable>
+              <Pressable onPress={() => setActiveTab('achievements')} className="flex-1">
+                <Box
+                  className="py-2 rounded-lg items-center"
+                  style={activeTab === 'achievements' ? { backgroundColor: theme.colors.primary } : {}}
+                >
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: activeTab === 'achievements' ? '#FFFFFF' : '#9CA3AF' }}
+                  >
+                    {t('gamification.achievements')}
+                  </Text>
+                </Box>
+              </Pressable>
+            </HStack>
+          </Box>
         </Box>
 
+        {activeTab === 'achievements' ? (
+          <AchievementsTab />
+        ) : (
         <SectionList
           sections={sections}
           extraData={transactions}
@@ -202,6 +241,7 @@ export default function HistoryScreen() {
           stickySectionHeadersEnabled
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refresh} />}
         />
+        )}
       </VStack>
 
       <ConfirmDialog

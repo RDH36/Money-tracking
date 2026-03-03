@@ -129,6 +129,26 @@ ALTER TABLE planification_items ADD COLUMN type TEXT DEFAULT 'expense' CHECK (ty
 export const MAX_CUSTOM_CATEGORIES = 3;
 export const MAX_CUSTOM_ACCOUNTS = 2;
 
+export const CREATE_GAMIFICATION_TABLE = `
+CREATE TABLE IF NOT EXISTS gamification (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`;
+
+export const CREATE_BADGES_TABLE = `
+CREATE TABLE IF NOT EXISTS badges (
+  id TEXT PRIMARY KEY,
+  badge_type TEXT NOT NULL,
+  earned_at TEXT NOT NULL
+);
+`;
+
+export const CREATE_GAMIFICATION_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_badges_badge_type ON badges(badge_type);
+`;
+
 export const SYSTEM_CATEGORY_TRANSFER_ID = 'system-transfer';
 export const SYSTEM_CATEGORY_INCOME_ID = 'system-income';
 

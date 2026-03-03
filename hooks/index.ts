@@ -12,3 +12,4 @@ export { useAccounts } from './useAccounts';
 export { useTips } from './useTips';
 export type { TipCategory } from './useTips';
 export { useWhatsNew } from './useWhatsNew';
+export { useGamification } from './useGamification';

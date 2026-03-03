@@ -16,8 +16,11 @@ import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
-import { useCategories, useTransactions, useAccounts, useTips, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { useCategories, useTransactions, useAccounts, useTips, useGamification, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { XPToast } from '@/components/XPToast';
+import { LevelUpModal } from '@/components/LevelUpModal';
+import { XP_VALUES } from '@/constants/badges';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
@@ -38,6 +41,7 @@ export default function AddTransactionScreen() {
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
   const { currentTip, showTip } = useTips('add');
+  const gamification = useGamification();
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
   const [type, setType] = useState<TransactionType>('expense');
@@ -49,6 +53,8 @@ export default function AddTransactionScreen() {
   const [note, setNote] = useState('');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [xpToast, setXpToast] = useState<number | null>(null);
+  const [levelUp, setLevelUp] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,6 +97,19 @@ export default function AddTransactionScreen() {
       if (result.success) {
         resetForm();
         refreshAccounts();
+        // Gamification: income gives more XP than expense
+        let totalXPGained = 0;
+        const xpAmount = type === 'income' ? XP_VALUES.INCOME : XP_VALUES.EXPENSE;
+        const xpResult = await gamification.awardXP(xpAmount);
+        totalXPGained += xpResult.xpGained;
+        await gamification.recordActivity();
+        if (type === 'expense') totalXPGained += await gamification.checkDailyChallenge('log_expense');
+        if (type === 'income') totalXPGained += await gamification.checkDailyChallenge('log_income');
+        totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
+        await gamification.checkBadges();
+        setXpToast(totalXPGained);
+        const level = gamification.getLevelUp();
+        if (level) setLevelUp(level);
       } else if (result.error) {
         setError(result.error);
       }
@@ -105,6 +124,16 @@ export default function AddTransactionScreen() {
       if (result.success) {
         resetForm();
         refreshAccounts();
+        // Gamification: award XP for transfer
+        let totalXPGained = 0;
+        const xpResult = await gamification.awardXP(XP_VALUES.TRANSFER);
+        totalXPGained += xpResult.xpGained;
+        await gamification.recordActivity();
+        totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
+        await gamification.checkBadges();
+        setXpToast(totalXPGained);
+        const level = gamification.getLevelUp();
+        if (level) setLevelUp(level);
       } else if (result.error) {
         setError(result.error);
       }
@@ -320,6 +349,8 @@ export default function AddTransactionScreen() {
             </Button>
           </Box>
       </KeyboardAwareScrollView>
+      <XPToast xpAmount={xpToast} onHide={() => setXpToast(null)} />
+      <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
     </View>
   );
 }

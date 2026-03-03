@@ -13,11 +13,14 @@ import {
   ADD_IS_DEFAULT_TO_ACCOUNTS,
   ADD_DELETED_AT_TO_CATEGORIES,
   ADD_TYPE_TO_PLANIFICATION_ITEMS,
+  CREATE_GAMIFICATION_TABLE,
+  CREATE_BADGES_TABLE,
+  CREATE_GAMIFICATION_INDEX,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 15;
+const DATABASE_VERSION = 16;
 
 interface VersionResult {
   user_version: number;
@@ -102,6 +105,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 15) {
     await migrateToV15(db);
     currentVersion = 15;
+  }
+
+  if (currentVersion < 16) {
+    await migrateToV16(db);
+    currentVersion = 16;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -334,4 +342,32 @@ async function migrateToV15(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(
     'CREATE INDEX IF NOT EXISTS idx_transactions_planification_id ON transactions(planification_id)'
   );
+}
+
+async function migrateToV16(db: SQLiteDatabase): Promise<void> {
+  // Create gamification tables (new tables only, no changes to existing tables)
+  await db.execAsync(CREATE_GAMIFICATION_TABLE);
+  await db.execAsync(CREATE_BADGES_TABLE);
+  await db.execAsync(CREATE_GAMIFICATION_INDEX);
+
+  // Insert default gamification values
+  const now = new Date().toISOString();
+  const defaults: [string, string][] = [
+    ['current_streak', '0'],
+    ['longest_streak', '0'],
+    ['last_activity_date', ''],
+    ['total_xp', '0'],
+    ['streak_freeze_available', '1'],
+    ['streak_freeze_used_date', ''],
+    ['daily_challenge_date', ''],
+    ['daily_challenge_type', ''],
+    ['daily_challenge_completed', '0'],
+  ];
+
+  for (const [key, value] of defaults) {
+    await db.runAsync(
+      'INSERT OR IGNORE INTO gamification (key, value, updated_at) VALUES (?, ?, ?)',
+      [key, value, now]
+    );
+  }
 }

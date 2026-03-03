@@ -10,12 +10,14 @@ import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
-import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips, useWhatsNew } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips, useWhatsNew, useGamification } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
 import { ExpenseChart } from '@/components/ExpenseChart';
 import { AddAccountModal } from '@/components/AddAccountModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { GamificationBar } from '@/components/GamificationBar';
+import { LevelUpModal } from '@/components/LevelUpModal';
 import { useTheme } from '@/contexts';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
@@ -30,8 +32,10 @@ export default function DashboardScreen() {
   const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
   const { currentTip, showTip } = useTips('dashboard');
   const { hasNew, checkNew } = useWhatsNew();
+  const gamification = useGamification();
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
+  const [levelUp, setLevelUp] = useState<number | null>(null);
 
   const recentItems = useMemo(() => {
     const recent = transactions.slice(0, 5);
@@ -71,6 +75,12 @@ export default function DashboardScreen() {
       refreshTransactions();
       refreshExpenses();
       checkNew();
+      gamification.generateDailyChallenge();
+      gamification.recordActivity().then(async () => {
+        await gamification.checkBadges();
+        const level = gamification.getLevelUp();
+        if (level) setLevelUp(level);
+      });
     }, [refreshAccounts, refreshTransactions, refreshExpenses, checkNew])
   );
 
@@ -132,6 +142,14 @@ export default function DashboardScreen() {
                 <Ionicons name="bulb" size={16} color={theme.colors.secondary} />
                 <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
               </HStack>
+            )}
+            {!gamification.isLoading && (
+              <GamificationBar
+                currentStreak={gamification.currentStreak}
+                totalXP={gamification.totalXP}
+                dailyChallengeCompleted={gamification.dailyChallengeCompleted}
+                onPress={() => router.push({ pathname: '/history', params: { tab: 'achievements' } })}
+              />
             )}
           </VStack>
 
@@ -234,6 +252,8 @@ export default function DashboardScreen() {
         customAccountsCount={customAccountsCount}
         maxCustomAccounts={maxCustomAccounts}
       />
+
+      <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
     </View>
   );
 }
