@@ -49,7 +49,7 @@ export function AchievementsTab() {
   );
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
       <VStack space="lg">
         {/* Stats */}
         <HStack space="sm" className="justify-between">

@@ -237,7 +237,7 @@ export default function HistoryScreen() {
           renderSectionHeader={renderSectionHeader}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={renderFooter}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
           stickySectionHeadersEnabled
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refresh} />}
         />
