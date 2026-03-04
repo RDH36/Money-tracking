@@ -402,7 +402,13 @@
     "streaksAndChallenges": "Daily streaks and challenges to keep you motivated",
     "badgesAndAchievements": "Badges and achievements to unlock as you manage your money",
     "xpAndLevels": "XP and level system with progress bar",
-    "dailyChallenges": "Daily challenge to stay on top of your finances"
+    "dailyChallenges": "Daily challenge to stay on top of your finances",
+    "reportsScreen": "Reports screen: trend charts, category breakdown and detailed stats",
+    "calendarScreen": "Expense calendar: view your spending day by day",
+    "activityFilters": "Activity filters: expenses, income, transfers",
+    "reducedRedundancy": "Cleaner interface with less repeated data across screens",
+    "transferFilter": "Transfer filter now correctly shows transfers",
+    "transferNotCountedAsExpense": "Transfers are no longer counted as expenses"
   },
   "gamification": {
     "streak": "Streak",

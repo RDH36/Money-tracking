@@ -402,7 +402,13 @@
     "streaksAndChallenges": "Fitohy isan'andro sy fanamby mba hahatonga anao ho faly",
     "badgesAndAchievements": "Badges sy fahombiazana azo soketina amin'ny fitantanana ny volanao",
     "xpAndLevels": "Rafitra XP sy laharana miaraka amin'ny bary fandrosoana",
-    "dailyChallenges": "Fanamby isan'andro mba hanaraha-maso ny volanao"
+    "dailyChallenges": "Fanamby isan'andro mba hanaraha-maso ny volanao",
+    "reportsScreen": "Pejy tatitra: grafika fironana, fizarana isaky ny sokajy ary antontan'isa",
+    "calendarScreen": "Kalandrié fandaniana: jereo ny fandanianao isan'andro",
+    "activityFilters": "Sivana isaky ny karazana: fandaniana, vola miditra, famindrana",
+    "reducedRedundancy": "Interface madio kokoa: vitsy ny angona miverimberina eo amin'ny pejy",
+    "transferFilter": "Ny sivana Famindrana dia mampiseho tsara ny famindrana",
+    "transferNotCountedAsExpense": "Ny famindrana dia tsy voaisana ho fandaniana intsony"
   },
   "gamification": {
     "streak": "Fitohy",

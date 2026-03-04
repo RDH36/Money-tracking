@@ -402,7 +402,13 @@
     "streaksAndChallenges": "Séries quotidiennes et défis pour rester motivé",
     "badgesAndAchievements": "Badges et succès à débloquer en gérant votre argent",
     "xpAndLevels": "Système d'XP et de niveaux avec barre de progression",
-    "dailyChallenges": "Défi du jour pour garder le cap sur vos finances"
+    "dailyChallenges": "Défi du jour pour garder le cap sur vos finances",
+    "reportsScreen": "Écran Rapports : graphiques de tendances, répartition par catégorie et statistiques détaillées",
+    "calendarScreen": "Calendrier des dépenses : visualisez vos dépenses jour par jour",
+    "activityFilters": "Filtres par type dans l'historique : dépenses, revenus, transferts",
+    "reducedRedundancy": "Interface simplifiée : moins de données redondantes entre les écrans",
+    "transferFilter": "Le filtre Transferts affiche correctement les transferts",
+    "transferNotCountedAsExpense": "Les transferts ne sont plus comptabilisés comme des dépenses"
   },
   "gamification": {
     "streak": "Série",
