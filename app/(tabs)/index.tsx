@@ -18,6 +18,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { GamificationBar } from '@/components/GamificationBar';
 import { LevelUpModal } from '@/components/LevelUpModal';
 import { useTheme } from '@/contexts';
+import { useGamificationStore } from '@/stores/gamificationStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
@@ -78,6 +79,15 @@ export default function DashboardScreen() {
           await gamification.checkBadges();
           const level = gamification.getLevelUp();
           if (level) setLevelUp(level);
+          const streak = useGamificationStore.getState().currentStreak;
+          gamification.scheduleNotifications({
+            streakTitle: t('gamification.notifStreakTitle', { count: streak }),
+            streakBody: t('gamification.notifStreakBody'),
+            challengeTitle: t('gamification.notifChallengeTitle'),
+            challengeBody: t('gamification.notifChallengeBody'),
+            weeklyTitle: t('gamification.notifWeeklyTitle'),
+            weeklyBody: t('gamification.notifWeeklyBody'),
+          });
         });
       }
     }, [refreshAccounts, refreshTransactions, checkNew, gamification.isLoading])

@@ -57,23 +57,23 @@ export function ActivityHeader({ transactions, filterType, onFilterChange }: Act
     <VStack space="sm" className="px-4 pb-2">
       {/* Today's Activity */}
       {todayTotal > 0 && (
-        <Box className="p-3 rounded-xl" style={{ backgroundColor: theme.colors.primary + '10' }}>
+        <Box className="p-5 rounded-xl" style={{ backgroundColor: theme.colors.primary + '10' }}>
           <HStack className="justify-between items-center">
-            <HStack space="sm" className="items-center">
-              <Box className="p-1.5 rounded-lg" style={{ backgroundColor: theme.colors.primary + '20' }}>
-                <Ionicons name="today" size={16} color={theme.colors.primary} />
+            <HStack space="md" className="items-center">
+              <Box className="p-2.5 rounded-lg" style={{ backgroundColor: theme.colors.primary + '20' }}>
+                <Ionicons name="today" size={24} color={theme.colors.primary} />
               </Box>
               <VStack>
-                <Text className="text-[10px] text-typography-400">{t('history.spentToday')}</Text>
-                <Text className="text-sm font-bold" style={{ color: '#EF4444' }}>
+                <Text className="text-sm text-typography-400">{t('history.spentToday')}</Text>
+                <Text className="text-lg font-bold" style={{ color: '#EF4444' }}>
                   {formatCurrency(todayExpenses, currencyCode)}
                 </Text>
               </VStack>
             </HStack>
             {todayIncome > 0 && (
               <VStack className="items-end">
-                <Text className="text-[10px] text-typography-400">{t('history.earnedToday')}</Text>
-                <Text className="text-sm font-bold" style={{ color: '#22C55E' }}>
+                <Text className="text-sm text-typography-400">{t('history.earnedToday')}</Text>
+                <Text className="text-lg font-bold" style={{ color: '#22C55E' }}>
                   +{formatCurrency(todayIncome, currencyCode)}
                 </Text>
               </VStack>
@@ -86,38 +86,38 @@ export function ActivityHeader({ transactions, filterType, onFilterChange }: Act
       <HStack space="sm">
         <Pressable onPress={() => router.push('/reports' as any)} className="flex-1">
           <HStack
-            space="sm"
-            className="p-3 rounded-xl items-center"
+            space="md"
+            className="p-5 rounded-xl items-center"
             style={{ backgroundColor: theme.colors.primaryLight }}
           >
-            <Ionicons name="bar-chart" size={18} color={theme.colors.primary} />
+            <Ionicons name="bar-chart" size={26} color={theme.colors.primary} />
             <VStack className="flex-1">
-              <Text className="text-xs font-semibold" style={{ color: theme.colors.primary }}>
+              <Text className="text-base font-semibold" style={{ color: theme.colors.primary }}>
                 {t('history.reports')}
               </Text>
-              <Text className="text-[10px] text-typography-400" numberOfLines={1}>
+              <Text className="text-sm text-typography-400" numberOfLines={1}>
                 {t('history.seeReports')}
               </Text>
             </VStack>
-            <Ionicons name="chevron-forward" size={14} color={theme.colors.primary} />
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
           </HStack>
         </Pressable>
         <Pressable onPress={() => router.push('/calendar' as any)} className="flex-1">
           <HStack
-            space="sm"
-            className="p-3 rounded-xl items-center"
+            space="md"
+            className="p-5 rounded-xl items-center"
             style={{ backgroundColor: theme.colors.primaryLight }}
           >
-            <Ionicons name="calendar" size={18} color={theme.colors.primary} />
+            <Ionicons name="calendar" size={26} color={theme.colors.primary} />
             <VStack className="flex-1">
-              <Text className="text-xs font-semibold" style={{ color: theme.colors.primary }}>
+              <Text className="text-base font-semibold" style={{ color: theme.colors.primary }}>
                 {t('history.calendar')}
               </Text>
-              <Text className="text-[10px] text-typography-400" numberOfLines={1}>
+              <Text className="text-sm text-typography-400" numberOfLines={1}>
                 {t('history.seeCalendar')}
               </Text>
             </VStack>
-            <Ionicons name="chevron-forward" size={14} color={theme.colors.primary} />
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
           </HStack>
         </Pressable>
       </HStack>
@@ -127,14 +127,14 @@ export function ActivityHeader({ transactions, filterType, onFilterChange }: Act
         {filters.map((f) => (
           <Pressable key={f.key} onPress={() => onFilterChange(f.key)}>
             <Box
-              className="px-4 py-2 rounded-full"
+              className="px-5 py-3 rounded-full"
               style={filterType === f.key
                 ? { backgroundColor: theme.colors.primary }
                 : { backgroundColor: theme.colors.primaryLight }
               }
             >
               <Text
-                className="text-xs font-semibold"
+                className="text-sm font-semibold"
                 style={{ color: filterType === f.key ? '#FFFFFF' : theme.colors.primary }}
               >
                 {f.label}

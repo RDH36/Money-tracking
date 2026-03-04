@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Pressable, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,19 @@ import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { xpProgress, xpForLevel, calculateLevel } from '@/constants/badges';
+
+function getTimeUntilMidnight(): string {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const diff = midnight.getTime() - now.getTime();
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1_000);
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  if (hours > 0) return `${hours}h ${mm}m ${ss}s`;
+  return `${mm}m ${ss}s`;
+}
 
 interface GamificationBarProps {
   currentStreak: number;
@@ -55,6 +68,12 @@ function SkeletonBar({ theme }: { theme: { colors: { primaryLight: string; prima
 export function GamificationBar({ currentStreak, totalXP, dailyChallengeCompleted, isLoading, onPress }: GamificationBarProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const [countdown, setCountdown] = useState(getTimeUntilMidnight);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCountdown(getTimeUntilMidnight()), 1_000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (isLoading) return <SkeletonBar theme={theme} />;
 
@@ -64,50 +83,56 @@ export function GamificationBar({ currentStreak, totalXP, dailyChallengeComplete
 
   return (
     <Pressable onPress={onPress}>
-      <HStack
-        className="mt-2 p-3 rounded-xl items-center"
-        style={{ backgroundColor: theme.colors.primaryLight }}
-        space="md"
-      >
-        {/* Streak */}
-        <HStack space="xs" className="items-center">
-          <Ionicons
-            name={currentStreak > 0 ? 'flame' : 'flame-outline'}
-            size={16}
-            color={currentStreak > 0 ? '#EF4444' : '#9CA3AF'}
-          />
-          <Text className="text-xs font-bold" style={{ color: currentStreak > 0 ? '#EF4444' : '#9CA3AF' }}>
-            {t('gamification.streakDays', { count: currentStreak })}
+      <View className="mt-2 p-3 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
+        <HStack className="items-center" space="md">
+          {/* Streak */}
+          <HStack space="xs" className="items-center">
+            <Ionicons
+              name={currentStreak > 0 ? 'flame' : 'flame-outline'}
+              size={16}
+              color={currentStreak > 0 ? '#EF4444' : '#9CA3AF'}
+            />
+            <Text className="text-xs font-bold" style={{ color: currentStreak > 0 ? '#EF4444' : '#9CA3AF' }}>
+              {t('gamification.streakDays', { count: currentStreak })}
+            </Text>
+          </HStack>
+
+          {/* Level */}
+          <Text className="text-xs font-bold" style={{ color: theme.colors.primary }}>
+            {t('gamification.level', { level })}
           </Text>
-        </HStack>
 
-        {/* Level */}
-        <Text className="text-xs font-bold" style={{ color: theme.colors.primary }}>
-          {t('gamification.level', { level })}
-        </Text>
+          {/* XP Progress Bar */}
+          <View style={{ flex: 1, height: 6, backgroundColor: theme.colors.primary + '30', borderRadius: 3 }}>
+            <View
+              style={{
+                width: `${Math.min(progress * 100, 100)}%`,
+                height: '100%',
+                backgroundColor: theme.colors.primary,
+                borderRadius: 3,
+              }}
+            />
+          </View>
+          <Text className="text-xs" style={{ color: theme.colors.primary }}>
+            {t('gamification.xpOf', { current: totalXP, next: nextLevelXP })}
+          </Text>
 
-        {/* XP Progress Bar */}
-        <View style={{ flex: 1, height: 6, backgroundColor: theme.colors.primary + '30', borderRadius: 3 }}>
-          <View
-            style={{
-              width: `${Math.min(progress * 100, 100)}%`,
-              height: '100%',
-              backgroundColor: theme.colors.primary,
-              borderRadius: 3,
-            }}
+          {/* Daily Challenge */}
+          <Ionicons
+            name={dailyChallengeCompleted ? 'checkmark-circle' : 'star-outline'}
+            size={16}
+            color={dailyChallengeCompleted ? '#22C55E' : '#EAB308'}
           />
-        </View>
-        <Text className="text-xs" style={{ color: theme.colors.primary }}>
-          {t('gamification.xpOf', { current: totalXP, next: nextLevelXP })}
-        </Text>
-
-        {/* Daily Challenge */}
-        <Ionicons
-          name={dailyChallengeCompleted ? 'checkmark-circle' : 'star-outline'}
-          size={16}
-          color={dailyChallengeCompleted ? '#22C55E' : '#EAB308'}
-        />
-      </HStack>
+        </HStack>
+        {currentStreak > 0 && (
+          <HStack space="xs" className="items-center mt-1">
+            <Ionicons name="time-outline" size={10} color={theme.colors.primary} />
+            <Text style={{ fontSize: 9, color: theme.colors.primary }}>
+              {t('gamification.nextStreak', { time: countdown })}
+            </Text>
+          </HStack>
+        )}
+      </View>
     </Pressable>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import { Text } from '@/components/ui/text';
 import { BadgeCard } from '@/components/BadgeCard';
 import { useGamification } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
 import { BADGES, calculateLevel, xpProgress, xpForLevel } from '@/constants/badges';
 
 interface BadgeEarnedDate {
@@ -17,11 +19,27 @@ interface BadgeEarnedDate {
   earned_at: string;
 }
 
+function getTimeUntilMidnight(): string {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const diff = midnight.getTime() - now.getTime();
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1_000);
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  if (hours > 0) return `${hours}h ${mm}m ${ss}s`;
+  return `${mm}m ${ss}s`;
+}
+
 export function AchievementsTab() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const isDark = useEffectiveColorScheme() === 'dark';
+  const colors = getDarkModeColors(isDark);
   const gamification = useGamification();
   const [badgeDates, setBadgeDates] = useState<Record<string, string>>({});
+  const [countdown, setCountdown] = useState(getTimeUntilMidnight);
 
   const level = calculateLevel(gamification.totalXP);
   const progress = xpProgress(gamification.totalXP);
@@ -42,6 +60,11 @@ export function AchievementsTab() {
   };
   const challengeText = challengeKeyMap[gamification.dailyChallengeType] || challengeKey;
 
+  useEffect(() => {
+    const interval = setInterval(() => setCountdown(getTimeUntilMidnight()), 1_000);
+    return () => clearInterval(interval);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       gamification.checkBadges();
@@ -55,10 +78,10 @@ export function AchievementsTab() {
         <HStack space="sm" className="justify-between">
           <StatCard
             icon="flame"
-            iconColor="#EF4444"
+            iconColor={SEMANTIC_COLORS.expense}
             label={t('gamification.streak')}
             value={t('gamification.streakDays', { count: gamification.currentStreak })}
-            bg="#FEF2F2"
+            bg={isDark ? SEMANTIC_COLORS.expenseLightDark : SEMANTIC_COLORS.expenseLight}
           />
           <StatCard
             icon="trophy"
@@ -69,17 +92,17 @@ export function AchievementsTab() {
           />
           <StatCard
             icon="star"
-            iconColor="#EAB308"
+            iconColor={SEMANTIC_COLORS.xpYellow}
             label={t('gamification.totalXP')}
             value={String(gamification.totalXP)}
-            bg="#FEFCE8"
+            bg={isDark ? SEMANTIC_COLORS.xpYellowLightDark : SEMANTIC_COLORS.xpYellowLight}
           />
           <StatCard
             icon="ribbon"
-            iconColor="#A855F7"
+            iconColor={SEMANTIC_COLORS.badgePurple}
             label={t('gamification.badges')}
             value={t('gamification.badgesEarned', { count: earnedCount, total: BADGES.length })}
-            bg="#FAF5FF"
+            bg={isDark ? SEMANTIC_COLORS.badgePurpleLightDark : SEMANTIC_COLORS.badgePurpleLight}
           />
         </HStack>
 
@@ -110,8 +133,10 @@ export function AchievementsTab() {
           <Box
             className="p-4 rounded-xl border"
             style={{
-              borderColor: gamification.dailyChallengeCompleted ? '#22C55E40' : '#EAB30840',
-              backgroundColor: gamification.dailyChallengeCompleted ? '#F0FDF408' : '#FEFCE808',
+              borderColor: gamification.dailyChallengeCompleted ? SEMANTIC_COLORS.income + '40' : SEMANTIC_COLORS.xpYellow + '40',
+              backgroundColor: gamification.dailyChallengeCompleted
+                ? (isDark ? SEMANTIC_COLORS.incomeLightDark : SEMANTIC_COLORS.incomeLight)
+                : (isDark ? SEMANTIC_COLORS.xpYellowLightDark : SEMANTIC_COLORS.xpYellowLight),
             }}
           >
             <HStack className="items-center justify-between">
@@ -119,7 +144,7 @@ export function AchievementsTab() {
                 <Ionicons
                   name={gamification.dailyChallengeCompleted ? 'checkmark-circle' : 'star'}
                   size={20}
-                  color={gamification.dailyChallengeCompleted ? '#22C55E' : '#EAB308'}
+                  color={gamification.dailyChallengeCompleted ? SEMANTIC_COLORS.income : SEMANTIC_COLORS.xpYellow}
                 />
                 <VStack className="flex-1">
                   <Text className="text-sm font-semibold text-typography-700">
@@ -132,7 +157,7 @@ export function AchievementsTab() {
                   </Text>
                 </VStack>
               </HStack>
-              <Text className="text-xs font-bold" style={{ color: '#7C3AED' }}>
+              <Text className="text-xs font-bold" style={{ color: SEMANTIC_COLORS.xpBonus }}>
                 +50 XP
               </Text>
             </HStack>
@@ -141,21 +166,29 @@ export function AchievementsTab() {
 
         {/* Streak Info */}
         <HStack space="sm">
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#FEF2F2' }}>
+          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.expenseLightDark : SEMANTIC_COLORS.expenseLight }}>
             <HStack space="xs" className="items-center">
-              <Ionicons name="flame" size={14} color="#EF4444" />
+              <Ionicons name="flame" size={14} color={SEMANTIC_COLORS.expense} />
               <Text className="text-xs text-typography-500">{t('gamification.longestStreak')}</Text>
             </HStack>
-            <Text className="text-lg font-bold" style={{ color: '#EF4444' }}>
+            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.expense }}>
               {t('gamification.streakDays', { count: gamification.longestStreak })}
             </Text>
+            {gamification.currentStreak > 0 && (
+              <HStack space="xs" className="items-center mt-1">
+                <Ionicons name="time-outline" size={10} color={SEMANTIC_COLORS.expense} />
+                <Text style={{ fontSize: 9, color: SEMANTIC_COLORS.expense }}>
+                  {t('gamification.nextStreak', { time: countdown })}
+                </Text>
+              </HStack>
+            )}
           </Box>
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#EFF6FF' }}>
+          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.freezeBlueLightDark : SEMANTIC_COLORS.freezeBlueLight }}>
             <HStack space="xs" className="items-center">
-              <Ionicons name="shield-checkmark" size={14} color="#3B82F6" />
+              <Ionicons name="shield-checkmark" size={14} color={SEMANTIC_COLORS.freezeBlue} />
               <Text className="text-xs text-typography-500">{t('gamification.streakFreeze')}</Text>
             </HStack>
-            <Text className="text-lg font-bold" style={{ color: '#3B82F6' }}>
+            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.freezeBlue }}>
               {t('gamification.streakFreezeDesc', { count: gamification.streakFreezeAvailable })}
             </Text>
           </Box>

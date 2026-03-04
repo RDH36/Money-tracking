@@ -92,7 +92,7 @@
   },
   "reports": {
     "title": "Reports",
-    "trend": "Expense Trend",
+    "trend": "Transaction Trends",
     "categoryBreakdown": "By Category",
     "incomeVsExpense": "Income vs Expenses",
     "avgPerDay": "Avg/day",
@@ -103,8 +103,8 @@
     "expenses": "Expenses"
   },
   "calendar": {
-    "title": "Expense Calendar",
-    "noExpenses": "No expenses this day",
+    "title": "Transaction Calendar",
+    "noExpenses": "No transactions this day",
     "dailyTotal": "Daily total",
     "mon": "M",
     "tue": "T",
@@ -403,6 +403,7 @@
     "badgesAndAchievements": "Badges and achievements to unlock as you manage your money",
     "xpAndLevels": "XP and level system with progress bar",
     "dailyChallenges": "Daily challenge to stay on top of your finances",
+    "gamificationNotifications": "Smart notifications: streak reminders, daily challenges and weekly summary",
     "reportsScreen": "Reports screen: trend charts, category breakdown and detailed stats",
     "calendarScreen": "Expense calendar: view your spending day by day",
     "activityFilters": "Activity filters: expenses, income, transfers",
@@ -428,6 +429,7 @@
     "continue": "Continue",
     "streakFreeze": "Streak freeze",
     "streakFreezeDesc": "{{count}} available",
+    "nextStreak": "Next streak in {{time}}",
     "streakFreezeUsed": "Streak protected!",
     "challengeLogExpense": "Track a spending to stay in control",
     "challengeLog3": "3 transactions to keep your day on track",
@@ -451,6 +453,12 @@
     "badgeLevel5": "Level 5",
     "badgeLevel5Desc": "You're mastering your finances better than ever",
     "badgeTransactions50": "50 transactions",
-    "badgeTransactions50Desc": "50 entries! You have a clear view of your money"
+    "badgeTransactions50Desc": "50 entries! You have a clear view of your money",
+    "notifStreakTitle": "Your {{count}}d streak is at risk!",
+    "notifStreakBody": "Open the app to keep it alive",
+    "notifChallengeTitle": "Daily challenge not completed",
+    "notifChallengeBody": "You still have a few hours to earn 50 XP",
+    "notifWeeklyTitle": "Weekly summary",
+    "notifWeeklyBody": "Check your reports to see your progress"
   }
 }

@@ -15,6 +15,7 @@ import { TransactionCard } from '@/components/TransactionCard';
 import { useTransactions } from '@/hooks';
 import { getDailyTotals } from '@/hooks/useTransactionStats';
 import { useTheme } from '@/contexts';
+import { SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -36,8 +37,12 @@ export default function CalendarScreen() {
 
   const dailyTotals = useMemo(() => getDailyTotals(transactions, year, month), [transactions, year, month]);
 
-  const monthTotal = useMemo(() => {
+  const monthExpenses = useMemo(() => {
     return Object.values(dailyTotals).reduce((sum, dt) => sum + dt.expenses, 0);
+  }, [dailyTotals]);
+
+  const monthIncome = useMemo(() => {
+    return Object.values(dailyTotals).reduce((sum, dt) => sum + dt.income, 0);
   }, [dailyTotals]);
 
   const dayTransactions = useMemo(() => {
@@ -50,9 +55,13 @@ export default function CalendarScreen() {
 
   const navigateMonth = (direction: -1 | 1) => {
     const d = new Date(year, month + direction, 1);
-    setYear(d.getFullYear());
-    setMonth(d.getMonth());
-    setSelectedDay(null);
+    const newYear = d.getFullYear();
+    const newMonth = d.getMonth();
+    setYear(newYear);
+    setMonth(newMonth);
+    // Auto-select today if navigating to current month, otherwise 1st day
+    const isCurrentMonth = today.getFullYear() === newYear && today.getMonth() === newMonth;
+    setSelectedDay(isCurrentMonth ? today.getDate() : 1);
   };
 
   const locale = i18n.language === 'mg' ? 'fr-MG' : i18n.language === 'fr' ? 'fr-FR' : 'en-US';
@@ -65,7 +74,7 @@ export default function CalendarScreen() {
   return (
     <ScrollView
       style={{ flex: 1, paddingTop: insets.top }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 16 }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }}
     >
       <HStack className="items-center mb-4 mt-2">
         <Pressable onPress={() => router.back()} hitSlop={12}>
@@ -82,9 +91,14 @@ export default function CalendarScreen() {
           </Pressable>
           <VStack className="items-center">
             <Text className="text-sm font-semibold text-typography-700 capitalize">{monthLabel}</Text>
-            <Text className="text-xs" style={{ color: '#EF4444' }}>
-              {t('reports.total')}: {formatCurrency(monthTotal, currencyCode)}
-            </Text>
+            <HStack space="md">
+              <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.expense }}>
+                -{formatCurrency(monthExpenses, currencyCode)}
+              </Text>
+              <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.income }}>
+                +{formatCurrency(monthIncome, currencyCode)}
+              </Text>
+            </HStack>
           </VStack>
           <Pressable onPress={() => navigateMonth(1)} hitSlop={12}>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
@@ -113,11 +127,18 @@ export default function CalendarScreen() {
                   month: 'long',
                 })}
               </Text>
-              {dailyTotals[selectedDay] && dailyTotals[selectedDay].expenses > 0 && (
-                <Text className="text-xs font-semibold" style={{ color: '#EF4444' }}>
-                  {formatCurrency(dailyTotals[selectedDay].expenses, currencyCode)}
-                </Text>
-              )}
+              <HStack space="sm">
+                {dailyTotals[selectedDay] && dailyTotals[selectedDay].expenses > 0 && (
+                  <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.expense }}>
+                    -{formatCurrency(dailyTotals[selectedDay].expenses, currencyCode)}
+                  </Text>
+                )}
+                {dailyTotals[selectedDay] && dailyTotals[selectedDay].income > 0 && (
+                  <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.income }}>
+                    +{formatCurrency(dailyTotals[selectedDay].income, currencyCode)}
+                  </Text>
+                )}
+              </HStack>
             </HStack>
 
             {dayTransactions.length === 0 ? (

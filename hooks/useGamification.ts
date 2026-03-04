@@ -9,15 +9,28 @@ import {
   calculateLevel,
   type DailyChallengeType,
 } from '@/constants/badges';
+import {
+  scheduleStreakReminder,
+  scheduleDailyChallengeReminder,
+  cancelDailyChallengeReminder,
+  scheduleWeeklySummary,
+} from '@/lib/notifications';
+
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+  return formatLocalDate(new Date());
 }
 
 function getYesterday(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+  return formatLocalDate(d);
 }
 
 interface GamificationRow {
@@ -236,6 +249,26 @@ export function useGamification() {
     return level;
   }, [getState, store.setPendingLevelUp]);
 
+  const scheduleNotifications = useCallback(
+    async (messages: {
+      streakTitle: string; streakBody: string;
+      challengeTitle: string; challengeBody: string;
+      weeklyTitle: string; weeklyBody: string;
+    }) => {
+      const s = getState();
+      if (s.currentStreak > 0) {
+        await scheduleStreakReminder(messages.streakTitle, messages.streakBody);
+      }
+      if (!s.dailyChallengeCompleted) {
+        await scheduleDailyChallengeReminder(messages.challengeTitle, messages.challengeBody);
+      } else {
+        await cancelDailyChallengeReminder();
+      }
+      await scheduleWeeklySummary(messages.weeklyTitle, messages.weeklyBody);
+    },
+    [getState]
+  );
+
   return {
     currentStreak: store.currentStreak,
     longestStreak: store.longestStreak,
@@ -255,5 +288,6 @@ export function useGamification() {
     checkBadges,
     useStreakFreeze,
     getLevelUp,
+    scheduleNotifications,
   };
 }

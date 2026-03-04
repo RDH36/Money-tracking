@@ -92,7 +92,7 @@
   },
   "reports": {
     "title": "Rapports",
-    "trend": "Tendance des dépenses",
+    "trend": "Tendance des transactions",
     "categoryBreakdown": "Par catégorie",
     "incomeVsExpense": "Revenus vs Dépenses",
     "avgPerDay": "Moy/jour",
@@ -103,8 +103,8 @@
     "expenses": "Dépenses"
   },
   "calendar": {
-    "title": "Calendrier des dépenses",
-    "noExpenses": "Aucune dépense ce jour",
+    "title": "Calendrier de transactions",
+    "noExpenses": "Aucune transaction ce jour",
     "dailyTotal": "Total du jour",
     "mon": "L",
     "tue": "M",
@@ -403,6 +403,7 @@
     "badgesAndAchievements": "Badges et succès à débloquer en gérant votre argent",
     "xpAndLevels": "Système d'XP et de niveaux avec barre de progression",
     "dailyChallenges": "Défi du jour pour garder le cap sur vos finances",
+    "gamificationNotifications": "Notifications intelligentes : rappels de série, défis du jour et résumé hebdomadaire",
     "reportsScreen": "Écran Rapports : graphiques de tendances, répartition par catégorie et statistiques détaillées",
     "calendarScreen": "Calendrier des dépenses : visualisez vos dépenses jour par jour",
     "activityFilters": "Filtres par type dans l'historique : dépenses, revenus, transferts",
@@ -428,6 +429,7 @@
     "continue": "Continuer",
     "streakFreeze": "Protection série",
     "streakFreezeDesc": "{{count}} disponible",
+    "nextStreak": "Prochain streak dans {{time}}",
     "streakFreezeUsed": "Série protégée !",
     "challengeLogExpense": "Note une dépense pour garder le contrôle",
     "challengeLog3": "3 transactions pour bien suivre ta journée",
@@ -451,6 +453,12 @@
     "badgeLevel5": "Niveau 5",
     "badgeLevel5Desc": "Tu maîtrises tes finances mieux que jamais",
     "badgeTransactions50": "50 transactions",
-    "badgeTransactions50Desc": "50 suivis ! Tu as une vision claire de ton argent"
+    "badgeTransactions50Desc": "50 suivis ! Tu as une vision claire de ton argent",
+    "notifStreakTitle": "Ta série de {{count}}j est en danger !",
+    "notifStreakBody": "Ouvre l'appli pour ne pas la perdre",
+    "notifChallengeTitle": "Défi du jour non complété",
+    "notifChallengeBody": "Il te reste quelques heures pour gagner 50 XP",
+    "notifWeeklyTitle": "Résumé de la semaine",
+    "notifWeeklyBody": "Consulte tes rapports pour voir ta progression"
   }
 }

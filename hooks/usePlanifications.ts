@@ -32,10 +32,26 @@ export function usePlanifications() {
       setIsFetching(true);
       const result = await db.getAllAsync<PlanificationWithTotal>(
         `SELECT p.*,
-         COALESCE(SUM(CASE WHEN pi.type = 'income' THEN -pi.amount ELSE pi.amount END), 0) as total,
-         COALESCE(SUM(CASE WHEN pi.type != 'income' OR pi.type IS NULL THEN pi.amount ELSE 0 END), 0) as total_expenses,
-         COALESCE(SUM(CASE WHEN pi.type = 'income' THEN pi.amount ELSE 0 END), 0) as total_income,
-         COUNT(pi.id) as item_count
+         CASE WHEN p.status = 'completed' THEN
+           COALESCE((SELECT SUM(CASE WHEN t.type = 'income' THEN -t.amount ELSE t.amount END) FROM transactions t WHERE t.planification_id = p.id AND t.deleted_at IS NULL), 0)
+         ELSE
+           COALESCE(SUM(CASE WHEN pi.type = 'income' THEN -pi.amount ELSE pi.amount END), 0)
+         END as total,
+         CASE WHEN p.status = 'completed' THEN
+           COALESCE((SELECT SUM(CASE WHEN t.type != 'income' THEN t.amount ELSE 0 END) FROM transactions t WHERE t.planification_id = p.id AND t.deleted_at IS NULL), 0)
+         ELSE
+           COALESCE(SUM(CASE WHEN pi.type != 'income' OR pi.type IS NULL THEN pi.amount ELSE 0 END), 0)
+         END as total_expenses,
+         CASE WHEN p.status = 'completed' THEN
+           COALESCE((SELECT SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END) FROM transactions t WHERE t.planification_id = p.id AND t.deleted_at IS NULL), 0)
+         ELSE
+           COALESCE(SUM(CASE WHEN pi.type = 'income' THEN pi.amount ELSE 0 END), 0)
+         END as total_income,
+         CASE WHEN p.status = 'completed' THEN
+           (SELECT COUNT(*) FROM transactions t WHERE t.planification_id = p.id AND t.deleted_at IS NULL)
+         ELSE
+           COUNT(pi.id)
+         END as item_count
          FROM planifications p
          LEFT JOIN planification_items pi ON p.id = pi.planification_id
          WHERE p.deleted_at IS NULL

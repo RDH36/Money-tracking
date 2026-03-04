@@ -92,7 +92,7 @@
   },
   "reports": {
     "title": "Tatitra",
-    "trend": "Fivoaran'ny fandaniana",
+    "trend": "Fivoaran'ny vola miditra sy mivoaka",
     "categoryBreakdown": "Isan-tsokajiny",
     "incomeVsExpense": "Vola niditra vs Fandaniana",
     "avgPerDay": "Salan'isa/andro",
@@ -103,8 +103,8 @@
     "expenses": "Fandaniana"
   },
   "calendar": {
-    "title": "Kalandrien'ny fandaniana",
-    "noExpenses": "Tsy misy fandaniana androany",
+    "title": "Kalandrien'ny vola",
+    "noExpenses": "Tsy misy vola miditra na mivoaka androany",
     "dailyTotal": "Totalin'ny andro",
     "mon": "Al",
     "tue": "Ta",
@@ -403,6 +403,7 @@
     "badgesAndAchievements": "Badges sy fahombiazana azo soketina amin'ny fitantanana ny volanao",
     "xpAndLevels": "Rafitra XP sy laharana miaraka amin'ny bary fandrosoana",
     "dailyChallenges": "Fanamby isan'andro mba hanaraha-maso ny volanao",
+    "gamificationNotifications": "Fampandrenesana marani-tsaina: fampahatsiahivana fitohy, fanamby isan'andro ary famintinana ny herinandro",
     "reportsScreen": "Pejy tatitra: grafika fironana, fizarana isaky ny sokajy ary antontan'isa",
     "calendarScreen": "Kalandrié fandaniana: jereo ny fandanianao isan'andro",
     "activityFilters": "Sivana isaky ny karazana: fandaniana, vola miditra, famindrana",
@@ -428,6 +429,7 @@
     "continue": "Tohizo",
     "streakFreeze": "Fiarovana fitohy",
     "streakFreezeDesc": "{{count}} azo ampiasaina",
+    "nextStreak": "Fitohy manaraka ao anatin'ny {{time}}",
     "streakFreezeUsed": "Voaro ny fitohy!",
     "challengeLogExpense": "Soraty fandaniana iray mba hifehezanao ny volanao",
     "challengeLog3": "Fifanakalozana 3 mba hanaraha-maso ny andronao",
@@ -451,6 +453,12 @@
     "badgeLevel5": "Laharana 5",
     "badgeLevel5Desc": "Mahay mifehifehy ny volanao mihoatra ny taloha ianao",
     "badgeTransactions50": "Fifanakalozana 50",
-    "badgeTransactions50Desc": "50 narahina! Hitanao mazava ny volanao"
+    "badgeTransactions50Desc": "50 narahina! Hitanao mazava ny volanao",
+    "notifStreakTitle": "Tandindomin-doza ny fitohy {{count}}a!",
+    "notifStreakBody": "Sokafy ny app mba tsy ho very",
+    "notifChallengeTitle": "Tsy mbola vita ny fanamby androany",
+    "notifChallengeBody": "Mbola manana ora vitsivitsy ianao hahazoana 50 XP",
+    "notifWeeklyTitle": "Famintinana ny herinandro",
+    "notifWeeklyBody": "Jereo ny tatitrao mba hahitana ny fandrosoanao"
   }
 }

@@ -19,6 +19,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "added", key: "changelog.badgesAndAchievements" },
       { type: "added", key: "changelog.xpAndLevels" },
       { type: "added", key: "changelog.dailyChallenges" },
+      { type: "added", key: "changelog.gamificationNotifications" },
       { type: "added", key: "changelog.reportsScreen" },
       { type: "added", key: "changelog.calendarScreen" },
       { type: "added", key: "changelog.activityFilters" },

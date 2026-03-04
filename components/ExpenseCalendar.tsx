@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import type { DailyTotal } from '@/hooks/useTransactionStats';
@@ -18,6 +20,8 @@ interface ExpenseCalendarProps {
 export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, month }: ExpenseCalendarProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const isDark = useEffectiveColorScheme() === 'dark';
+  const colors = getDarkModeColors(isDark);
   const currencyCode = useCurrencyCode();
 
   const dayLabels = [
@@ -66,7 +70,7 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
         <HStack key={rowIdx} className="mb-1">
           {row.map((day, colIdx) => {
             if (day === null) {
-              return <View key={colIdx} style={{ flex: 1, height: 52 }} />;
+              return <View key={colIdx} style={{ flex: 1, height: 58 }} />;
             }
 
             const dt = dailyTotals[day];
@@ -80,7 +84,7 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
                 onPress={() => onSelectDay(day)}
                 style={{
                   flex: 1,
-                  height: 52,
+                  height: 58,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: 8,
@@ -92,17 +96,26 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
               >
                 <Text
                   className="text-xs font-semibold"
-                  style={{ color: isSelected ? '#FFF' : isToday ? theme.colors.primary : undefined }}
+                  style={{ color: isSelected ? '#FFF' : isToday ? theme.colors.primary : (isDark ? '#E5E5E5' : '#333') }}
                 >
                   {day}
                 </Text>
                 {dt && dt.expenses > 0 && (
                   <Text
                     className="text-[8px]"
-                    style={{ color: isSelected ? '#FFF' : '#EF4444' }}
+                    style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.expense }}
                     numberOfLines={1}
                   >
-                    {formatCurrency(dt.expenses, currencyCode)}
+                    -{formatCurrency(dt.expenses, currencyCode)}
+                  </Text>
+                )}
+                {dt && dt.income > 0 && (
+                  <Text
+                    className="text-[8px]"
+                    style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.income }}
+                    numberOfLines={1}
+                  >
+                    +{formatCurrency(dt.income, currencyCode)}
                   </Text>
                 )}
               </Pressable>

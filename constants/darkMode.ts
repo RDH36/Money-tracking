@@ -30,6 +30,22 @@ export const SEMANTIC_COLORS = {
   successLight: '#F0FDF4',
   successLightDark: '#052E16',
   warning: '#F59E0B',
+  expense: '#EF4444',
+  expenseLight: '#FEF2F2',
+  expenseLightDark: '#2D1F1F',
+  income: '#22C55E',
+  incomeLight: '#F0FDF4',
+  incomeLightDark: '#1F2D1F',
+  xpYellow: '#EAB308',
+  xpYellowLight: '#FEFCE8',
+  xpYellowLightDark: '#2D2A1F',
+  badgePurple: '#A855F7',
+  badgePurpleLight: '#FAF5FF',
+  badgePurpleLightDark: '#261F2D',
+  freezeBlue: '#3B82F6',
+  freezeBlueLight: '#EFF6FF',
+  freezeBlueLightDark: '#1F222D',
+  xpBonus: '#7C3AED',
 };
 
 export function getDarkModeColors(isDark: boolean) {

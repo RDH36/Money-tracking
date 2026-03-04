@@ -15,6 +15,8 @@ import { useTransactions } from '@/hooks';
 import { useTransactionStats, getBarChartData, filterByPeriod } from '@/hooks/useTransactionStats';
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 
@@ -23,6 +25,8 @@ export default function ReportsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const isDark = useEffectiveColorScheme() === 'dark';
+  const colors = getDarkModeColors(isDark);
   const currencyCode = useCurrencyCode();
   const { transactions } = useTransactions();
 
@@ -33,8 +37,8 @@ export default function ReportsScreen() {
   const barData = useMemo(() => getBarChartData(filtered, period, date), [filtered, period, date]);
 
   const chartBarData = barData.flatMap((b) => [
-    { value: b.expenses / 100, label: b.label, frontColor: '#EF4444', spacing: 2 },
-    { value: b.income / 100, label: '', frontColor: '#22C55E', spacing: 12 },
+    { value: b.expenses / 100, label: b.label, frontColor: SEMANTIC_COLORS.expense, spacing: 2 },
+    { value: b.income / 100, label: '', frontColor: SEMANTIC_COLORS.income, spacing: 12 },
   ]);
 
   const pieData = stats.categoryBreakdown.slice(0, 6).map((cat, i) => ({
@@ -62,15 +66,15 @@ export default function ReportsScreen() {
 
         {/* Summary Cards */}
         <HStack space="sm">
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#FEF2F2' }}>
-            <Text className="text-xs text-typography-500">{t('reports.expenses')}</Text>
-            <Text className="text-base font-bold" style={{ color: '#EF4444' }}>
+          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.expenseLightDark : SEMANTIC_COLORS.expenseLight }}>
+            <Text className="text-sm text-typography-500">{t('reports.expenses')}</Text>
+            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.expense }}>
               {formatCurrency(stats.totalExpenses, currencyCode)}
             </Text>
           </Box>
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
-            <Text className="text-xs text-typography-500">{t('reports.income')}</Text>
-            <Text className="text-base font-bold" style={{ color: '#22C55E' }}>
+          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.incomeLightDark : SEMANTIC_COLORS.incomeLight }}>
+            <Text className="text-sm text-typography-500">{t('reports.income')}</Text>
+            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.income }}>
               {formatCurrency(stats.totalIncome, currencyCode)}
             </Text>
           </Box>
@@ -78,15 +82,15 @@ export default function ReportsScreen() {
 
         {/* Stats Row */}
         <HStack space="sm">
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-            <Text className="text-xs text-typography-500">{t('reports.avgPerDay')}</Text>
-            <Text className="text-sm font-bold" style={{ color: theme.colors.primary }}>
+          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
+            <Text className="text-sm text-typography-500">{t('reports.avgPerDay')}</Text>
+            <Text className="text-base font-bold" style={{ color: theme.colors.primary }}>
               {formatCurrency(stats.avgPerDay, currencyCode)}
             </Text>
           </Box>
-          <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-            <Text className="text-xs text-typography-500">{t('reports.topCategory')}</Text>
-            <Text className="text-sm font-bold" style={{ color: theme.colors.primary }} numberOfLines={1}>
+          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
+            <Text className="text-sm text-typography-500">{t('reports.topCategory')}</Text>
+            <Text className="text-base font-bold" style={{ color: theme.colors.primary }} numberOfLines={1}>
               {stats.topCategory?.name || '-'}
             </Text>
           </Box>
@@ -103,7 +107,7 @@ export default function ReportsScreen() {
             {period !== 'day' && chartBarData.length > 0 && (
               <VStack space="sm">
                 <Text className="text-typography-700 font-semibold">{t('reports.trend')}</Text>
-                <Box className="p-3 rounded-xl bg-background-50 overflow-hidden">
+                <Box key={`${period}-${date.getTime()}`} className="p-3 rounded-xl overflow-hidden" style={{ backgroundColor: colors.cardBg }}>
                   <BarChart
                     data={chartBarData}
                     barWidth={period === 'year' ? 8 : 14}
@@ -112,18 +116,20 @@ export default function ReportsScreen() {
                     yAxisThickness={0}
                     xAxisThickness={0}
                     hideRules
-                    xAxisLabelTextStyle={{ fontSize: 9, color: '#9CA3AF' }}
+                    xAxisLabelTextStyle={{ fontSize: 9, color: colors.textMuted }}
+                    yAxisTextStyle={{ fontSize: 9, color: colors.textMuted }}
+                    backgroundColor={colors.cardBg}
                     height={150}
                     isAnimated
                   />
                 </Box>
                 <HStack space="md" className="justify-center">
                   <HStack space="xs" className="items-center">
-                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: SEMANTIC_COLORS.expense }} />
                     <Text className="text-xs text-typography-500">{t('reports.expenses')}</Text>
                   </HStack>
                   <HStack space="xs" className="items-center">
-                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: '#22C55E' }} />
+                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: SEMANTIC_COLORS.income }} />
                     <Text className="text-xs text-typography-500">{t('reports.income')}</Text>
                   </HStack>
                 </HStack>
@@ -140,11 +146,11 @@ export default function ReportsScreen() {
                     donut
                     radius={65}
                     innerRadius={40}
-                    innerCircleColor="#FFFFFF"
+                    innerCircleColor={colors.cardBg}
                     centerLabelComponent={() => (
                       <VStack className="items-center">
-                        <Text className="text-typography-500 text-[10px]">{t('reports.total')}</Text>
-                        <Text className="text-typography-900 font-bold text-xs">
+                        <Text className="text-typography-500 text-xs">{t('reports.total')}</Text>
+                        <Text className="text-typography-900 font-bold text-sm">
                           {formatCurrency(stats.totalExpenses, currencyCode)}
                         </Text>
                       </VStack>
@@ -154,8 +160,8 @@ export default function ReportsScreen() {
                     {stats.categoryBreakdown.slice(0, 5).map((cat, i) => (
                       <HStack key={cat.id || i} className="items-center" space="sm">
                         <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        <Text className="text-xs text-typography-600 flex-1" numberOfLines={1}>{cat.name}</Text>
-                        <Text className="text-xs text-typography-500">
+                        <Text className="text-sm text-typography-600 flex-1" numberOfLines={1}>{cat.name}</Text>
+                        <Text className="text-sm text-typography-500">
                           {stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%
                         </Text>
                       </HStack>
