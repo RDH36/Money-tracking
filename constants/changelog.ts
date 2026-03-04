@@ -11,26 +11,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.2.0",
-    date: "2026-03-04",
-    changes: [
-      { type: "added", key: "changelog.reportsScreen" },
-      { type: "added", key: "changelog.calendarScreen" },
-      { type: "added", key: "changelog.activityFilters" },
-      { type: "improved", key: "changelog.reducedRedundancy" },
-      { type: "fixed", key: "changelog.transferFilter" },
-      { type: "fixed", key: "changelog.transferNotCountedAsExpense" },
-    ],
-  },
-  {
     version: "1.1.0",
-    date: "2026-03-03",
+    date: "2026-03-04",
     changes: [
       { type: "added", key: "changelog.gamificationSystem" },
       { type: "added", key: "changelog.streaksAndChallenges" },
       { type: "added", key: "changelog.badgesAndAchievements" },
       { type: "added", key: "changelog.xpAndLevels" },
       { type: "added", key: "changelog.dailyChallenges" },
+      { type: "added", key: "changelog.reportsScreen" },
+      { type: "added", key: "changelog.calendarScreen" },
+      { type: "added", key: "changelog.activityFilters" },
+      { type: "improved", key: "changelog.reducedRedundancy" },
+      { type: "fixed", key: "changelog.transferFilter" },
+      { type: "fixed", key: "changelog.transferNotCountedAsExpense" },
     ],
   },
   {
