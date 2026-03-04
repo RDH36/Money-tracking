@@ -72,7 +72,47 @@
     "filterExpenses": "Dépenses",
     "filterIncome": "Revenus",
     "filterTransfers": "Transferts",
-    "transactionCount": "{{count}} transaction(s)"
+    "transactionCount": "{{count}} transaction(s)",
+    "reports": "Rapports",
+    "calendar": "Calendrier",
+    "spentToday": "Dépensé aujourd'hui",
+    "earnedToday": "Gagné aujourd'hui",
+    "vsLastMonth": "vs mois dernier",
+    "lessSpending": "{{percent}}% de moins",
+    "moreSpending": "{{percent}}% de plus",
+    "seeReports": "Voir graphiques & tendances",
+    "seeCalendar": "Voir par date",
+    "net": "Net"
+  },
+  "periods": {
+    "day": "Jour",
+    "week": "Semaine",
+    "month": "Mois",
+    "year": "Année"
+  },
+  "reports": {
+    "title": "Rapports",
+    "trend": "Tendance des dépenses",
+    "categoryBreakdown": "Par catégorie",
+    "incomeVsExpense": "Revenus vs Dépenses",
+    "avgPerDay": "Moy/jour",
+    "topCategory": "Top catégorie",
+    "total": "Total",
+    "noData": "Aucune donnée pour cette période",
+    "income": "Revenus",
+    "expenses": "Dépenses"
+  },
+  "calendar": {
+    "title": "Calendrier des dépenses",
+    "noExpenses": "Aucune dépense ce jour",
+    "dailyTotal": "Total du jour",
+    "mon": "L",
+    "tue": "M",
+    "wed": "M",
+    "thu": "J",
+    "fri": "V",
+    "sat": "S",
+    "sun": "D"
   },
   "settings": {
     "title": "Paramètres",

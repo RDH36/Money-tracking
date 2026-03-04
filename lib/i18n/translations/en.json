@@ -72,7 +72,47 @@
     "filterExpenses": "Expenses",
     "filterIncome": "Income",
     "filterTransfers": "Transfers",
-    "transactionCount": "{{count}} transaction(s)"
+    "transactionCount": "{{count}} transaction(s)",
+    "reports": "Reports",
+    "calendar": "Calendar",
+    "spentToday": "Spent today",
+    "earnedToday": "Earned today",
+    "vsLastMonth": "vs last month",
+    "lessSpending": "{{percent}}% less",
+    "moreSpending": "{{percent}}% more",
+    "seeReports": "See charts & trends",
+    "seeCalendar": "View by date",
+    "net": "Net"
+  },
+  "periods": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year"
+  },
+  "reports": {
+    "title": "Reports",
+    "trend": "Expense Trend",
+    "categoryBreakdown": "By Category",
+    "incomeVsExpense": "Income vs Expenses",
+    "avgPerDay": "Avg/day",
+    "topCategory": "Top category",
+    "total": "Total",
+    "noData": "No data for this period",
+    "income": "Income",
+    "expenses": "Expenses"
+  },
+  "calendar": {
+    "title": "Expense Calendar",
+    "noExpenses": "No expenses this day",
+    "dailyTotal": "Daily total",
+    "mon": "M",
+    "tue": "T",
+    "wed": "W",
+    "thu": "T",
+    "fri": "F",
+    "sat": "S",
+    "sun": "S"
   },
   "settings": {
     "title": "Settings",

@@ -10,10 +10,9 @@ import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
-import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips, useWhatsNew, useGamification } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useTips, useWhatsNew, useGamification } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
-import { ExpenseChart } from '@/components/ExpenseChart';
 import { AddAccountModal } from '@/components/AddAccountModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { GamificationBar } from '@/components/GamificationBar';
@@ -29,7 +28,6 @@ export default function DashboardScreen() {
   const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
   const { transactions, refresh: refreshTransactions, isFetching, deleteTransaction } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
-  const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
   const { currentTip, showTip } = useTips('dashboard');
   const { hasNew, checkNew } = useWhatsNew();
   const gamification = useGamification();
@@ -73,7 +71,6 @@ export default function DashboardScreen() {
     useCallback(() => {
       refreshAccounts();
       refreshTransactions();
-      refreshExpenses();
       checkNew();
       if (!gamification.isLoading) {
         gamification.generateDailyChallenge();
@@ -83,11 +80,11 @@ export default function DashboardScreen() {
           if (level) setLevelUp(level);
         });
       }
-    }, [refreshAccounts, refreshTransactions, refreshExpenses, checkNew, gamification.isLoading])
+    }, [refreshAccounts, refreshTransactions, checkNew, gamification.isLoading])
   );
 
   const handleRefresh = async () => {
-    await Promise.all([refreshAccounts(), refreshTransactions(), refreshExpenses()]);
+    await Promise.all([refreshAccounts(), refreshTransactions()]);
   };
 
   const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
@@ -184,12 +181,6 @@ export default function DashboardScreen() {
             </Pressable>
           </ScrollView>
 
-          {expenses.length > 0 && (
-            <Box className="bg-background-0 p-4 rounded-xl border border-outline-100">
-              <ExpenseChart data={expenses} title={t('dashboard.expensesByCategory')} />
-            </Box>
-          )}
-
           <VStack space="md">
             <Text className="text-typography-700 font-semibold">{t('dashboard.recentTransactions')}</Text>
             {recentItems.length === 0 ? (
@@ -239,7 +230,6 @@ export default function DashboardScreen() {
           if (deleteTarget) {
             deleteTransaction(deleteTarget.id);
             refreshAccounts();
-            refreshExpenses();
           }
           setDeleteTarget(null);
         }}

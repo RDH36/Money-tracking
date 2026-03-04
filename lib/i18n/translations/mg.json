@@ -72,7 +72,47 @@
     "filterExpenses": "Fandaniana",
     "filterIncome": "Vola niditra",
     "filterTransfers": "Famindrana",
-    "transactionCount": "{{count}} fifanakalozana"
+    "transactionCount": "{{count}} fifanakalozana",
+    "reports": "Tatitra",
+    "calendar": "Kalandrie",
+    "spentToday": "Lany androany",
+    "earnedToday": "Azo androany",
+    "vsLastMonth": "vs volana lasa",
+    "lessSpending": "{{percent}}% latsaka",
+    "moreSpending": "{{percent}}% mihoatra",
+    "seeReports": "Jereo kisary & fiovana",
+    "seeCalendar": "Jereo isan'andro",
+    "net": "Sisa"
+  },
+  "periods": {
+    "day": "Andro",
+    "week": "Herinandro",
+    "month": "Volana",
+    "year": "Taona"
+  },
+  "reports": {
+    "title": "Tatitra",
+    "trend": "Fivoaran'ny fandaniana",
+    "categoryBreakdown": "Isan-tsokajiny",
+    "incomeVsExpense": "Vola niditra vs Fandaniana",
+    "avgPerDay": "Salan'isa/andro",
+    "topCategory": "Sokajiny ambony",
+    "total": "Totaly",
+    "noData": "Tsy misy angona amin'ity vanim-potoana ity",
+    "income": "Vola niditra",
+    "expenses": "Fandaniana"
+  },
+  "calendar": {
+    "title": "Kalandrien'ny fandaniana",
+    "noExpenses": "Tsy misy fandaniana androany",
+    "dailyTotal": "Totalin'ny andro",
+    "mon": "Al",
+    "tue": "Ta",
+    "wed": "Ar",
+    "thu": "Ak",
+    "fri": "Zo",
+    "sat": "As",
+    "sun": "Al"
   },
   "settings": {
     "title": "Firafitra",
