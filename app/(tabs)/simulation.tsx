@@ -16,7 +16,7 @@ import { Center } from '@/components/ui/center';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { PlanificationCard } from '@/components/PlanificationCard';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
-import { usePlanifications, useBalance, useAccounts, useTips } from '@/hooks';
+import { usePlanifications, useBalance, useAccounts, useTips, useGamification } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
@@ -46,6 +46,7 @@ export default function PlanificationScreen() {
     isLoading,
   } = usePlanifications();
   const { currentTip, showTip } = useTips('planification');
+  const gamification = useGamification();
 
   useFocusEffect(
     useCallback(() => {
@@ -73,6 +74,7 @@ export default function PlanificationScreen() {
     if (!newTitle.trim()) return;
     const result = await createPlanification(newTitle.trim(), deadline);
     if (result.success && result.id) {
+      await gamification.checkDailyChallenge('create_planification');
       setNewTitle('');
       setDeadline(null);
       setShowNewForm(false);
@@ -94,6 +96,7 @@ export default function PlanificationScreen() {
   const handleValidateConfirm = async (planificationId: string, accountId: string) => {
     const result = await validatePlanification(planificationId, accountId);
     if (result.success) {
+      await gamification.checkDailyChallenge('check_planification');
       await refreshBalance();
       await refreshAccounts();
     }

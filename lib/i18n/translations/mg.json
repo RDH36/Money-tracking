@@ -20,7 +20,7 @@
     "home": "Fandraisana",
     "add": "Hanampy",
     "plan": "Handamina",
-    "history": "Tantara",
+    "history": "Hetsika",
     "settings": "Firafitra"
   },
   "dashboard": {
@@ -55,7 +55,8 @@
     "selectCategory": "Misafidiana sokajiny"
   },
   "history": {
-    "title": "Rakitry ny fandaniana",
+    "title": "Hetsika",
+    "transactions": "Fifanakalozana",
     "today": "Androany",
     "yesterday": "Omaly",
     "noTransactions": "Tsy misy vola nivoka",
@@ -63,7 +64,15 @@
     "deleteConfirm": "Hofafana ve ity tateram-bola ity?",
     "deleteSuccess": "Voafafa ny tateram-bola",
     "loadMore": "Hijery hatrany",
-    "deleteMessage": "Hofafana ity tateram-bola ity. Tsindrio ela mba hamafana."
+    "deleteMessage": "Hofafana ity tateram-bola ity. Tsindrio ela mba hamafana.",
+    "thisMonth": "Ity volana ity",
+    "monthExpenses": "Fandaniana",
+    "monthIncome": "Vola niditra",
+    "filterAll": "Rehetra",
+    "filterExpenses": "Fandaniana",
+    "filterIncome": "Vola niditra",
+    "filterTransfers": "Famindrana",
+    "transactionCount": "{{count}} fifanakalozana"
   },
   "settings": {
     "title": "Firafitra",

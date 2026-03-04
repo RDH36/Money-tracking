@@ -69,7 +69,7 @@ export const DAILY_CHALLENGE_TYPES = [
 export type DailyChallengeType = (typeof DAILY_CHALLENGE_TYPES)[number];
 
 export const XP_VALUES = {
-  OPEN_APP: 5,
+  OPEN_APP: 4,
   EXPENSE: 5,
   INCOME: 15,
   TRANSFER: 8,

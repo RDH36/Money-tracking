@@ -1,7 +1,8 @@
 import { useMemo, useCallback, useState } from 'react';
-import { View, SectionList, RefreshControl, Pressable } from 'react-native';
+import { View, SectionList, RefreshControl, Pressable, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -15,6 +16,8 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AchievementsTab } from '@/components/AchievementsTab';
 import { useTransactions } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { formatCurrency } from '@/lib/currency';
+import { useCurrencyCode } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
@@ -26,8 +29,12 @@ type HistoryItem =
 
 interface Section {
   title: string;
+  dayTotal: number;
   data: HistoryItem[];
 }
+
+type TabType = 'history' | 'achievements';
+type FilterType = 'all' | 'expense' | 'income' | 'transfer';
 
 function formatDateHeader(dateString: string, locale: string, t: any): string {
   const date = new Date(dateString);
@@ -58,7 +65,9 @@ function groupByDate(transactions: TransactionWithCategory[], locale: string, t:
     const items: HistoryItem[] = [];
     const planifGroups: Record<string, TransactionWithCategory[]> = {};
 
+    let dayTotal = 0;
     txs.forEach((tx) => {
+      dayTotal += tx.type === 'income' ? tx.amount : -tx.amount;
       if (tx.planification_id && tx.planification_title) {
         if (!planifGroups[tx.planification_id]) planifGroups[tx.planification_id] = [];
         planifGroups[tx.planification_id].push(tx);
@@ -67,7 +76,6 @@ function groupByDate(transactions: TransactionWithCategory[], locale: string, t:
       }
     });
 
-    // Insert planification groups at the position of their first transaction
     Object.entries(planifGroups).forEach(([planifId, groupTxs]) => {
       const firstTxIndex = txs.indexOf(groupTxs[0]);
       const insertIndex = items.filter(
@@ -86,21 +94,22 @@ function groupByDate(transactions: TransactionWithCategory[], locale: string, t:
 
     return {
       title: formatDateHeader(txs[0].created_at, locale, t),
+      dayTotal,
       data: items,
     };
   });
 }
-
-type TabType = 'history' | 'achievements';
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { transactions, isFetching, refresh, deleteTransaction } = useTransactions();
   const { t, i18n } = useTranslation();
+  const currencyCode = useCurrencyCode();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<TabType>(params.tab === 'achievements' ? 'achievements' : 'history');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [filterType, setFilterType] = useState<FilterType>('all');
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
   const [deleteGroupTarget, setDeleteGroupTarget] = useState<PlanificationGroupData | null>(null);
 
@@ -111,12 +120,28 @@ export default function HistoryScreen() {
     }, [refresh])
   );
 
+  const monthStats = useMemo(() => {
+    const now = new Date();
+    const monthTxs = transactions.filter((tx) => {
+      const d = new Date(tx.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const expenses = monthTxs.filter((tx) => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0);
+    const income = monthTxs.filter((tx) => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0);
+    return { expenses, income, count: monthTxs.length };
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    if (filterType === 'all') return transactions;
+    return transactions.filter((tx) => tx.type === filterType);
+  }, [transactions, filterType]);
+
   const visibleTransactions = useMemo(
-    () => transactions.slice(0, visibleCount),
-    [transactions, visibleCount]
+    () => filteredTransactions.slice(0, visibleCount),
+    [filteredTransactions, visibleCount]
   );
 
-  const hasMore = transactions.length > visibleCount;
+  const hasMore = filteredTransactions.length > visibleCount;
   const loadMore = () => setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
 
   const sections = useMemo(
@@ -132,6 +157,13 @@ export default function HistoryScreen() {
     setDeleteGroupTarget(null);
   };
 
+  const filters: { key: FilterType; label: string }[] = [
+    { key: 'all', label: t('history.filterAll') },
+    { key: 'expense', label: t('history.filterExpenses') },
+    { key: 'income', label: t('history.filterIncome') },
+    { key: 'transfer', label: t('history.filterTransfers') },
+  ];
+
   const renderEmpty = () => (
     <Center className="flex-1 py-20">
       <Text className="text-6xl mb-4">📭</Text>
@@ -142,7 +174,15 @@ export default function HistoryScreen() {
 
   const renderSectionHeader = ({ section }: { section: Section }) => (
     <Box className="bg-background-100 px-4 py-2">
-      <Text className="text-typography-600 font-semibold text-sm">{section.title}</Text>
+      <HStack className="justify-between items-center">
+        <Text className="text-typography-600 font-semibold text-sm">{section.title}</Text>
+        <Text
+          className="text-xs font-semibold"
+          style={{ color: section.dayTotal >= 0 ? '#22C55E' : '#EF4444' }}
+        >
+          {section.dayTotal >= 0 ? '+' : ''}{formatCurrency(Math.abs(section.dayTotal), currencyCode)}
+        </Text>
+      </HStack>
     </Box>
   );
 
@@ -184,6 +224,57 @@ export default function HistoryScreen() {
     );
   };
 
+  const renderHeader = () => (
+    <VStack space="sm" className="px-4 pb-2">
+      {/* Monthly Summary */}
+      <HStack space="sm">
+        <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#FEF2F2' }}>
+          <HStack space="xs" className="items-center mb-1">
+            <Ionicons name="arrow-down-circle" size={14} color="#EF4444" />
+            <Text className="text-xs text-typography-500">{t('history.monthExpenses')}</Text>
+          </HStack>
+          <Text className="text-base font-bold" style={{ color: '#EF4444' }}>
+            {formatCurrency(monthStats.expenses, currencyCode)}
+          </Text>
+        </Box>
+        <Box className="flex-1 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
+          <HStack space="xs" className="items-center mb-1">
+            <Ionicons name="arrow-up-circle" size={14} color="#22C55E" />
+            <Text className="text-xs text-typography-500">{t('history.monthIncome')}</Text>
+          </HStack>
+          <Text className="text-base font-bold" style={{ color: '#22C55E' }}>
+            {formatCurrency(monthStats.income, currencyCode)}
+          </Text>
+        </Box>
+      </HStack>
+
+      {/* Filter Chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+        {filters.map((f) => (
+          <Pressable
+            key={f.key}
+            onPress={() => { setFilterType(f.key); setVisibleCount(ITEMS_PER_PAGE); }}
+          >
+            <Box
+              className="px-4 py-2 rounded-full"
+              style={filterType === f.key
+                ? { backgroundColor: theme.colors.primary }
+                : { backgroundColor: theme.colors.primaryLight }
+              }
+            >
+              <Text
+                className="text-xs font-semibold"
+                style={{ color: filterType === f.key ? '#FFFFFF' : theme.colors.primary }}
+              >
+                {f.label}
+              </Text>
+            </Box>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </VStack>
+  );
+
   const getItemKey = (item: HistoryItem) => {
     if (item._type === 'group') return `group-${item.group.planification_id}`;
     return item.transaction.id;
@@ -201,12 +292,19 @@ export default function HistoryScreen() {
                   className="py-2 rounded-lg items-center"
                   style={activeTab === 'history' ? { backgroundColor: theme.colors.primary } : {}}
                 >
-                  <Text
-                    className="text-sm font-semibold"
-                    style={{ color: activeTab === 'history' ? '#FFFFFF' : '#9CA3AF' }}
-                  >
-                    {t('history.title')}
-                  </Text>
+                  <HStack space="xs" className="items-center">
+                    <Ionicons
+                      name={activeTab === 'history' ? 'receipt' : 'receipt-outline'}
+                      size={16}
+                      color={activeTab === 'history' ? '#FFFFFF' : '#9CA3AF'}
+                    />
+                    <Text
+                      className="text-sm font-semibold"
+                      style={{ color: activeTab === 'history' ? '#FFFFFF' : '#9CA3AF' }}
+                    >
+                      {t('history.transactions')}
+                    </Text>
+                  </HStack>
                 </Box>
               </Pressable>
               <Pressable onPress={() => setActiveTab('achievements')} className="flex-1">
@@ -214,12 +312,19 @@ export default function HistoryScreen() {
                   className="py-2 rounded-lg items-center"
                   style={activeTab === 'achievements' ? { backgroundColor: theme.colors.primary } : {}}
                 >
-                  <Text
-                    className="text-sm font-semibold"
-                    style={{ color: activeTab === 'achievements' ? '#FFFFFF' : '#9CA3AF' }}
-                  >
-                    {t('gamification.achievements')}
-                  </Text>
+                  <HStack space="xs" className="items-center">
+                    <Ionicons
+                      name={activeTab === 'achievements' ? 'trophy' : 'trophy-outline'}
+                      size={16}
+                      color={activeTab === 'achievements' ? '#FFFFFF' : '#9CA3AF'}
+                    />
+                    <Text
+                      className="text-sm font-semibold"
+                      style={{ color: activeTab === 'achievements' ? '#FFFFFF' : '#9CA3AF' }}
+                    >
+                      {t('gamification.achievements')}
+                    </Text>
+                  </HStack>
                 </Box>
               </Pressable>
             </HStack>
@@ -235,6 +340,7 @@ export default function HistoryScreen() {
           keyExtractor={getItemKey}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
+          ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={renderFooter}
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}

@@ -75,13 +75,15 @@ export default function DashboardScreen() {
       refreshTransactions();
       refreshExpenses();
       checkNew();
-      gamification.generateDailyChallenge();
-      gamification.recordActivity().then(async () => {
-        await gamification.checkBadges();
-        const level = gamification.getLevelUp();
-        if (level) setLevelUp(level);
-      });
-    }, [refreshAccounts, refreshTransactions, refreshExpenses, checkNew])
+      if (!gamification.isLoading) {
+        gamification.generateDailyChallenge();
+        gamification.recordActivity().then(async () => {
+          await gamification.checkBadges();
+          const level = gamification.getLevelUp();
+          if (level) setLevelUp(level);
+        });
+      }
+    }, [refreshAccounts, refreshTransactions, refreshExpenses, checkNew, gamification.isLoading])
   );
 
   const handleRefresh = async () => {
@@ -143,14 +145,13 @@ export default function DashboardScreen() {
                 <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
               </HStack>
             )}
-            {!gamification.isLoading && (
-              <GamificationBar
-                currentStreak={gamification.currentStreak}
-                totalXP={gamification.totalXP}
-                dailyChallengeCompleted={gamification.dailyChallengeCompleted}
-                onPress={() => router.push({ pathname: '/history', params: { tab: 'achievements' } })}
-              />
-            )}
+            <GamificationBar
+              currentStreak={gamification.currentStreak}
+              totalXP={gamification.totalXP}
+              dailyChallengeCompleted={gamification.dailyChallengeCompleted}
+              isLoading={gamification.isLoading}
+              onPress={() => router.push({ pathname: '/history', params: { tab: 'achievements' } })}
+            />
           </VStack>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>

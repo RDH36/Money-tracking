@@ -1,4 +1,5 @@
-import { View, Pressable } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Pressable, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { HStack } from '@/components/ui/hstack';
@@ -10,12 +11,53 @@ interface GamificationBarProps {
   currentStreak: number;
   totalXP: number;
   dailyChallengeCompleted: boolean;
+  isLoading?: boolean;
   onPress: () => void;
 }
 
-export function GamificationBar({ currentStreak, totalXP, dailyChallengeCompleted, onPress }: GamificationBarProps) {
+function SkeletonBar({ theme }: { theme: { colors: { primaryLight: string; primary: string } } }) {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
+
+  const barColor = theme.colors.primary + '25';
+
+  return (
+    <View
+      className="mt-2 p-3 rounded-xl"
+      style={{ backgroundColor: theme.colors.primaryLight }}
+    >
+      <Animated.View style={{ opacity, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        {/* Streak placeholder */}
+        <View style={{ width: 50, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
+        {/* Level placeholder */}
+        <View style={{ width: 36, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
+        {/* XP bar placeholder */}
+        <View style={{ flex: 1, height: 6, backgroundColor: barColor, borderRadius: 3 }} />
+        {/* XP text placeholder */}
+        <View style={{ width: 48, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
+        {/* Challenge icon placeholder */}
+        <View style={{ width: 16, height: 16, backgroundColor: barColor, borderRadius: 8 }} />
+      </Animated.View>
+    </View>
+  );
+}
+
+export function GamificationBar({ currentStreak, totalXP, dailyChallengeCompleted, isLoading, onPress }: GamificationBarProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+
+  if (isLoading) return <SkeletonBar theme={theme} />;
+
   const level = calculateLevel(totalXP);
   const progress = xpProgress(totalXP);
   const nextLevelXP = xpForLevel(level + 1);

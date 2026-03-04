@@ -20,7 +20,7 @@
     "home": "Home",
     "add": "Add",
     "plan": "Plan",
-    "history": "History",
+    "history": "Activity",
     "settings": "Settings"
   },
   "dashboard": {
@@ -55,7 +55,8 @@
     "selectCategory": "Select a category"
   },
   "history": {
-    "title": "History",
+    "title": "Activity",
+    "transactions": "Transactions",
     "today": "Today",
     "yesterday": "Yesterday",
     "noTransactions": "No transactions",
@@ -63,7 +64,15 @@
     "deleteConfirm": "Delete this transaction?",
     "deleteSuccess": "Transaction deleted",
     "loadMore": "Load more",
-    "deleteMessage": "This transaction will be deleted. Long press to delete."
+    "deleteMessage": "This transaction will be deleted. Long press to delete.",
+    "thisMonth": "This month",
+    "monthExpenses": "Expenses",
+    "monthIncome": "Income",
+    "filterAll": "All",
+    "filterExpenses": "Expenses",
+    "filterIncome": "Income",
+    "filterTransfers": "Transfers",
+    "transactionCount": "{{count}} transaction(s)"
   },
   "settings": {
     "title": "Settings",

@@ -20,7 +20,7 @@
     "home": "Accueil",
     "add": "Ajouter",
     "plan": "Planifier",
-    "history": "Historique",
+    "history": "Activité",
     "settings": "Paramètres"
   },
   "dashboard": {
@@ -55,7 +55,8 @@
     "selectCategory": "Sélectionner une catégorie"
   },
   "history": {
-    "title": "Historique",
+    "title": "Activité",
+    "transactions": "Transactions",
     "today": "Aujourd'hui",
     "yesterday": "Hier",
     "noTransactions": "Aucune transaction",
@@ -63,7 +64,15 @@
     "deleteConfirm": "Supprimer cette transaction ?",
     "deleteSuccess": "Transaction supprimée",
     "loadMore": "Afficher plus",
-    "deleteMessage": "Cette transaction sera supprimée. Appui long pour supprimer."
+    "deleteMessage": "Cette transaction sera supprimée. Appui long pour supprimer.",
+    "thisMonth": "Ce mois",
+    "monthExpenses": "Dépenses",
+    "monthIncome": "Revenus",
+    "filterAll": "Tout",
+    "filterExpenses": "Dépenses",
+    "filterIncome": "Revenus",
+    "filterTransfers": "Transferts",
+    "transactionCount": "{{count}} transaction(s)"
   },
   "settings": {
     "title": "Paramètres",

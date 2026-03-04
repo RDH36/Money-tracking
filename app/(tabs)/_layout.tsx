@@ -68,7 +68,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.history'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'list' : 'list-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'pulse' : 'pulse-outline'} size={24} color={color} />
           ),
         }}
       />
