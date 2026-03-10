@@ -44,11 +44,9 @@ export function useSettings() {
         const mode = (colorModeResult?.value as ColorMode) || 'system';
         const tips = tipsResult?.value !== '0';
         initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips);
-        scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
         initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system', true);
-        scheduleReminders('1h');
       }
     };
 

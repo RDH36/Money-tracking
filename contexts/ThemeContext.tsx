@@ -3,7 +3,7 @@ import { useSQLiteContext } from '@/lib/database';
 import { Theme, getThemeById } from '@/constants/colors';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { useSettingsStore, ColorMode } from '@/stores';
-import { ReminderFrequency } from '@/lib/notifications';
+import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 
 interface ThemeContextValue {
   theme: Theme;
@@ -53,6 +53,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         const colorMode = (colorModeResult?.value as ColorMode) || 'system';
         const tipsEnabled = tipsResult?.value !== '0';
         initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, colorMode, tipsEnabled);
+        scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
         initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY, 'system', true);
