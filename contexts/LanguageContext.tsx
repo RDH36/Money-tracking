@@ -1,5 +1,8 @@
 import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { useSQLiteContext } from '@/lib/database';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import { initI18n, changeLanguage, LanguageCode, DEFAULT_LANGUAGE, getDeviceLanguage } from '@/lib/i18n';
 
 interface LanguageContextValue {
@@ -16,6 +19,9 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const db = useSQLiteContext();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -72,6 +78,14 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       console.error('Error saving language:', error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={isDark ? '#FFFFFF' : '#000000'} />
+      </View>
+    );
+  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, isLoading }}>
