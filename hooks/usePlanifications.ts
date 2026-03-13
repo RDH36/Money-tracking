@@ -216,19 +216,20 @@ export function usePlanifications() {
         const now = new Date().toISOString();
 
         await db.withTransactionAsync(async () => {
-          for (const item of items) {
-            const transactionId = generateId();
-            await db.runAsync(
-              `INSERT INTO transactions (id, type, amount, category_id, account_id, note, planification_id, created_at, updated_at, sync_status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-              [transactionId, item.type || 'expense', item.amount, item.category_id, accountId, item.note, id, now, now]
-            );
-          }
+          const escSql = (v: string | null | undefined) =>
+            v == null ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`;
 
-          await db.runAsync(
-            `UPDATE planifications SET status = 'completed', updated_at = ? WHERE id = ?`,
-            [now, id]
+          const insertStatements = items.map((item) => {
+            const transactionId = generateId();
+            return `INSERT INTO transactions (id, type, amount, category_id, account_id, note, planification_id, created_at, updated_at, sync_status)
+               VALUES (${escSql(transactionId)}, ${escSql(item.type || 'expense')}, ${item.amount}, ${escSql(item.category_id)}, ${escSql(accountId)}, ${escSql(item.note)}, ${escSql(id)}, ${escSql(now)}, ${escSql(now)}, 'pending');`;
+          });
+
+          insertStatements.push(
+            `UPDATE planifications SET status = 'completed', updated_at = ${escSql(now)} WHERE id = ${escSql(id)};`
           );
+
+          await db.execAsync(insertStatements.join('\n'));
         });
 
         await cancelPlanificationReminders(id);
