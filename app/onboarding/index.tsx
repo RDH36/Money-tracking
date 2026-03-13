@@ -21,6 +21,7 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { usePostHog } from 'posthog-react-native';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function WelcomeScreen() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const [ready, setReady] = useState(false);
+  const posthog = usePostHog();
 
   // Wave hand animation
   const waveRotate = useSharedValue(0);
@@ -152,6 +154,7 @@ export default function WelcomeScreen() {
           style={{ backgroundColor: theme.colors.primary }}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            posthog.capture('onboarding_started');
             router.push('/onboarding/quiz-1');
           }}
           isDisabled={!ready}

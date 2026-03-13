@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePostHog } from 'posthog-react-native';
 import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -24,10 +25,12 @@ export default function QuizQ1Screen() {
   const { t } = useTranslation();
   const { frustration, setFrustration } = useOnboardingQuiz();
   const [selected, setSelected] = useState<FrustrationAnswer | null>(frustration);
+  const posthog = usePostHog();
 
   const handleSelect = (key: FrustrationAnswer) => {
     setSelected(key);
     setFrustration(key);
+    posthog.capture('onboarding_quiz_answered', { question: 1, answer: key });
     setTimeout(() => router.push('/onboarding/quiz-2'), 300);
   };
 

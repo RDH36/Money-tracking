@@ -19,6 +19,7 @@ import { GamificationBar } from '@/components/GamificationBar';
 import { LevelUpModal } from '@/components/LevelUpModal';
 import { useTheme } from '@/contexts';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { usePostHog } from 'posthog-react-native';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
@@ -32,6 +33,7 @@ export default function DashboardScreen() {
   const { currentTip, showTip } = useTips('dashboard');
   const { hasNew, checkNew } = useWhatsNew();
   const gamification = useGamification();
+  const posthog = usePostHog();
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
   const [levelUp, setLevelUp] = useState<number | null>(null);
@@ -100,6 +102,9 @@ export default function DashboardScreen() {
   const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
     const result = await createAccount(params);
     if (result.success) {
+      posthog.capture('account_created', {
+        account_type: params.type,
+      });
       setShowAddAccount(false);
     }
     return result;
@@ -238,6 +243,10 @@ export default function DashboardScreen() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (deleteTarget) {
+            posthog.capture('transaction_deleted', {
+              transaction_type: deleteTarget.type,
+              source: 'dashboard',
+            });
             deleteTransaction(deleteTarget.id);
             refreshAccounts();
           }

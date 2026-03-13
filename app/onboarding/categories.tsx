@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { usePostHog } from 'posthog-react-native';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
@@ -28,6 +29,7 @@ export default function CategoriesScreen() {
   const colors = getDarkModeColors(effectiveScheme === 'dark');
   const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
+  const posthog = usePostHog();
 
   const defaultCategoryIds = new Set(DEFAULT_CATEGORIES.map((c) => c.id));
 
@@ -54,6 +56,9 @@ export default function CategoriesScreen() {
     });
 
     if (success) {
+      posthog.capture('onboarding_completed', {
+        categories_selected: selectedCategories.size,
+      });
       router.replace('/add');
     }
   };

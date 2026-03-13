@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { usePostHog } from 'posthog-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -29,6 +30,7 @@ export default function ReportsScreen() {
   const colors = getDarkModeColors(isDark);
   const currencyCode = useCurrencyCode();
   const { transactions } = useTransactions();
+  const posthog = usePostHog();
 
   const [period, setPeriod] = useState<PeriodType>('month');
   const [date, setDate] = useState(new Date());
@@ -62,7 +64,7 @@ export default function ReportsScreen() {
       </HStack>
 
       <VStack space="md">
-        <PeriodSelector period={period} date={date} onPeriodChange={setPeriod} onDateChange={setDate} />
+        <PeriodSelector period={period} date={date} onPeriodChange={(p: any) => { posthog.capture('report_period_changed', { period: p }); setPeriod(p); }} onDateChange={setDate} />
 
         {/* Summary Cards */}
         <HStack space="sm">

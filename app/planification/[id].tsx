@@ -20,6 +20,7 @@ import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationD
 import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { usePostHog } from 'posthog-react-native';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
@@ -52,6 +53,7 @@ export default function PlanificationDetailScreen() {
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
   const { planification, items, linkedTransactions, total, addItem, removeItem, deleteLinkedTransaction, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
+  const posthog = usePostHog();
 
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
@@ -104,6 +106,11 @@ export default function PlanificationDetailScreen() {
     if (!numericAmount || numericAmount <= 0) return;
     const finalCategoryId = itemType === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
     await addItem(parseAmount(amount), itemType, finalCategoryId, note.trim() || null);
+    posthog.capture('planification_item_added', {
+      item_type: itemType,
+      has_note: !!note.trim(),
+      currency: currency.code,
+    });
     setAmount('');
     setItemType('expense');
     setCategoryId(null);
@@ -112,6 +119,7 @@ export default function PlanificationDetailScreen() {
 
   const handleDeleteConfirm = async () => {
     if (deleteItemId) {
+      posthog.capture('planification_item_deleted');
       await removeItem(deleteItemId);
       setDeleteItemId(null);
     }
@@ -119,6 +127,7 @@ export default function PlanificationDetailScreen() {
 
   const handleDeleteTransactionConfirm = async () => {
     if (deleteTransactionId) {
+      posthog.capture('planification_transaction_deleted');
       const result = await deleteLinkedTransaction(deleteTransactionId);
       setDeleteTransactionId(null);
       if (result === 'deleted_planification') {

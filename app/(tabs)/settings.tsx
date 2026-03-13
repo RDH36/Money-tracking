@@ -10,7 +10,7 @@ import { useSettings, useAccounts, useCategories } from '@/hooks';
 import { useSQLiteContext } from '@/lib/database';
 import { migrateDatabase } from '@/lib/database/migrations';
 import { useGamificationStore } from '@/stores/gamificationStore';
-import { cancelAllReminders } from '@/lib/notifications';
+import { cancelAllReminders, type ReminderFrequency } from '@/lib/notifications';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { CurrencyConversionDialog } from '@/components/CurrencyConversionDialog';
@@ -27,6 +27,7 @@ import {
 } from '@/components/settings';
 import { fetchExchangeRate } from '@/lib/exchangeRate';
 import { checkInternetConnection } from '@/lib/network';
+import { usePostHog } from 'posthog-react-native';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -47,6 +48,7 @@ export default function SettingsScreen() {
     setTipsEnabled,
   } = useSettings();
   const { accounts, formatMoney, refresh: refreshAccounts, deleteAccount, convertAllBalances } = useAccounts();
+  const posthog = usePostHog();
   const {
     expenseCategories,
     refresh: refreshCategories,
@@ -79,7 +81,10 @@ export default function SettingsScreen() {
 
   const handleCreateCategory = async (params: { name: string; icon: string; color: string }) => {
     const result = await createCategory(params);
-    if (result.success) setShowAddCategory(false);
+    if (result.success) {
+      posthog.capture('category_created');
+      setShowAddCategory(false);
+    }
     return result;
   };
 
@@ -116,6 +121,10 @@ export default function SettingsScreen() {
         setConversionError('errors.conversionFailed');
         return;
       }
+      posthog.capture('currency_changed', {
+        from_currency: currencyCode,
+        to_currency: pendingCurrencyCode,
+      });
       await changeCurrencyWithConversion(pendingCurrencyCode, async () => true);
       setPendingCurrencyCode(null);
       setExchangeRate(undefined);
@@ -126,7 +135,18 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleThemeChange = (newThemeId: string) => {
+    posthog.capture('theme_changed', { theme_id: newThemeId });
+    setTheme(newThemeId);
+  };
+
+  const handleReminderChange = (frequency: ReminderFrequency) => {
+    posthog.capture('notification_frequency_changed', { frequency });
+    setReminderFrequency(frequency);
+  };
+
   const handleResetApp = async () => {
+    posthog.capture('app_reset');
     try {
       await db.execAsync(`
         PRAGMA foreign_keys = OFF;
@@ -177,7 +197,7 @@ export default function SettingsScreen() {
             title: t('account.deleteConfirm', { name: account.name }),
             message: t('account.deleteWarning'),
             confirmText: t('common.delete'),
-            onConfirm: () => { deleteAccount(account.id); setConfirmAction(null); },
+            onConfirm: () => { posthog.capture('account_deleted', { account_type: account.type }); deleteAccount(account.id); setConfirmAction(null); },
           })}
         />
 
@@ -190,7 +210,7 @@ export default function SettingsScreen() {
             title: t('category.deleteConfirm', { name: category.name }),
             message: t('category.deleteConfirm', { name: category.name }),
             confirmText: t('common.delete'),
-            onConfirm: () => { deleteCategory(category.id); setConfirmAction(null); },
+            onConfirm: () => { posthog.capture('category_deleted'); deleteCategory(category.id); setConfirmAction(null); },
           })}
         />
 
@@ -199,22 +219,22 @@ export default function SettingsScreen() {
           colorMode={colorMode}
           currencyCode={currencyCode}
           tipsEnabled={tipsEnabled}
-          onThemeChange={setTheme}
-          onColorModeChange={setColorMode}
+          onThemeChange={handleThemeChange}
+          onColorModeChange={(mode: string) => { posthog.capture('color_mode_changed', { mode }); setColorMode(mode as any); }}
           onCurrencyChange={handleCurrencyPress}
-          onTipsEnabledChange={setTipsEnabled}
+          onTipsEnabledChange={(enabled: boolean) => { posthog.capture('tips_toggled', { enabled }); setTipsEnabled(enabled); }}
         />
 
         <LanguageSection />
 
         <NotificationsSection
           reminderFrequency={reminderFrequency}
-          onReminderChange={setReminderFrequency}
+          onReminderChange={handleReminderChange}
         />
 
         <PrivacySection
           balanceHidden={balanceHidden}
-          onToggle={toggleBalanceVisibility}
+          onToggle={() => { posthog.capture('balance_visibility_toggled', { hidden: !balanceHidden }); toggleBalanceVisibility(); }}
         />
 
         <FeedbackSection />

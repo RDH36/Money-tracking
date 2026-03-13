@@ -1,13 +1,15 @@
-import { Stack } from "expo-router";
-import { Suspense } from "react";
+import { Stack, usePathname, useGlobalSearchParams } from "expo-router";
+import { Suspense, useEffect, useRef } from "react";
 import { ActivityIndicator, StatusBar, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { PostHogProvider } from "posthog-react-native";
 
 import { GluestackUIProvider, useEffectiveColorScheme } from "@/components/ui/gluestack-ui-provider";
 import { ThemeProvider, LanguageProvider } from "@/contexts";
 import "@/global.css";
 import { DatabaseProvider } from "@/lib/database/sqlite";
 import { getDarkModeColors } from "@/constants/darkMode";
+import { posthog } from "@/lib/posthog";
 
 function LoadingFallback() {
   return (
@@ -45,20 +47,49 @@ function AppContent() {
   );
 }
 
+function ScreenTracker() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const previousPathname = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      posthog.screen(pathname, {
+        previous_screen: previousPathname.current ?? null,
+        ...params,
+      });
+      previousPathname.current = pathname;
+    }
+  }, [pathname, params]);
+
+  return null;
+}
+
 export default function RootLayout() {
   return (
-    <KeyboardProvider>
-      <GluestackUIProvider>
-        <Suspense fallback={<LoadingFallback />}>
-          <DatabaseProvider>
-            <LanguageProvider>
-              <ThemeProvider>
-                <AppContent />
-              </ThemeProvider>
-            </LanguageProvider>
-          </DatabaseProvider>
-        </Suspense>
-      </GluestackUIProvider>
-    </KeyboardProvider>
+    <PostHogProvider
+      client={posthog}
+      autocapture={{
+        captureScreens: false,
+        captureTouches: true,
+        propsToCapture: ['testID'],
+        maxElementsCaptured: 20,
+      }}
+    >
+      <KeyboardProvider>
+        <GluestackUIProvider>
+          <Suspense fallback={<LoadingFallback />}>
+            <DatabaseProvider>
+              <LanguageProvider>
+                <ThemeProvider>
+                  <ScreenTracker />
+                  <AppContent />
+                </ThemeProvider>
+              </LanguageProvider>
+            </DatabaseProvider>
+          </Suspense>
+        </GluestackUIProvider>
+      </KeyboardProvider>
+    </PostHogProvider>
   );
 }

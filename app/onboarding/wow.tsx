@@ -27,6 +27,7 @@ import { getDarkModeColors } from '@/constants/darkMode';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/currency';
 import { PressableScale } from '@/components/onboarding/PressableScale';
+import { usePostHog } from 'posthog-react-native';
 
 // Amounts in cents, scaled per currency
 const AMOUNTS: Record<string, { expenses: number[]; balance: number }> = {
@@ -52,6 +53,7 @@ export default function WowScreen() {
   const colors = getDarkModeColors(isDark);
 
   const currency = useCurrency();
+  const posthog = usePostHog();
   const currencyAmounts = AMOUNTS[currency.code] || AMOUNTS.USD;
   const expenses = EXPENSE_TEMPLATES.map((tpl, i) => ({ ...tpl, amount: currencyAmounts.expenses[i] }));
 
@@ -80,6 +82,10 @@ export default function WowScreen() {
 
     // Check if all done
     if (newTapped.size === expenses.length) {
+      posthog.capture('wow_moment_completed', {
+        currency: currency.code,
+        expenses_tapped: newTapped.size,
+      });
       setTimeout(() => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setShowConfetti(true);

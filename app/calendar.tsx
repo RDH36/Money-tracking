@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { usePostHog } from 'posthog-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -27,6 +28,7 @@ export default function CalendarScreen() {
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
   const { transactions, refresh } = useTransactions();
+  const posthog = usePostHog();
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -54,6 +56,7 @@ export default function CalendarScreen() {
   }, [transactions, selectedDay, year, month]);
 
   const navigateMonth = (direction: -1 | 1) => {
+    posthog.capture('calendar_navigated', { direction: direction === 1 ? 'next' : 'previous' });
     const d = new Date(year, month + direction, 1);
     const newYear = d.getFullYear();
     const newMonth = d.getMonth();

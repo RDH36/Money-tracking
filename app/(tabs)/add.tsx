@@ -18,6 +18,7 @@ import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
 import { useCategories, useTransactions, useAccounts, useTips, useGamification, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { usePostHog } from 'posthog-react-native';
 import { XPToast } from '@/components/XPToast';
 import { LevelUpModal } from '@/components/LevelUpModal';
 import { XP_VALUES } from '@/constants/badges';
@@ -42,6 +43,7 @@ export default function AddTransactionScreen() {
   const colors = getDarkModeColors(isDark);
   const { currentTip, showTip } = useTips('add');
   const gamification = useGamification();
+  const posthog = usePostHog();
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
   const [type, setType] = useState<TransactionType>('expense');
@@ -95,6 +97,11 @@ export default function AddTransactionScreen() {
         note: note.trim() || null,
       });
       if (result.success) {
+        posthog.capture('transaction_created', {
+          transaction_type: type,
+          has_note: !!note.trim(),
+          currency: currency.code,
+        });
         resetForm();
         refreshAccounts();
         // Gamification: income gives more XP than expense
@@ -122,6 +129,10 @@ export default function AddTransactionScreen() {
         note: note.trim() || undefined,
       });
       if (result.success) {
+        posthog.capture('transfer_created', {
+          has_note: !!note.trim(),
+          currency: currency.code,
+        });
         resetForm();
         refreshAccounts();
         // Gamification: award XP for transfer

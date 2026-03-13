@@ -19,6 +19,7 @@ import { useTransactions } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { usePostHog } from 'posthog-react-native';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
@@ -93,6 +94,7 @@ export default function HistoryScreen() {
   const { transactions, isFetching, refresh, deleteTransaction } = useTransactions();
   const { t, i18n } = useTranslation();
   const currencyCode = useCurrencyCode();
+  const posthog = usePostHog();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<TabType>(params.tab === 'achievements' ? 'achievements' : 'history');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -112,7 +114,7 @@ export default function HistoryScreen() {
   const hasMore = filtered.length > visibleCount;
   const sections = useMemo(() => groupByDate(visible, i18n.language, t), [visible, i18n.language, t]);
 
-  const handleFilterChange = (f: FilterType) => { setFilterType(f); setVisibleCount(ITEMS_PER_PAGE); };
+  const handleFilterChange = (f: FilterType) => { posthog.capture('filter_changed', { filter_type: f }); setFilterType(f); setVisibleCount(ITEMS_PER_PAGE); };
 
   const handleDeleteGroup = async () => {
     if (!deleteGroupTarget) return;
@@ -158,7 +160,7 @@ export default function HistoryScreen() {
   ) : null;
 
   const TabButton = ({ tab, icon, label }: { tab: TabType; icon: string; label: string }) => (
-    <Pressable onPress={() => setActiveTab(tab)} className="flex-1">
+    <Pressable onPress={() => { posthog.capture('tab_switched', { tab, source: 'history' }); setActiveTab(tab); }} className="flex-1">
       <Box className="py-2 rounded-lg items-center" style={activeTab === tab ? { backgroundColor: theme.colors.primary } : {}}>
         <HStack space="xs" className="items-center">
           <Ionicons name={(activeTab === tab ? icon : `${icon}-outline`) as any} size={16} color={activeTab === tab ? '#FFFFFF' : '#9CA3AF'} />
@@ -209,7 +211,16 @@ export default function HistoryScreen() {
         confirmText={t('common.delete')}
         isDestructive
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) deleteTransaction(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={() => {
+          if (deleteTarget) {
+            posthog.capture('transaction_deleted', {
+              transaction_type: deleteTarget.type,
+              source: 'history',
+            });
+            deleteTransaction(deleteTarget.id);
+          }
+          setDeleteTarget(null);
+        }}
       />
       <ConfirmDialog
         isOpen={!!deleteGroupTarget}

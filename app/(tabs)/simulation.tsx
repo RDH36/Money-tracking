@@ -18,6 +18,7 @@ import { PlanificationCard } from '@/components/PlanificationCard';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
 import { usePlanifications, useBalance, useAccounts, useTips, useGamification } from '@/hooks';
 import { useTheme } from '@/contexts';
+import { usePostHog } from 'posthog-react-native';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
 import type { PlanificationWithTotal } from '@/types';
@@ -47,6 +48,7 @@ export default function PlanificationScreen() {
   } = usePlanifications();
   const { currentTip, showTip } = useTips('planification');
   const gamification = useGamification();
+  const posthog = usePostHog();
 
   useFocusEffect(
     useCallback(() => {
@@ -74,6 +76,9 @@ export default function PlanificationScreen() {
     if (!newTitle.trim()) return;
     const result = await createPlanification(newTitle.trim(), deadline);
     if (result.success && result.id) {
+      posthog.capture('planification_created', {
+        has_deadline: !!deadline,
+      });
       await gamification.checkDailyChallenge('create_planification');
       setNewTitle('');
       setDeadline(null);
@@ -89,6 +94,7 @@ export default function PlanificationScreen() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
+    posthog.capture('planification_deleted');
     await deletePlanification(deleteTarget.id);
     setDeleteTarget(null);
   };
@@ -96,6 +102,7 @@ export default function PlanificationScreen() {
   const handleValidateConfirm = async (planificationId: string, accountId: string) => {
     const result = await validatePlanification(planificationId, accountId);
     if (result.success) {
+      posthog.capture('planification_validated');
       await gamification.checkDailyChallenge('check_planification');
       await refreshBalance();
       await refreshAccounts();
