@@ -16,7 +16,7 @@ import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
-import { useCategories, useTransactions, useAccounts, useTips, useGamification, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { useCategories, useTransactions, useAccounts, useTips, useGamification, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
 import { XPToast } from '@/components/XPToast';
@@ -43,6 +43,7 @@ export default function AddTransactionScreen() {
   const colors = getDarkModeColors(isDark);
   const { currentTip, showTip } = useTips('add');
   const gamification = useGamification();
+  const { incrementAndCheck: checkStoreReview } = useStoreReview();
   const posthog = usePostHog();
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
@@ -117,6 +118,7 @@ export default function AddTransactionScreen() {
         setXpToast(totalXPGained);
         const level = gamification.getLevelUp();
         if (level) setLevelUp(level);
+        await checkStoreReview();
       } else if (result.error) {
         setError(result.error);
       }
@@ -145,6 +147,7 @@ export default function AddTransactionScreen() {
         setXpToast(totalXPGained);
         const level = gamification.getLevelUp();
         if (level) setLevelUp(level);
+        await checkStoreReview();
       } else if (result.error) {
         setError(result.error);
       }

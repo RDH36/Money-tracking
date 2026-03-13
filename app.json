@@ -10,7 +10,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.rdh36.moneytracking"
+      "bundleIdentifier": "com.rdh36.moneytracking",
+      "appStoreUrl": "https://apps.apple.com/app/mitsitsy/id6741430461"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.rdh36.moneytracking"
+      "package": "com.rdh36.moneytracking",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.rdh36.moneytracking"
     },
     "web": {
       "output": "static",

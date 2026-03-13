@@ -13,5 +13,6 @@ export { useTips } from './useTips';
 export type { TipCategory } from './useTips';
 export { useWhatsNew } from './useWhatsNew';
 export { useGamification } from './useGamification';
+export { useStoreReview } from './useStoreReview';
 export { useTransactionStats, filterByPeriod, getDailyTotals, getBarChartData, navigateDate, formatPeriodLabel } from './useTransactionStats';
 export type { PeriodType, PeriodStats, DailyTotal } from './useTransactionStats';
