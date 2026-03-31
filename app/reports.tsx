@@ -8,7 +8,7 @@ import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { usePostHog } from 'posthog-react-native';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { useTransactions } from '@/hooks';
-import { useBudgets } from '@/hooks/useBudgets';
+import { useBudgetForPeriod } from '@/hooks/useBudgets';
 import { useTransactionStats, getBarChartData, filterByPeriod } from '@/hooks/useTransactionStats';
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { useTheme } from '@/contexts';
@@ -25,7 +25,6 @@ export default function ReportsScreen() {
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
   const { transactions } = useTransactions();
-  const { budgets } = useBudgets();
   const posthog = usePostHog();
   const isDark = useEffectiveColorScheme() === 'dark';
   const colors = getDarkModeColors(isDark);
@@ -33,6 +32,7 @@ export default function ReportsScreen() {
   const [period, setPeriod] = useState<PeriodType>('month');
   const [date, setDate] = useState(new Date());
   const [showAmounts, setShowAmounts] = useState(false);
+  const { getBudgetForCategory } = useBudgetForPeriod(period, date);
   const { stats } = useTransactionStats(transactions, period, date);
   const filtered = useMemo(() => filterByPeriod(transactions, period, date), [transactions, period, date]);
   const barData = useMemo(() => getBarChartData(filtered, period, date), [filtered, period, date]);
@@ -177,8 +177,8 @@ export default function ReportsScreen() {
                   />
                   <View className="flex-1 gap-2">
                     {stats.categoryBreakdown.slice(0, 5).map((cat, i) => {
-                      const budgetInfo = budgets.find((b) => b.category.id === cat.id);
-                      const hasBudget = budgetInfo?.budgetLimit;
+                      const budgetInfo = cat.id ? getBudgetForCategory(cat.id, cat.amount) : null;
+                      const hasBudget = budgetInfo?.cumulBudget;
                       const budgetPct = budgetInfo?.percentage ?? 0;
                       const barColor = budgetInfo?.status === 'red' ? '#EF4444' : budgetInfo?.status === 'orange' ? '#F59E0B' : '#22C55E';
 
@@ -190,7 +190,7 @@ export default function ReportsScreen() {
                             <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>
                               {showAmounts
                                 ? hasBudget
-                                  ? `${formatCurrency(cat.amount, currencyCode)} / ${formatCurrency(budgetInfo.budgetLimit!, currencyCode)}`
+                                  ? `${formatCurrency(cat.amount, currencyCode)} / ${formatCurrency(budgetInfo.cumulBudget!, currencyCode)}`
                                   : formatCurrency(cat.amount, currencyCode)
                                 : `${stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%`
                               }

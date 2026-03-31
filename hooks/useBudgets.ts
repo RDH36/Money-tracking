@@ -182,3 +182,94 @@ export function useCategoryBudget(categoryId: string, monthOffset = 0) {
 
   return { spent, budgetLimit, percentage, status, refresh: fetchCategoryBudget };
 }
+
+export interface PeriodBudgetData {
+  categoryId: string;
+  cumulBudget: number | null;
+  percentage: number | null;
+  status: 'green' | 'orange' | 'red' | null;
+}
+
+export function useBudgetForPeriod(period: 'day' | 'week' | 'month' | 'year', date: Date) {
+  const db = useSQLiteContext();
+  const [periodBudgets, setPeriodBudgets] = useState<Map<string, PeriodBudgetData>>(new Map());
+
+  const fetchPeriodBudgets = useCallback(async () => {
+    try {
+      const year = date.getFullYear();
+
+      if (period === 'year') {
+        const months: string[] = [];
+        for (let m = 0; m < 12; m++) {
+          months.push(`${year}-${String(m + 1).padStart(2, '0')}`);
+        }
+
+        const rows = await db.getAllAsync<{ category_id: string; total_budget: number }>(
+          `SELECT category_id, SUM(budget_limit) as total_budget
+           FROM budget_history
+           WHERE year_month IN (${months.map(() => '?').join(',')})
+           GROUP BY category_id`,
+          months
+        );
+
+        const map = new Map<string, PeriodBudgetData>();
+        for (const row of rows) {
+          map.set(row.category_id, {
+            categoryId: row.category_id,
+            cumulBudget: row.total_budget,
+            percentage: null,
+            status: null,
+          });
+        }
+        setPeriodBudgets(map);
+      } else if (period === 'month') {
+        const yearMonth = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const rows = await db.getAllAsync<{ category_id: string; budget_limit: number }>(
+          `SELECT category_id, budget_limit FROM budget_history WHERE year_month = ?`,
+          [yearMonth]
+        );
+
+        const map = new Map<string, PeriodBudgetData>();
+        for (const row of rows) {
+          map.set(row.category_id, {
+            categoryId: row.category_id,
+            cumulBudget: row.budget_limit,
+            percentage: null,
+            status: null,
+          });
+        }
+
+        if (map.size === 0) {
+          const cats = await db.getAllAsync<{ id: string; budget_limit: number }>(
+            `SELECT id, budget_limit FROM categories WHERE budget_limit IS NOT NULL AND deleted_at IS NULL`
+          );
+          for (const cat of cats) {
+            map.set(cat.id, { categoryId: cat.id, cumulBudget: cat.budget_limit, percentage: null, status: null });
+          }
+        }
+        setPeriodBudgets(map);
+      } else {
+        setPeriodBudgets(new Map());
+      }
+    } catch (error) {
+      console.error('Error fetching period budgets:', error);
+    }
+  }, [db, period, date.getFullYear(), date.getMonth()]);
+
+  useEffect(() => {
+    fetchPeriodBudgets();
+  }, [fetchPeriodBudgets]);
+
+  const getBudgetForCategory = useCallback((categoryId: string, spent: number): PeriodBudgetData | null => {
+    const data = periodBudgets.get(categoryId);
+    if (!data || !data.cumulBudget) return null;
+    const pct = Math.round((spent / data.cumulBudget) * 100);
+    return {
+      ...data,
+      percentage: pct,
+      status: getBudgetStatus(pct),
+    };
+  }, [periodBudgets]);
+
+  return { periodBudgets, getBudgetForCategory, refresh: fetchPeriodBudgets };
+}
