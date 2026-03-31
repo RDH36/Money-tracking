@@ -77,43 +77,47 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bottomOffset={20} style={{ maxHeight: 400 }}>
             <View className="gap-4">
-              <View className="gap-2">
-                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.name')}</RNText>
-                <View className="rounded-xl bg-bg-raised px-4 py-3">
-                  <TextInput placeholder={t('category.namePlaceholder')} value={name} onChangeText={setName}
-                    className="font-body-regular text-body-md text-content-primary" placeholderTextColor="#8E8EA0" />
-                </View>
-              </View>
-
-              <View className="gap-2">
-                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.icon')}</RNText>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View className="flex-row gap-3">
-                    {CATEGORY_ICONS.map((ic) => (
-                      <Pressable key={ic} onPress={() => setIcon(ic)}>
-                        <View className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== ic && 'bg-bg-raised')}
-                          style={icon === ic ? { backgroundColor: `${color}20` } : undefined}>
-                          <Ionicons name={ic as keyof typeof Ionicons.glyphMap} size={24} color={icon === ic ? color : '#8E8EA0'} />
-                        </View>
-                      </Pressable>
-                    ))}
+              {isCustom && (
+                <>
+                  <View className="gap-2">
+                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.name')}</RNText>
+                    <View className="rounded-xl bg-bg-raised px-4 py-3">
+                      <TextInput placeholder={t('category.namePlaceholder')} value={name} onChangeText={setName}
+                        className="font-body-regular text-body-md text-content-primary" placeholderTextColor="#8E8EA0" />
+                    </View>
                   </View>
-                </ScrollView>
-              </View>
 
-              <View className="gap-2">
-                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.color')}</RNText>
-                <View className="flex-row flex-wrap gap-3">
-                  {CATEGORY_COLORS.map((c) => (
-                    <Pressable key={c} onPress={() => setColor(c)}>
-                      <View className="w-10 h-10 rounded-full items-center justify-center"
-                        style={{ backgroundColor: c, borderWidth: color === c ? 3 : 0, borderColor: color === c ? '#FFF' : 'transparent' }}>
-                        {color === c && <Ionicons name="checkmark" size={20} color="#FFF" />}
+                  <View className="gap-2">
+                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.icon')}</RNText>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View className="flex-row gap-3">
+                        {CATEGORY_ICONS.map((ic) => (
+                          <Pressable key={ic} onPress={() => setIcon(ic)}>
+                            <View className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== ic && 'bg-bg-raised')}
+                              style={icon === ic ? { backgroundColor: `${color}20` } : undefined}>
+                              <Ionicons name={ic as keyof typeof Ionicons.glyphMap} size={24} color={icon === ic ? color : '#8E8EA0'} />
+                            </View>
+                          </Pressable>
+                        ))}
                       </View>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
+                    </ScrollView>
+                  </View>
+
+                  <View className="gap-2">
+                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.color')}</RNText>
+                    <View className="flex-row flex-wrap gap-3">
+                      {CATEGORY_COLORS.map((c) => (
+                        <Pressable key={c} onPress={() => setColor(c)}>
+                          <View className="w-10 h-10 rounded-full items-center justify-center"
+                            style={{ backgroundColor: c, borderWidth: color === c ? 3 : 0, borderColor: color === c ? '#FFF' : 'transparent' }}>
+                            {color === c && <Ionicons name="checkmark" size={20} color="#FFF" />}
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                </>
+              )}
 
               <View className="gap-2">
                 <RNText className="font-body-bold text-body-md text-content-primary">{t('budget.budgetOptional')}</RNText>
