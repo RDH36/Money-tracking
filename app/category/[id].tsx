@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, SectionList, Pressable, RefreshControl, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -79,10 +79,12 @@ export default function CategoryDetailPage() {
   }, [db, id, currentMonth]);
 
   useFocusEffect(useCallback(() => {
-    fetchTransactions();
-    refreshBudget();
     refreshCats();
-  }, [fetchTransactions, refreshBudget, refreshCats]));
+  }, [refreshCats]));
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const sections = useMemo(() => {
     const groups: Record<string, TransactionWithCategory[]> = {};
