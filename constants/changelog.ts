@@ -11,6 +11,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.2.0",
+    date: "2026-03-31",
+    changes: [
+      { type: "added", key: "changelog.budgetLimits" },
+      { type: "added", key: "changelog.budgetCards" },
+      { type: "added", key: "changelog.categoryDetailPage" },
+      { type: "added", key: "changelog.budgetWarnings" },
+      { type: "added", key: "changelog.dashboardBudgets" },
+      { type: "improved", key: "changelog.settingsRedesign" },
+      { type: "improved", key: "changelog.reportsWithBudget" },
+      { type: "added", key: "changelog.rateAppButton" },
+    ],
+  },
+  {
     version: "1.1.1",
     date: "2026-03-20",
     changes: [
