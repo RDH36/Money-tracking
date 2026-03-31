@@ -45,9 +45,8 @@ export default function CategoryDetailPage() {
   const displayName = category ? (DEFAULT_IDS.includes(category.id) ? t(`categories.${category.id}`) : category.name) : '';
 
   const currentMonth = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + monthOffset);
-    return d;
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
   }, [monthOffset]);
 
   const monthLabel = useMemo(() => {

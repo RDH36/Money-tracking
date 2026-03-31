@@ -144,12 +144,16 @@ export function useCategoryBudget(categoryId: string, monthOffset = 0) {
 
       if (history) {
         setBudgetLimit(history.budget_limit);
-      } else {
+      } else if (monthOffset === 0) {
+        // Current month: use current budget_limit
         const cat = await db.getFirstAsync<{ budget_limit: number | null }>(
           'SELECT budget_limit FROM categories WHERE id = ?',
           [categoryId]
         );
         setBudgetLimit(cat?.budget_limit ?? null);
+      } else {
+        // Past month with no history: was unlimited
+        setBudgetLimit(null);
       }
 
       const categoryFilter = categoryId === 'other'
