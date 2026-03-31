@@ -33,10 +33,10 @@ export default function CategoryDetailPage() {
   const { theme } = useTheme();
   const { categories, updateCategory, refresh: refreshCats } = useCategories();
   const { deleteTransaction } = useTransactions();
-  const { spent, budgetLimit, percentage, status, refresh: refreshBudget } = useCategoryBudget(id);
 
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>([]);
   const [monthOffset, setMonthOffset] = useState(0);
+  const { spent, budgetLimit, percentage, status, refresh: refreshBudget } = useCategoryBudget(id, monthOffset);
   const [showEdit, setShowEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);

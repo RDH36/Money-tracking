@@ -77,6 +77,16 @@ export function useCategories() {
           [id, params.name, params.icon, params.color, params.budget_limit ?? null, now]
         );
 
+        if (params.budget_limit) {
+          const d = new Date();
+          const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          await db.runAsync(
+            `INSERT OR REPLACE INTO budget_history (category_id, year_month, budget_limit, created_at)
+             VALUES (?, ?, ?, ?)`,
+            [id, yearMonth, params.budget_limit, now]
+          );
+        }
+
         await loadCategories();
         return { success: true, id, limitReached: false };
       } catch (error) {
@@ -105,6 +115,16 @@ export function useCategories() {
           `UPDATE categories SET ${fields.join(', ')} WHERE id = ? AND deleted_at IS NULL`,
           values
         );
+
+        if (params.budget_limit !== undefined && params.budget_limit !== null) {
+          const now = new Date();
+          const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          await db.runAsync(
+            `INSERT OR REPLACE INTO budget_history (category_id, year_month, budget_limit, created_at)
+             VALUES (?, ?, ?, ?)`,
+            [id, yearMonth, params.budget_limit, now.toISOString()]
+          );
+        }
 
         await loadCategories();
         return true;

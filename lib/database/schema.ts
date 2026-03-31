@@ -126,6 +126,17 @@ export const ADD_BUDGET_LIMIT_TO_CATEGORIES = `
 ALTER TABLE categories ADD COLUMN budget_limit INTEGER;
 `;
 
+export const CREATE_BUDGET_HISTORY_TABLE = `
+CREATE TABLE IF NOT EXISTS budget_history (
+  category_id TEXT NOT NULL,
+  year_month TEXT NOT NULL,
+  budget_limit INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (category_id, year_month),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+`;
+
 export const ADD_TYPE_TO_PLANIFICATION_ITEMS = `
 ALTER TABLE planification_items ADD COLUMN type TEXT DEFAULT 'expense' CHECK (type IN ('expense', 'income'));
 `;

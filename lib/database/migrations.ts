@@ -19,9 +19,10 @@ import {
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
   ADD_BUDGET_LIMIT_TO_CATEGORIES,
+  CREATE_BUDGET_HISTORY_TABLE,
 } from './schema';
 
-const DATABASE_VERSION = 17;
+const DATABASE_VERSION = 18;
 
 interface VersionResult {
   user_version: number;
@@ -116,6 +117,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 17) {
     await migrateToV17(db);
     currentVersion = 17;
+  }
+
+  if (currentVersion < 18) {
+    await migrateToV18(db);
+    currentVersion = 18;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -347,6 +353,23 @@ async function migrateToV15(db: SQLiteDatabase): Promise<void> {
   }
   await db.execAsync(
     'CREATE INDEX IF NOT EXISTS idx_transactions_planification_id ON transactions(planification_id)'
+  );
+}
+
+async function migrateToV18(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(CREATE_BUDGET_HISTORY_TABLE);
+
+  // Seed history with current budgets for the current month
+  const now = new Date();
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const isoNow = now.toISOString();
+
+  await db.runAsync(
+    `INSERT OR IGNORE INTO budget_history (category_id, year_month, budget_limit, created_at)
+     SELECT id, ?, budget_limit, ?
+     FROM categories
+     WHERE budget_limit IS NOT NULL AND deleted_at IS NULL`,
+    [yearMonth, isoNow]
   );
 }
 

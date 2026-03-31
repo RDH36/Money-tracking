@@ -123,37 +123,55 @@ export function useBudgets() {
   };
 }
 
-export function useCategoryBudget(categoryId: string) {
+export function useCategoryBudget(categoryId: string, monthOffset = 0) {
   const db = useSQLiteContext();
   const [spent, setSpent] = useState(0);
   const [budgetLimit, setBudgetLimit] = useState<number | null>(null);
 
   const fetchCategoryBudget = useCallback(async () => {
     try {
-      const { monthStart, monthEnd } = getLocalMonthBounds();
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + monthOffset + 1, 1);
 
-      const cat = await db.getFirstAsync<{ budget_limit: number | null }>(
-        'SELECT budget_limit FROM categories WHERE id = ?',
-        [categoryId]
+      const yearMonth = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`;
+
+      // Check history first for past months, fallback to current budget_limit
+      const history = await db.getFirstAsync<{ budget_limit: number }>(
+        'SELECT budget_limit FROM budget_history WHERE category_id = ? AND year_month = ?',
+        [categoryId, yearMonth]
       );
-      setBudgetLimit(cat?.budget_limit ?? null);
+
+      if (history) {
+        setBudgetLimit(history.budget_limit);
+      } else {
+        const cat = await db.getFirstAsync<{ budget_limit: number | null }>(
+          'SELECT budget_limit FROM categories WHERE id = ?',
+          [categoryId]
+        );
+        setBudgetLimit(cat?.budget_limit ?? null);
+      }
+
+      const categoryFilter = categoryId === 'other'
+        ? `(category_id = ? OR category_id IS NULL)`
+        : `category_id = ?`;
 
       const result = await db.getFirstAsync<{ total: number }>(
         `SELECT COALESCE(SUM(amount), 0) as total
          FROM transactions
-         WHERE category_id = ?
+         WHERE ${categoryFilter}
            AND type = 'expense'
            AND deleted_at IS NULL
            AND transfer_id IS NULL
            AND created_at >= ?
            AND created_at < ?`,
-        [categoryId, monthStart, monthEnd]
+        [categoryId, monthStart.toISOString(), monthEnd.toISOString()]
       );
       setSpent(result?.total ?? 0);
     } catch (error) {
       console.error('Error fetching category budget:', error);
     }
-  }, [db, categoryId]);
+  }, [db, categoryId, monthOffset]);
 
   useEffect(() => {
     fetchCategoryBudget();
