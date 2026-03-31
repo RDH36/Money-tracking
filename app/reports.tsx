@@ -8,6 +8,7 @@ import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { usePostHog } from 'posthog-react-native';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { useTransactions } from '@/hooks';
+import { useBudgets } from '@/hooks/useBudgets';
 import { useTransactionStats, getBarChartData, filterByPeriod } from '@/hooks/useTransactionStats';
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { useTheme } from '@/contexts';
@@ -24,6 +25,7 @@ export default function ReportsScreen() {
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
   const { transactions } = useTransactions();
+  const { budgets } = useBudgets();
   const posthog = usePostHog();
   const isDark = useEffectiveColorScheme() === 'dark';
   const colors = getDarkModeColors(isDark);
@@ -174,18 +176,37 @@ export default function ReportsScreen() {
                     )}
                   />
                   <View className="flex-1 gap-2">
-                    {stats.categoryBreakdown.slice(0, 5).map((cat, i) => (
-                      <View key={cat.id || i} className="flex-row items-center gap-2">
-                        <View className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || theme.chartColors[i % theme.chartColors.length] }} />
-                        <RNText className="font-body-regular text-body-sm flex-1" style={{ color: isDark ? '#EDEDF0' : '#14141A' }} numberOfLines={1}>{cat.name}</RNText>
-                        <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>
-                          {showAmounts
-                            ? formatCurrency(cat.amount, currencyCode)
-                            : `${stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%`
-                          }
-                        </RNText>
-                      </View>
-                    ))}
+                    {stats.categoryBreakdown.slice(0, 5).map((cat, i) => {
+                      const budgetInfo = budgets.find((b) => b.category.id === cat.id);
+                      const hasBudget = budgetInfo?.budgetLimit;
+                      const budgetPct = budgetInfo?.percentage ?? 0;
+                      const barColor = budgetInfo?.status === 'red' ? '#EF4444' : budgetInfo?.status === 'orange' ? '#F59E0B' : '#22C55E';
+
+                      return (
+                        <View key={cat.id || i} className="gap-1">
+                          <View className="flex-row items-center gap-2">
+                            <View className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || theme.chartColors[i % theme.chartColors.length] }} />
+                            <RNText className="font-body-regular text-body-sm flex-1" style={{ color: isDark ? '#EDEDF0' : '#14141A' }} numberOfLines={1}>{cat.name}</RNText>
+                            <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>
+                              {showAmounts
+                                ? hasBudget
+                                  ? `${formatCurrency(cat.amount, currencyCode)} / ${formatCurrency(budgetInfo.budgetLimit!, currencyCode)}`
+                                  : formatCurrency(cat.amount, currencyCode)
+                                : `${stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%`
+                              }
+                            </RNText>
+                          </View>
+                          {hasBudget && (
+                            <View className="flex-row items-center gap-2 ml-5">
+                              <View className="flex-1 h-1.5 rounded-full bg-bg-raised overflow-hidden">
+                                <View className="h-full rounded-full" style={{ width: `${Math.min(budgetPct, 100)}%`, backgroundColor: barColor }} />
+                              </View>
+                              <RNText className="text-[10px] font-bold" style={{ color: barColor }}>{budgetPct}%</RNText>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
                 </View>
               </View>

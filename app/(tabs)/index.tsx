@@ -5,6 +5,9 @@ import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAccounts, useTransactions, useSettings, useTips, useWhatsNew, useGamification } from '@/hooks';
+import { useBudgets } from '@/hooks/useBudgets';
+import { BudgetSummarySection } from '@/components/BudgetSummarySection';
+import { BudgetOverspendBanner } from '@/components/BudgetOverspendBanner';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
 import { AddAccountModal } from '@/components/AddAccountModal';
@@ -27,6 +30,7 @@ export default function DashboardScreen() {
   const isDark = useEffectiveColorScheme() === 'dark';
   const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
   const { transactions, refresh: refreshTransactions, isFetching, deleteTransaction } = useTransactions();
+  const { topBudgets, overspentBudgets, refresh: refreshBudgets } = useBudgets();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
   const { currentTip, showTip } = useTips('dashboard');
   const { hasNew, checkNew } = useWhatsNew();
@@ -37,7 +41,7 @@ export default function DashboardScreen() {
   const [levelUp, setLevelUp] = useState<number | null>(null);
 
   const recentItems = useMemo(() => {
-    const recent = transactions.slice(0, 5);
+    const recent = transactions.slice(0, 4);
     const items: ({ _type: 'single'; transaction: TransactionWithCategory } | { _type: 'group'; group: PlanificationGroupData })[] = [];
     const planifGroups: Record<string, TransactionWithCategory[]> = {};
 
@@ -72,6 +76,7 @@ export default function DashboardScreen() {
     useCallback(() => {
       refreshAccounts();
       refreshTransactions();
+      refreshBudgets();
       checkNew();
       if (!gamification.isLoading) {
         gamification.generateDailyChallenge();
@@ -94,7 +99,7 @@ export default function DashboardScreen() {
   );
 
   const handleRefresh = async () => {
-    await Promise.all([refreshAccounts(), refreshTransactions()]);
+    await Promise.all([refreshAccounts(), refreshTransactions(), refreshBudgets()]);
   };
 
   const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
@@ -154,6 +159,7 @@ export default function DashboardScreen() {
                     <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
                   </Pressable>
                 </View>
+                <BudgetOverspendBanner overspentBudgets={overspentBudgets} />
               </PremiumCard>
             </FadeIn>
             {showTip && currentTip && (
@@ -195,6 +201,8 @@ export default function DashboardScreen() {
             </Pressable>
           </ScrollView>
 
+          <BudgetSummarySection budgets={topBudgets} />
+
           <View className="gap-3">
             <RNText className="font-ui text-ui-lg text-content-primary">{t('dashboard.recentTransactions')}</RNText>
             {recentItems.length === 0 ? (
@@ -218,7 +226,7 @@ export default function DashboardScreen() {
                     </StaggerItem>
                   )
                 )}
-                {transactions.length > 5 && (
+                {transactions.length > 4 && (
                   <PrimaryButton
                     label={t('dashboard.viewMore')}
                     onPress={() => router.push('/history')}

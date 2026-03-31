@@ -18,9 +18,10 @@ import {
   CREATE_GAMIFICATION_INDEX,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
+  ADD_BUDGET_LIMIT_TO_CATEGORIES,
 } from './schema';
 
-const DATABASE_VERSION = 16;
+const DATABASE_VERSION = 17;
 
 interface VersionResult {
   user_version: number;
@@ -110,6 +111,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 16) {
     await migrateToV16(db);
     currentVersion = 16;
+  }
+
+  if (currentVersion < 17) {
+    await migrateToV17(db);
+    currentVersion = 17;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -342,6 +348,17 @@ async function migrateToV15(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(
     'CREATE INDEX IF NOT EXISTS idx_transactions_planification_id ON transactions(planification_id)'
   );
+}
+
+async function migrateToV17(db: SQLiteDatabase): Promise<void> {
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(categories)"
+  );
+  const hasBudgetLimit = tableInfo.some((col) => col.name === 'budget_limit');
+
+  if (!hasBudgetLimit) {
+    await db.execAsync(ADD_BUDGET_LIMIT_TO_CATEGORIES);
+  }
 }
 
 async function migrateToV16(db: SQLiteDatabase): Promise<void> {

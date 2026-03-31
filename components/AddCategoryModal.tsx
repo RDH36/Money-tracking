@@ -43,6 +43,7 @@ interface AddCategoryModalProps {
     name: string;
     icon: string;
     color: string;
+    budget_limit?: number | null;
   }) => Promise<{ success: boolean; limitReached: boolean }>;
   canCreateCategory: boolean;
   customCategoriesCount: number;
@@ -61,21 +62,25 @@ export function AddCategoryModal({
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('cube');
   const [color, setColor] = useState('#3498DB');
+  const [budgetLimit, setBudgetLimit] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   const resetForm = () => {
     setName('');
     setIcon('cube');
     setColor('#3498DB');
+    setBudgetLimit('');
   };
 
   const handleCreate = async () => {
     if (!name.trim() || !canCreateCategory) return;
     setIsCreating(true);
+    const parsedBudget = budgetLimit.trim() ? parseInt(budgetLimit.replace(/\s/g, ''), 10) * 100 : null;
     const result = await onCreateCategory({
       name: name.trim(),
       icon,
       color,
+      budget_limit: parsedBudget && !isNaN(parsedBudget) ? parsedBudget : null,
     });
     if (result.success) {
       resetForm();
@@ -189,6 +194,21 @@ export function AddCategoryModal({
                       </View>
                     </Pressable>
                   ))}
+                </View>
+              </View>
+
+              <View className="gap-2">
+                <RNText className="font-body-bold text-body-md text-content-primary">{t('budget.budgetOptional')}</RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3 flex-row items-center">
+                  <TextInput
+                    placeholder={t('budget.budgetPlaceholder')}
+                    value={budgetLimit}
+                    onChangeText={setBudgetLimit}
+                    keyboardType="numeric"
+                    className="font-body-regular text-body-md text-content-primary flex-1"
+                    placeholderTextColor="#8E8EA0"
+                  />
+                  <RNText className="text-content-tertiary text-sm ml-2">Ar</RNText>
                 </View>
               </View>
 

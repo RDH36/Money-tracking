@@ -8,8 +8,10 @@ import { useTranslation } from 'react-i18next';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
+import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
 import { PrimaryButton, PremiumInput, Divider } from '@/components/premium';
 import { useCategories, useTransactions, useAccounts, useTips, useGamification, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { useSQLiteContext } from '@/lib/database';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
 import { XPToast } from '@/components/XPToast';
@@ -51,6 +53,10 @@ export default function AddTransactionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [xpToast, setXpToast] = useState<number | null>(null);
   const [levelUp, setLevelUp] = useState<number | null>(null);
+  const [budgetWarning, setBudgetWarning] = useState<{
+    categoryName: string; spent: string; limit: string; percentage: number; overAmount?: string;
+  } | null>(null);
+  const addDb = useSQLiteContext();
 
   useFocusEffect(
     useCallback(() => {
@@ -73,15 +79,48 @@ export default function AddTransactionScreen() {
     setTimeout(() => setSuccess(false), 2000);
   };
 
-  const handleSave = async () => {
+  const checkBudgetAndSave = async () => {
+    const numericAmount = getNumericAmount();
+    if (numericAmount <= 0) return;
+    const amountValue = parseAmount(amount);
+
+    if (mode === 'transaction' && type === 'expense' && categoryId) {
+      const cat = expenseCategories.find((c) => c.id === categoryId);
+      if (cat?.budget_limit) {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+        const result = await addDb.getFirstAsync<{ total: number }>(
+          `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
+           WHERE category_id = ? AND type = 'expense' AND deleted_at IS NULL
+             AND transfer_id IS NULL AND created_at >= ? AND created_at < ?`,
+          [categoryId, monthStart, monthEnd]
+        );
+        const currentSpent = result?.total ?? 0;
+        const newTotal = currentSpent + amountValue;
+        const percentage = Math.round((newTotal / cat.budget_limit) * 100);
+        if (percentage >= 70) {
+          const overAmount = newTotal > cat.budget_limit ? formatMoney(newTotal - cat.budget_limit) : undefined;
+          setBudgetWarning({
+            categoryName: cat.name, spent: formatMoney(newTotal),
+            limit: formatMoney(cat.budget_limit), percentage, overAmount,
+          });
+          return;
+        }
+      }
+    }
+    await executeSave();
+  };
+
+  const executeSave = async () => {
     const numericAmount = getNumericAmount();
     if (numericAmount <= 0) return;
     const amountValue = parseAmount(amount);
     setError(null);
+    setBudgetWarning(null);
 
     if (mode === 'transaction') {
       if (!accountId) return;
-      // For income, use the system income category; for expense, use selected category
       const finalCategoryId = type === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
       const result = await createTransaction({
         type,
@@ -333,7 +372,7 @@ export default function AddTransactionScreen() {
 
             <PrimaryButton
               label={isLoading ? t('add.saving') : t('common.save')}
-              onPress={handleSave}
+              onPress={checkBudgetAndSave}
               disabled={!isValid || isLoading}
               isLoading={isLoading}
             />
@@ -341,6 +380,16 @@ export default function AddTransactionScreen() {
       </KeyboardAwareScrollView>
       <XPToast xpAmount={xpToast} onHide={() => setXpToast(null)} />
       <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
+      <BudgetWarningDialog
+        isOpen={!!budgetWarning}
+        categoryName={budgetWarning?.categoryName || ''}
+        spent={budgetWarning?.spent || ''}
+        limit={budgetWarning?.limit || ''}
+        percentage={budgetWarning?.percentage || 0}
+        overAmount={budgetWarning?.overAmount}
+        onClose={() => setBudgetWarning(null)}
+        onContinue={executeSave}
+      />
     </View>
   );
 }

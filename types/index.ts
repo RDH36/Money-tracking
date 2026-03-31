@@ -41,6 +41,7 @@ export interface Category {
   color: string | null;
   is_default: number;
   category_type: CategoryType;
+  budget_limit: number | null;
   created_at: string;
   sync_status: SyncStatus;
 }

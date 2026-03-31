@@ -1,0 +1,166 @@
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSQLiteContext } from '@/lib/database';
+import type { Category } from '@/types';
+
+export interface BudgetData {
+  category: Category;
+  spent: number;
+  budgetLimit: number | null;
+  percentage: number | null;
+  status: 'green' | 'orange' | 'red' | null;
+  timeUntilReset: string;
+}
+
+function getLocalMonthBounds() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return { monthStart: monthStart.toISOString(), monthEnd: monthEnd.toISOString() };
+}
+
+function getTimeUntilReset(): string {
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const diff = nextMonth.getTime() - now.getTime();
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) return `${days}j ${hours}h`;
+  return `${hours}h ${minutes}m`;
+}
+
+function getBudgetStatus(percentage: number): 'green' | 'orange' | 'red' {
+  if (percentage >= 100) return 'red';
+  if (percentage >= 70) return 'orange';
+  return 'green';
+}
+
+export function useBudgets() {
+  const db = useSQLiteContext();
+  const [budgets, setBudgets] = useState<BudgetData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchBudgets = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { monthStart, monthEnd } = getLocalMonthBounds();
+
+      const categories = await db.getAllAsync<Category>(
+        `SELECT * FROM categories
+         WHERE deleted_at IS NULL
+           AND category_type = 'expense'
+         ORDER BY name ASC`
+      );
+
+      const spentRows = await db.getAllAsync<{ category_id: string | null; total: number }>(
+        `SELECT category_id, SUM(amount) as total
+         FROM transactions
+         WHERE type = 'expense'
+           AND deleted_at IS NULL
+           AND transfer_id IS NULL
+           AND created_at >= ?
+           AND created_at < ?
+         GROUP BY category_id`,
+        [monthStart, monthEnd]
+      );
+
+      const spentMap = new Map<string, number>();
+      const uncategorizedSpent = { total: 0 };
+      for (const r of spentRows) {
+        if (r.category_id) {
+          spentMap.set(r.category_id, (spentMap.get(r.category_id) ?? 0) + r.total);
+        } else {
+          uncategorizedSpent.total += r.total;
+        }
+      }
+      const timeUntilReset = getTimeUntilReset();
+
+      const result: BudgetData[] = categories.map((cat) => {
+        let spent = spentMap.get(cat.id) ?? 0;
+        if (cat.id === 'other') spent += uncategorizedSpent.total;
+        const budgetLimit = cat.budget_limit;
+        const percentage = budgetLimit ? Math.round((spent / budgetLimit) * 100) : null;
+        const status = percentage !== null ? getBudgetStatus(percentage) : null;
+
+        return { category: cat, spent, budgetLimit, percentage, status, timeUntilReset };
+      });
+
+      result.sort((a, b) => {
+        if (a.budgetLimit && !b.budgetLimit) return -1;
+        if (!a.budgetLimit && b.budgetLimit) return 1;
+        if (a.percentage !== null && b.percentage !== null) return b.percentage - a.percentage;
+        return b.spent - a.spent;
+      });
+
+      setBudgets(result);
+    } catch (error) {
+      console.error('Error fetching budgets:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [db]);
+
+  useEffect(() => {
+    fetchBudgets();
+  }, [fetchBudgets]);
+
+  const overspentBudgets = useMemo(
+    () => budgets.filter((b) => b.status === 'red'),
+    [budgets]
+  );
+
+  const topBudgets = useMemo(() => budgets.slice(0, 3), [budgets]);
+
+  return {
+    budgets,
+    overspentBudgets,
+    topBudgets,
+    isLoading,
+    refresh: fetchBudgets,
+    getTimeUntilReset,
+  };
+}
+
+export function useCategoryBudget(categoryId: string) {
+  const db = useSQLiteContext();
+  const [spent, setSpent] = useState(0);
+  const [budgetLimit, setBudgetLimit] = useState<number | null>(null);
+
+  const fetchCategoryBudget = useCallback(async () => {
+    try {
+      const { monthStart, monthEnd } = getLocalMonthBounds();
+
+      const cat = await db.getFirstAsync<{ budget_limit: number | null }>(
+        'SELECT budget_limit FROM categories WHERE id = ?',
+        [categoryId]
+      );
+      setBudgetLimit(cat?.budget_limit ?? null);
+
+      const result = await db.getFirstAsync<{ total: number }>(
+        `SELECT COALESCE(SUM(amount), 0) as total
+         FROM transactions
+         WHERE category_id = ?
+           AND type = 'expense'
+           AND deleted_at IS NULL
+           AND transfer_id IS NULL
+           AND created_at >= ?
+           AND created_at < ?`,
+        [categoryId, monthStart, monthEnd]
+      );
+      setSpent(result?.total ?? 0);
+    } catch (error) {
+      console.error('Error fetching category budget:', error);
+    }
+  }, [db, categoryId]);
+
+  useEffect(() => {
+    fetchCategoryBudget();
+  }, [fetchCategoryBudget]);
+
+  const percentage = budgetLimit ? Math.round((spent / budgetLimit) * 100) : null;
+  const status = percentage !== null ? getBudgetStatus(percentage) : null;
+
+  return { spent, budgetLimit, percentage, status, refresh: fetchCategoryBudget };
+}

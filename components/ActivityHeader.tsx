@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, View, Text as RNText } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -8,12 +8,8 @@ import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
-type FilterType = 'all' | 'expense' | 'income' | 'transfer';
-
 interface ActivityHeaderProps {
   transactions: TransactionWithCategory[];
-  filterType: FilterType;
-  onFilterChange: (filter: FilterType) => void;
 }
 
 function useTodayData(transactions: TransactionWithCategory[]) {
@@ -33,25 +29,17 @@ function useTodayData(transactions: TransactionWithCategory[]) {
   }, [transactions]);
 }
 
-export function ActivityHeader({ transactions, filterType, onFilterChange }: ActivityHeaderProps) {
+export function ActivityHeader({ transactions }: ActivityHeaderProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const router = useRouter();
   const currencyCode = useCurrencyCode();
   const { todayExpenses, todayIncome } = useTodayData(transactions);
 
-  const filters: { key: FilterType; label: string }[] = [
-    { key: 'all', label: t('history.filterAll') },
-    { key: 'expense', label: t('history.filterExpenses') },
-    { key: 'income', label: t('history.filterIncome') },
-    { key: 'transfer', label: t('history.filterTransfers') },
-  ];
-
   const todayTotal = todayExpenses + todayIncome;
 
   return (
     <View className="gap-2 px-4 pb-2">
-      {/* Today's Activity */}
       {todayTotal > 0 && (
         <View className="p-4 rounded-xl" style={{ backgroundColor: theme.colors.primary + '10' }}>
           <View className="flex-row justify-between items-center">
@@ -78,65 +66,38 @@ export function ActivityHeader({ transactions, filterType, onFilterChange }: Act
         </View>
       )}
 
-      {/* Quick Access Cards */}
       <View className="flex-row gap-2">
         <Pressable onPress={() => router.push('/reports' as any)} className="flex-1">
-          <View
-            className="p-4 rounded-xl flex-row items-center gap-3"
-            style={{ backgroundColor: theme.colors.primaryLight }}
-          >
+          <View className="p-4 rounded-xl flex-row items-center gap-3" style={{ backgroundColor: theme.colors.primaryLight }}>
             <Ionicons name="bar-chart" size={26} color={theme.colors.primary} />
             <View className="flex-1">
-              <RNText className="font-ui text-ui-md" style={{ color: theme.colors.primary }}>
-                {t('history.reports')}
-              </RNText>
-              <RNText className="font-body-regular text-body-sm text-content-tertiary" numberOfLines={1}>
-                {t('history.seeReports')}
-              </RNText>
+              <RNText className="font-ui text-ui-md" style={{ color: theme.colors.primary }}>{t('history.reports')}</RNText>
+              <RNText className="font-body-regular text-body-sm text-content-tertiary" numberOfLines={1}>{t('history.seeReports')}</RNText>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
           </View>
         </Pressable>
         <Pressable onPress={() => router.push('/calendar' as any)} className="flex-1">
-          <View
-            className="p-4 rounded-xl flex-row items-center gap-3"
-            style={{ backgroundColor: theme.colors.primaryLight }}
-          >
+          <View className="p-4 rounded-xl flex-row items-center gap-3" style={{ backgroundColor: theme.colors.primaryLight }}>
             <Ionicons name="calendar" size={26} color={theme.colors.primary} />
             <View className="flex-1">
-              <RNText className="font-ui text-ui-md" style={{ color: theme.colors.primary }}>
-                {t('history.calendar')}
-              </RNText>
-              <RNText className="font-body-regular text-body-sm text-content-tertiary" numberOfLines={1}>
-                {t('history.seeCalendar')}
-              </RNText>
+              <RNText className="font-ui text-ui-md" style={{ color: theme.colors.primary }}>{t('history.calendar')}</RNText>
+              <RNText className="font-body-regular text-body-sm text-content-tertiary" numberOfLines={1}>{t('history.seeCalendar')}</RNText>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
           </View>
         </Pressable>
       </View>
 
-      {/* Filter Chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {filters.map((f) => (
-          <Pressable key={f.key} onPress={() => onFilterChange(f.key)}>
-            <View
-              className="px-5 py-3 rounded-full"
-              style={filterType === f.key
-                ? { backgroundColor: theme.colors.primary }
-                : { backgroundColor: theme.colors.primary + '10' }
-              }
-            >
-              <RNText
-                className="font-ui text-ui-sm"
-                style={{ color: filterType === f.key ? '#FFFFFF' : theme.colors.primary }}
-              >
-                {f.label}
-              </RNText>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <Pressable onPress={() => router.push('/settings/categories' as any)}>
+        <View className="flex-row items-center px-2 py-3 gap-2">
+          <Ionicons name="settings-outline" size={18} color={theme.colors.primary} />
+          <RNText className="font-ui text-ui-md flex-1" style={{ color: theme.colors.primary }}>
+            {t('budget.manageCategories')}
+          </RNText>
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
+        </View>
+      </Pressable>
     </View>
   );
 }

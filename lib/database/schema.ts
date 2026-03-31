@@ -122,6 +122,10 @@ export const ADD_DELETED_AT_TO_CATEGORIES = `
 ALTER TABLE categories ADD COLUMN deleted_at TEXT;
 `;
 
+export const ADD_BUDGET_LIMIT_TO_CATEGORIES = `
+ALTER TABLE categories ADD COLUMN budget_limit INTEGER;
+`;
+
 export const ADD_TYPE_TO_PLANIFICATION_ITEMS = `
 ALTER TABLE planification_items ADD COLUMN type TEXT DEFAULT 'expense' CHECK (type IN ('expense', 'income'));
 `;
