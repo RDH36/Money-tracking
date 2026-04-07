@@ -77,7 +77,17 @@ export function useQuests() {
    * Returns total XP awarded during this refresh.
    */
   const refreshQuests = useCallback(async (): Promise<number> => {
-    if (!store.isInitialized) return 0;
+    // CRITICAL: read all state via getState() to avoid stale-closure XP spam
+    // when callers (e.g. useFocusEffect with empty deps) hold a stale reference.
+    const questsStoreApi = useQuestsStore.getState();
+    if (!questsStoreApi.isInitialized) return 0;
+
+    // Authoritative source for prev steps: read directly from DB so we never
+    // rely on possibly-stale in-memory state. This eliminates double-rewarding.
+    const dbRows = await db.getAllAsync<QuestRow>(
+      'SELECT id, current_step, completed_at FROM quests'
+    );
+    const dbProgress = new Map(dbRows.map((r) => [r.id, r]));
 
     const gState = useGamificationStore.getState();
     const metrics = await computeQuestMetrics(db, {
@@ -94,12 +104,35 @@ export function useQuests() {
     for (const quest of QUESTS) {
       const value = metrics[quest.id] ?? 0;
       const completedSteps = countCompletedSteps(quest, value);
-      const prev = store.quests[quest.id];
-      const prevStep = prev?.currentStep ?? 0;
+      const prevStep = dbProgress.get(quest.id)?.current_step ?? 0;
 
       if (completedSteps > prevStep) {
-        // Award XP for each newly-completed step
-        for (let i = prevStep; i < completedSteps; i++) {
+        // Persist the new step FIRST (idempotent guard) so any concurrent
+        // refresh sees the updated value before we award XP.
+        const completedAt =
+          completedSteps >= quest.steps.length ? now : null;
+        await db.runAsync(
+          `INSERT INTO quests (id, current_step, completed_at, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             current_step = ?, completed_at = ?, updated_at = ?
+           WHERE quests.current_step < ?`,
+          [
+            quest.id, completedSteps, completedAt, now,
+            completedSteps, completedAt, now,
+            completedSteps,
+          ]
+        );
+
+        // Re-read the row to confirm we won the race and our step is the latest.
+        const confirmRow = await db.getFirstAsync<QuestRow>(
+          'SELECT id, current_step, completed_at FROM quests WHERE id = ?',
+          [quest.id]
+        );
+        const persistedStep = confirmRow?.current_step ?? 0;
+
+        // Only award XP for steps we actually persisted (between prevStep and persistedStep).
+        for (let i = prevStep; i < persistedStep; i++) {
           const step = quest.steps[i];
           await awardXP(step.xp);
           xpGained += step.xp;
@@ -114,36 +147,23 @@ export function useQuests() {
           }
         }
 
-        const completedAt =
-          completedSteps >= quest.steps.length ? now : null;
-
-        await db.runAsync(
-          `INSERT INTO quests (id, current_step, completed_at, updated_at)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET
-             current_step = ?, completed_at = ?, updated_at = ?`,
-          [
-            quest.id, completedSteps, completedAt, now,
-            completedSteps, completedAt, now,
-          ]
-        );
-
-        store.setQuest({
+        questsStoreApi.setQuest({
           id: quest.id,
-          currentStep: completedSteps,
-          completedAt,
+          currentStep: persistedStep,
+          completedAt: confirmRow?.completed_at ?? null,
           metricValue: value,
         });
-      } else if (prev && prev.metricValue !== value) {
-        // Just update displayed metric value (no step crossed)
-        store.setQuest({ ...prev, metricValue: value });
-      } else if (!prev) {
-        store.setQuest({
-          id: quest.id,
-          currentStep: completedSteps,
-          completedAt: null,
-          metricValue: value,
-        });
+      } else {
+        // No step crossed — just refresh displayed metric value
+        const prev = questsStoreApi.quests[quest.id];
+        if (!prev || prev.metricValue !== value || prev.currentStep !== prevStep) {
+          questsStoreApi.setQuest({
+            id: quest.id,
+            currentStep: prevStep,
+            completedAt: dbProgress.get(quest.id)?.completed_at ?? null,
+            metricValue: value,
+          });
+        }
       }
     }
 
@@ -189,7 +209,7 @@ export function useQuests() {
     }
 
     return xpGained;
-  }, [db, store, awardXP, t]);
+  }, [db, awardXP, t]);
 
   /** Get quest definition + current progress merged for UI. */
   const getQuestWithProgress = useCallback(
