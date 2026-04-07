@@ -11,6 +11,12 @@ interface GamificationState {
   dailyChallengeDate: string;
   dailyChallengeType: string;
   dailyChallengeCompleted: boolean;
+  weeklyChallengeStart: string;
+  weeklyChallengeType: string;
+  weeklyChallengeCompleted: boolean;
+  monthlyChallengeMonth: string;
+  monthlyChallengeType: string;
+  monthlyChallengeCompleted: boolean;
   badges: string[];
   isInitialized: boolean;
   pendingLevelUp: number | null;
@@ -23,6 +29,10 @@ interface GamificationState {
   setStreakFreezeUsedDate: (date: string) => void;
   setDailyChallenge: (date: string, type: string, completed: boolean) => void;
   setDailyChallengeCompleted: (completed: boolean) => void;
+  setWeeklyChallenge: (start: string, type: string, completed: boolean) => void;
+  setWeeklyChallengeCompleted: (completed: boolean) => void;
+  setMonthlyChallenge: (month: string, type: string, completed: boolean) => void;
+  setMonthlyChallengeCompleted: (completed: boolean) => void;
   setBadges: (badges: string[]) => void;
   addBadge: (badgeId: string) => void;
   setPendingLevelUp: (level: number | null) => void;
@@ -39,6 +49,12 @@ export interface GamificationData {
   dailyChallengeDate: string;
   dailyChallengeType: string;
   dailyChallengeCompleted: boolean;
+  weeklyChallengeStart: string;
+  weeklyChallengeType: string;
+  weeklyChallengeCompleted: boolean;
+  monthlyChallengeMonth: string;
+  monthlyChallengeType: string;
+  monthlyChallengeCompleted: boolean;
   badges: string[];
 }
 
@@ -52,6 +68,12 @@ export const useGamificationStore = create<GamificationState>((set) => ({
   dailyChallengeDate: '',
   dailyChallengeType: '',
   dailyChallengeCompleted: false,
+  weeklyChallengeStart: '',
+  weeklyChallengeType: '',
+  weeklyChallengeCompleted: false,
+  monthlyChallengeMonth: '',
+  monthlyChallengeType: '',
+  monthlyChallengeCompleted: false,
   badges: [],
   isInitialized: false,
   pendingLevelUp: null,
@@ -65,6 +87,12 @@ export const useGamificationStore = create<GamificationState>((set) => ({
   setDailyChallenge: (date, type, completed) =>
     set({ dailyChallengeDate: date, dailyChallengeType: type, dailyChallengeCompleted: completed }),
   setDailyChallengeCompleted: (completed) => set({ dailyChallengeCompleted: completed }),
+  setWeeklyChallenge: (start, type, completed) =>
+    set({ weeklyChallengeStart: start, weeklyChallengeType: type, weeklyChallengeCompleted: completed }),
+  setWeeklyChallengeCompleted: (completed) => set({ weeklyChallengeCompleted: completed }),
+  setMonthlyChallenge: (month, type, completed) =>
+    set({ monthlyChallengeMonth: month, monthlyChallengeType: type, monthlyChallengeCompleted: completed }),
+  setMonthlyChallengeCompleted: (completed) => set({ monthlyChallengeCompleted: completed }),
   setBadges: (badges) => set({ badges }),
   addBadge: (badgeId) => set((state) => ({ badges: [...state.badges, badgeId] })),
   setPendingLevelUp: (level) => set({ pendingLevelUp: level }),

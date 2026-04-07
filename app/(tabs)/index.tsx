@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useAccounts, useTransactions, useSettings, useTips, useWhatsNew, useGamification } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useTips, useWhatsNew, useGamification, useWeeklyChallenge, useMonthlyChallenge, useQuests } from '@/hooks';
 import { useBudgets } from '@/hooks/useBudgets';
 import { BudgetSummarySection } from '@/components/BudgetSummarySection';
 import { BudgetOverspendBanner } from '@/components/BudgetOverspendBanner';
@@ -14,11 +14,14 @@ import { AddAccountModal } from '@/components/AddAccountModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { GamificationBar } from '@/components/GamificationBar';
 import { LevelUpModal } from '@/components/LevelUpModal';
+import { FeatureUnlockedModal } from '@/components/FeatureUnlockedModal';
+import { useUnlocksStore } from '@/stores/unlocksStore';
 import { FadeIn, StaggerItem, PremiumCard, EmptyState, PrimaryButton } from '@/components/premium';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatureModal';
 import { usePostHog } from 'posthog-react-native';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
@@ -35,10 +38,15 @@ export default function DashboardScreen() {
   const { currentTip, showTip } = useTips('dashboard');
   const { hasNew, checkNew } = useWhatsNew();
   const gamification = useGamification();
+  const weekly = useWeeklyChallenge();
+  const monthly = useMonthlyChallenge();
+  const quests = useQuests();
   const posthog = usePostHog();
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
   const [levelUp, setLevelUp] = useState<number | null>(null);
+  const [unlockQueue, setUnlockQueue] = useState<string[]>([]);
+  const [lockedFeature, setLockedFeature] = useState<LockedFeature | null>(null);
 
   const recentItems = useMemo(() => {
     const recent = transactions.slice(0, 4);
@@ -80,8 +88,13 @@ export default function DashboardScreen() {
       checkNew();
       if (!gamification.isLoading) {
         gamification.generateDailyChallenge();
+        weekly.generateWeeklyChallenge().then(() => weekly.refreshProgress());
+        monthly.generateMonthlyChallenge().then(() => monthly.refreshProgress());
         gamification.recordActivity().then(async () => {
           await gamification.checkBadges();
+          await quests.refreshQuests();
+          const pending = useUnlocksStore.getState().consumePendingUnlocks();
+          if (pending.length > 0) setUnlockQueue(pending);
           const level = gamification.getLevelUp();
           if (level) setLevelUp(level);
           const streak = useGamificationStore.getState().currentStreak;
@@ -136,9 +149,9 @@ export default function DashboardScreen() {
                 <Image source={require('@/assets/images/logo.png')} className="w-10 h-10" resizeMode="contain" />
                 <RNText className="font-display text-display-md text-content-primary font-bold">Mitsitsy</RNText>
               </View>
-              <Pressable onPress={() => router.push('/whats-new')} hitSlop={8} className="p-2">
+              <Pressable onPress={() => router.push('/settings')} hitSlop={8} className="p-2">
                 <View>
-                  <Ionicons name="notifications-outline" size={24} color={isDark ? '#A0A0B0' : '#6E6E7D'} />
+                  <Ionicons name="settings-outline" size={24} color={isDark ? '#A0A0B0' : '#6E6E7D'} />
                   {hasNew && (
                     <View style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444' }} />
                   )}
@@ -182,18 +195,19 @@ export default function DashboardScreen() {
           <View className="gap-3">
             <View className="flex-row items-center justify-between">
               <RNText className="font-ui text-ui-lg text-content-primary">{t('dashboard.myAccounts')}</RNText>
-              {canCreateAccount && (
-                <Pressable
-                  onPress={() => setShowAddAccount(true)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('dashboard.addAccount')}
-                  className="w-8 h-8 rounded-full items-center justify-center"
-                  style={{ backgroundColor: `${theme.colors.primary}20` }}
-                >
-                  <Ionicons name="add" size={20} color={theme.colors.primary} />
-                </Pressable>
-              )}
+              <Pressable
+                onPress={() => {
+                  if (canCreateAccount) setShowAddAccount(true);
+                  else setLockedFeature('account');
+                }}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('dashboard.addAccount')}
+                className="w-8 h-8 rounded-full items-center justify-center"
+                style={{ backgroundColor: `${theme.colors.primary}20` }}
+              >
+                <Ionicons name="add" size={20} color={theme.colors.primary} />
+              </Pressable>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
               {accounts.map((account) => (
@@ -280,6 +294,14 @@ export default function DashboardScreen() {
       />
 
       <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
+      <FeatureUnlockedModal
+        unlockKey={unlockQueue[0] ?? null}
+        onClose={() => setUnlockQueue((q) => q.slice(1))}
+      />
+      <LockedFeatureModal
+        feature={lockedFeature}
+        onClose={() => setLockedFeature(null)}
+      />
     </View>
   );
 }

@@ -9,6 +9,13 @@ import {
   calculateLevel,
   type DailyChallengeType,
 } from '@/constants/badges';
+import { evaluateBadgeConditions } from '@/lib/gamification/badgeConditions';
+import { BADGE_UNLOCKS, UNLOCK_KEYS } from '@/lib/gamification/unlocks';
+import { useUnlocksStore } from '@/stores/unlocksStore';
+import {
+  validateActiveDailyChallenge,
+  validateRetroactiveDailyChallenge,
+} from '@/lib/gamification/dailyChallengeCheck';
 import {
   scheduleStreakReminder,
   scheduleDailyChallengeReminder,
@@ -69,6 +76,12 @@ export function useGamification() {
           dailyChallengeDate: map.daily_challenge_date || '',
           dailyChallengeType: map.daily_challenge_type || '',
           dailyChallengeCompleted: map.daily_challenge_completed === '1',
+          weeklyChallengeStart: map.weekly_challenge_start || '',
+          weeklyChallengeType: map.weekly_challenge_type || '',
+          weeklyChallengeCompleted: map.weekly_challenge_completed === '1',
+          monthlyChallengeMonth: map.monthly_challenge_month || '',
+          monthlyChallengeType: map.monthly_challenge_type || '',
+          monthlyChallengeCompleted: map.monthly_challenge_completed === '1',
           badges: badgeRows.map((b) => b.badge_type),
         };
 
@@ -160,7 +173,20 @@ export function useGamification() {
 
   const generateDailyChallenge = useCallback(async () => {
     const today = getToday();
-    if (getState().dailyChallengeDate === today) return;
+    const s = getState();
+    if (s.dailyChallengeDate === today) return;
+
+    // Retroactive validation of yesterday's challenge (save_today / stay_under_budget)
+    if (s.dailyChallengeDate && !s.dailyChallengeCompleted && s.dailyChallengeType) {
+      const wasValid = await validateRetroactiveDailyChallenge(
+        db,
+        s.dailyChallengeType as DailyChallengeType,
+        s.dailyChallengeDate
+      );
+      if (wasValid) {
+        await awardXP(XP_VALUES.DAILY_CHALLENGE);
+      }
+    }
 
     const index = Math.floor(Math.random() * DAILY_CHALLENGE_TYPES.length);
     const type = DAILY_CHALLENGE_TYPES[index];
@@ -169,7 +195,7 @@ export function useGamification() {
     await saveValue('daily_challenge_date', today);
     await saveValue('daily_challenge_type', type);
     await saveValue('daily_challenge_completed', '0');
-  }, [getState, store.setDailyChallenge, saveValue]);
+  }, [db, getState, store.setDailyChallenge, saveValue, awardXP]);
 
   const completeDailyChallenge = useCallback(async () => {
     if (getState().dailyChallengeCompleted) return null;
@@ -191,28 +217,39 @@ export function useGamification() {
     [getState, completeDailyChallenge]
   );
 
+  /**
+   * Validate the current daily challenge against live DB state.
+   * Use after events that could satisfy conditions not tied to a single action
+   * (e.g. log_before_noon, categorize_all).
+   */
+  const tryCompleteDailyChallenge = useCallback(async (): Promise<number> => {
+    const s = getState();
+    if (s.dailyChallengeCompleted) return 0;
+    if (!s.dailyChallengeType) return 0;
+
+    const ok = await validateActiveDailyChallenge(
+      db,
+      s.dailyChallengeType as DailyChallengeType
+    );
+    if (!ok) return 0;
+
+    const result = await completeDailyChallenge();
+    return result?.xpGained ?? 0;
+  }, [db, getState, completeDailyChallenge]);
+
   const checkBadges = useCallback(async () => {
     const s = getState();
     const earned = s.badges;
     const newBadges: string[] = [];
-    const totalXP = s.totalXP;
-    const streak = s.currentStreak;
-    const level = calculateLevel(totalXP);
 
-    const txCount = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM transactions WHERE deleted_at IS NULL'
-    );
-    const transactionCount = txCount?.count ?? 0;
+    const conditions = await evaluateBadgeConditions(db, {
+      currentStreak: s.currentStreak,
+      longestStreak: s.longestStreak,
+      totalXP: s.totalXP,
+    });
 
-    const conditions: Record<string, boolean> = {
-      first_expense: transactionCount >= 1,
-      streak_3: streak >= 3,
-      streak_7: streak >= 7,
-      streak_30: streak >= 30,
-      xp_500: totalXP >= 500,
-      level_5: level >= 5,
-      transactions_50: transactionCount >= 50,
-    };
+    const unlocksStore = useUnlocksStore.getState();
+    const currentUnlocks = unlocksStore.unlocks;
 
     for (const badge of BADGES) {
       if (earned.includes(badge.id)) continue;
@@ -226,6 +263,29 @@ export function useGamification() {
         'INSERT OR IGNORE INTO badges (id, badge_type, earned_at) VALUES (?, ?, ?)',
         [badge.id, badge.id, now]
       );
+
+      // Trigger unlocks associated with this badge
+      const unlockKeys = BADGE_UNLOCKS[badge.id];
+      if (unlockKeys) {
+        for (const key of unlockKeys) {
+          if (currentUnlocks.has(key)) continue;
+          await db.runAsync(
+            `INSERT OR IGNORE INTO unlocks (key, unlocked_at, source) VALUES (?, ?, ?)`,
+            [key, now, `badge:${badge.id}`]
+          );
+          unlocksStore.addUnlock(key);
+
+          // Streak freeze unlocks grant immediate +1 freeze to the user
+          if (
+            key === UNLOCK_KEYS.STREAK_FREEZE_PLUS_1 ||
+            key === UNLOCK_KEYS.STREAK_FREEZE_PLUS_2
+          ) {
+            const next = getState().streakFreezeAvailable + 1;
+            store.setStreakFreezeAvailable(next);
+            await saveValue('streak_freeze_available', String(next));
+          }
+        }
+      }
     }
 
     return newBadges;
@@ -283,6 +343,7 @@ export function useGamification() {
     recordActivity,
     awardXP,
     checkDailyChallenge,
+    tryCompleteDailyChallenge,
     generateDailyChallenge,
     completeDailyChallenge,
     checkBadges,

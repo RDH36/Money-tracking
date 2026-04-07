@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { SYSTEM_CATEGORY_TRANSFER_ID, MAX_CUSTOM_ACCOUNTS } from '@/lib/database/schema';
+import { useUnlocksStore } from '@/stores/unlocksStore';
+import { getAccountSlotBonus } from '@/lib/gamification/unlocks';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import type { Account, AccountWithBalance, AccountType } from '@/types';
@@ -74,7 +76,9 @@ export function useAccounts() {
   );
 
   const customAccountsCount = customAccounts.length;
-  const canCreateAccount = customAccountsCount < MAX_CUSTOM_ACCOUNTS;
+  const unlockBonus = useUnlocksStore((s) => getAccountSlotBonus(s.unlocks));
+  const maxCustomAccountsEffective = MAX_CUSTOM_ACCOUNTS + unlockBonus;
+  const canCreateAccount = customAccountsCount < maxCustomAccountsEffective;
 
   const createAccount = useCallback(
     async ({ name, type, initialBalance, icon }: CreateAccountParams) => {
@@ -238,7 +242,7 @@ export function useAccounts() {
     formattedTotal: formatCurrency(getTotalBalance(), currencyCode),
     customAccountsCount,
     canCreateAccount,
-    maxCustomAccounts: MAX_CUSTOM_ACCOUNTS,
+    maxCustomAccounts: maxCustomAccountsEffective,
     convertAllBalances,
   };
 }

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useWhatsNew } from '@/hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const db = useSQLiteContext();
   const posthog = usePostHog();
+  const { hasNew } = useWhatsNew();
 
   const [confirmAction, setConfirmAction] = useState<{
     title: string; message: string; confirmText: string; onConfirm: () => void;
@@ -45,7 +47,10 @@ export default function SettingsScreen() {
       useGamificationStore.getState().initialize({
         currentStreak: 0, longestStreak: 0, lastActivityDate: '', totalXP: 0,
         streakFreezeAvailable: 1, streakFreezeUsedDate: '',
-        dailyChallengeDate: '', dailyChallengeType: '', dailyChallengeCompleted: false, badges: [],
+        dailyChallengeDate: '', dailyChallengeType: '', dailyChallengeCompleted: false,
+        weeklyChallengeStart: '', weeklyChallengeType: '', weeklyChallengeCompleted: false,
+        monthlyChallengeMonth: '', monthlyChallengeType: '', monthlyChallengeCompleted: false,
+        badges: [],
       });
       setConfirmAction(null);
       setTimeout(() => router.replace('/onboarding'), 300);
@@ -62,6 +67,15 @@ export default function SettingsScreen() {
         </Text>
 
         <SettingSection>
+          <SettingRow
+            label={t('settings.whatsNew')}
+            leftIcon="sparkles-outline"
+            leftIconColor="#EF4444"
+            onPress={() => router.push('/whats-new' as any)}
+            rightElement={hasNew ? (
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444', marginRight: 8 }} />
+            ) : undefined}
+          />
           <SettingRow label={t('settings.accounts')} leftIcon="person-outline" leftIconColor="#3B82F6" onPress={() => router.push('/settings/accounts' as any)} />
           <SettingRow label={t('settings.categoriesBudgets')} leftIcon="grid-outline" leftIconColor="#8B5CF6" onPress={() => router.push('/settings/categories' as any)} />
           <SettingRow label={t('settings.appearance')} leftIcon="color-palette-outline" leftIconColor="#EC4899" onPress={() => router.push('/settings/appearance' as any)} />

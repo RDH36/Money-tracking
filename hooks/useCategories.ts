@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { SYSTEM_CATEGORY_TRANSFER_ID, SYSTEM_CATEGORY_INCOME_ID, MAX_CUSTOM_CATEGORIES } from '@/lib/database/schema';
+import { useUnlocksStore } from '@/stores/unlocksStore';
+import { getCategorySlotBonus } from '@/lib/gamification/unlocks';
 import type { Category } from '@/types';
 
 export { SYSTEM_CATEGORY_TRANSFER_ID, SYSTEM_CATEGORY_INCOME_ID, MAX_CUSTOM_CATEGORIES };
@@ -59,7 +61,9 @@ export function useCategories() {
   );
 
   const customCategoriesCount = customCategories.length;
-  const canCreateCategory = customCategoriesCount < MAX_CUSTOM_CATEGORIES;
+  const unlockBonus = useUnlocksStore((s) => getCategorySlotBonus(s.unlocks));
+  const maxCustomCategoriesEffective = MAX_CUSTOM_CATEGORIES + unlockBonus;
+  const canCreateCategory = customCategoriesCount < maxCustomCategoriesEffective;
 
   const createCategory = useCallback(
     async (params: { name: string; icon: string; color: string; budget_limit?: number | null }) => {
@@ -222,6 +226,6 @@ export function useCategories() {
     getTransactionCount,
     customCategoriesCount,
     canCreateCategory,
-    maxCustomCategories: MAX_CUSTOM_CATEGORIES,
+    maxCustomCategories: maxCustomCategoriesEffective,
   };
 }

@@ -14,6 +14,7 @@ import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { EditCategoryModal } from '@/components/EditCategoryModal';
 import { DeleteCategoryDialog } from '@/components/DeleteCategoryDialog';
 import { getCategoryDisplayName } from '@/constants/categories';
+import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatureModal';
 import type { Category } from '@/types';
 
 export default function CategoriesBudgetsPage() {
@@ -32,6 +33,7 @@ export default function CategoriesBudgetsPage() {
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [deleteTransactionCount, setDeleteTransactionCount] = useState(0);
+  const [lockedFeature, setLockedFeature] = useState<LockedFeature | null>(null);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
@@ -92,20 +94,28 @@ export default function CategoriesBudgetsPage() {
       </SettingSection>
 
       <SettingSection title={`${t('budget.customCategories')} (${customCategoriesCount}/${maxCustomCategories})`}>
-        {customCategories.map((cat, i) => renderCategoryRow(cat, i === customCategories.length - 1 && !canCreateCategory))}
-        {canCreateCategory && (
-          <Pressable onPress={() => setShowAdd(true)}>
-            <View className="flex-row items-center px-4 py-3.5 gap-3">
-              <View className="w-10 h-10 rounded-full items-center justify-center border-2 border-dashed"
-                style={{ borderColor: theme.colors.primary }}>
-                <Ionicons name="add" size={20} color={theme.colors.primary} />
-              </View>
-              <RNText className="font-body-bold text-body-md" style={{ color: theme.colors.primary }}>
-                {t('budget.newCategory')}
-              </RNText>
+        {customCategories.map((cat, i) => renderCategoryRow(cat, i === customCategories.length - 1))}
+        <Pressable
+          onPress={() => {
+            if (canCreateCategory) setShowAdd(true);
+            else setLockedFeature('category');
+          }}
+        >
+          <View className="flex-row items-center px-4 py-3.5 gap-3">
+            <View
+              className="w-10 h-10 rounded-full items-center justify-center border-2 border-dashed"
+              style={{ borderColor: theme.colors.primary }}
+            >
+              <Ionicons name="add" size={20} color={theme.colors.primary} />
             </View>
-          </Pressable>
-        )}
+            <RNText
+              className="font-body-bold text-body-md"
+              style={{ color: theme.colors.primary }}
+            >
+              {t('budget.newCategory')}
+            </RNText>
+          </View>
+        </Pressable>
       </SettingSection>
 
       <AddCategoryModal isOpen={showAdd} onClose={() => setShowAdd(false)}
@@ -124,6 +134,11 @@ export default function CategoriesBudgetsPage() {
         onMoveToOther={() => handleDeleteConfirm('move')}
         onDeleteAll={() => handleDeleteConfirm('delete')}
         onDeleteSimple={() => handleDeleteConfirm('simple')} />
+
+      <LockedFeatureModal
+        feature={lockedFeature}
+        onClose={() => setLockedFeature(null)}
+      />
     </SettingsPageWrapper>
   );
 }

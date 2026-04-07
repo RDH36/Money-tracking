@@ -8,6 +8,7 @@ const EXPENSE_REMINDER_ID = 'expense-reminder';
 const STREAK_REMINDER_ID = 'gamif-streak';
 const CHALLENGE_REMINDER_ID = 'gamif-challenge';
 const WEEKLY_SUMMARY_ID = 'gamif-weekly';
+const QUEST_PROGRESS_ID = 'gamif-quest-progress';
 
 const REMINDER_MESSAGES = [
   { title: "N'oublie pas !", body: 'As-tu des dépenses à enregistrer ?' },
@@ -250,6 +251,33 @@ export async function scheduleDailyChallengeReminder(title: string, body: string
 
 export async function cancelDailyChallengeReminder(): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(CHALLENGE_REMINDER_ID); } catch {}
+}
+
+/**
+ * Schedule a single reminder when the user is close to completing a quest step.
+ * Fires the next day at 18h to encourage them to push to the next milestone.
+ */
+export async function scheduleQuestProgressReminder(
+  title: string,
+  body: string
+): Promise<void> {
+  try { await Notifications.cancelScheduledNotificationAsync(QUEST_PROGRESS_ID); } catch {}
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  const target = new Date();
+  target.setDate(target.getDate() + 1);
+  target.setHours(18, 0, 0, 0);
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: QUEST_PROGRESS_ID,
+    content: { title, body, data: { type: 'quest_progress' } },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: target },
+  });
+}
+
+export async function cancelQuestProgressReminder(): Promise<void> {
+  try { await Notifications.cancelScheduledNotificationAsync(QUEST_PROGRESS_ID); } catch {}
 }
 
 export async function scheduleWeeklySummary(title: string, body: string): Promise<void> {

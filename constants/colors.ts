@@ -27,6 +27,8 @@ export interface Theme {
   name: string;
   colors: ThemeColors;
   chartColors: string[];
+  /** Unlock key required to use this theme (undefined = free). */
+  unlockKey?: string;
 }
 
 // ─── Hand-crafted theme palettes ────────────────────────────────────────────
@@ -137,8 +139,57 @@ const orangeTheme: Theme = {
   chartColors: getChartColors('orange'),
 };
 
-// Liste des thèmes disponibles
-export const THEMES: Theme[] = [turquoiseTheme, blueTheme, purpleTheme, orangeTheme];
+// ─── Premium Themes (unlocked via gamification) ────────────────────────────
+
+function makePremiumTheme(
+  id: string,
+  name: string,
+  primary: string,
+  secondary: string,
+  unlockKey: string
+): Theme {
+  return {
+    id,
+    name,
+    unlockKey,
+    colors: {
+      primary,
+      primaryLight: primary + '14',
+      secondary,
+      secondaryLight: secondary + '14',
+      accent1: primary,
+      accent2: secondary,
+      accent3: primary,
+      accent4: secondary,
+      accent5: primary,
+      accent6: secondary,
+      success: '#22C55E',
+      error: '#EF4444',
+      textPrimary: '#14141A',
+      textSecondary: '#6B6B78',
+      textMuted: '#9C9CA8',
+      background: '#F8F8FA',
+      cardBackground: '#FFFFFF',
+      border: '#F0F0F4',
+    },
+    chartColors: getChartColors('turquoise'),
+  };
+}
+
+const premiumThemes: Theme[] = [
+  makePremiumTheme('gold', 'Gold', '#D4AF37', '#8B6914', 'theme_gold'),
+  makePremiumTheme('platinum', 'Platinum', '#B8B8C1', '#6C6C7A', 'theme_platinum'),
+  makePremiumTheme('midnight', 'Midnight', '#1E293B', '#6366F1', 'theme_midnight'),
+  makePremiumTheme('ruby', 'Ruby', '#9B1C31', '#E11D48', 'theme_ruby'),
+  makePremiumTheme('emerald', 'Emerald', '#047857', '#10B981', 'theme_emerald'),
+  makePremiumTheme('prism', 'Prism', '#8B5CF6', '#EC4899', 'theme_prism'),
+];
+
+// Liste des thèmes disponibles (base + premium)
+export const THEMES: Theme[] = [
+  turquoiseTheme, blueTheme, purpleTheme, orangeTheme,
+  ...premiumThemes,
+];
 
 // Thème par défaut
 export const DEFAULT_THEME_ID = 'turquoise';

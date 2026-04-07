@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import { LockedFeatureModal } from '@/components/LockedFeatureModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
@@ -6,6 +8,7 @@ import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { THEMES } from '@/constants/colors';
+import { useUnlocksStore } from '@/stores/unlocksStore';
 import { CURRENCIES } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
 import { SettingSection } from './SettingSection';
@@ -36,6 +39,8 @@ export function AppearanceSection({
 }: AppearanceSectionProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const unlocks = useUnlocksStore((s) => s.unlocks);
+  const [showThemeLocked, setShowThemeLocked] = useState(false);
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const darkModeColors = getDarkModeColors(isDark);
@@ -88,16 +93,26 @@ export function AppearanceSection({
         <HStack space="sm" className="flex-wrap">
           {THEMES.map((themeItem) => {
             const isSelected = themeId === themeItem.id;
-            // Map theme id to translation key
+            const allPremiumUnlocked = unlocks.has('theme_all_premium');
+            const isLocked = !!themeItem.unlockKey
+              && !allPremiumUnlocked
+              && !unlocks.has(themeItem.unlockKey);
             const colorNameKey = `settings.color${themeItem.id.charAt(0).toUpperCase() + themeItem.id.slice(1)}`;
             return (
-              <Pressable key={themeItem.id} onPress={() => onThemeChange(themeItem.id)}>
+              <Pressable
+                key={themeItem.id}
+                onPress={() => {
+                  if (isLocked) setShowThemeLocked(true);
+                  else onThemeChange(themeItem.id);
+                }}
+              >
                 <VStack
                   className="items-center p-2 rounded-xl border-2"
                   style={{
                     borderColor: isSelected ? themeItem.colors.primary : darkModeColors.cardBorder,
                     backgroundColor: isSelected ? themeItem.colors.primaryLight : darkModeColors.cardBg,
                     width: 72,
+                    opacity: isLocked ? 0.45 : 1,
                   }}
                   space="xs"
                 >
@@ -109,14 +124,22 @@ export function AppearanceSection({
                     className="text-[10px] font-medium"
                     style={{ color: isSelected ? themeItem.colors.primary : darkModeColors.textMuted }}
                   >
-                    {t(colorNameKey)}
+                    {t(colorNameKey, themeItem.name)}
                   </Text>
-                  {isSelected && (
+                  {isSelected && !isLocked && (
                     <Box
                       className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
                       style={{ backgroundColor: themeItem.colors.primary }}
                     >
                       <Ionicons name="checkmark" size={10} color="#FFF" />
+                    </Box>
+                  )}
+                  {isLocked && (
+                    <Box
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
+                      style={{ backgroundColor: '#6B6B78' }}
+                    >
+                      <Ionicons name="lock-closed" size={9} color="#FFF" />
                     </Box>
                   )}
                 </VStack>
@@ -175,6 +198,11 @@ export function AppearanceSection({
           </Box>
         </HStack>
       </Pressable>
+
+      <LockedFeatureModal
+        feature={showThemeLocked ? 'theme' : null}
+        onClose={() => setShowThemeLocked(false)}
+      />
     </SettingSection>
   );
 }

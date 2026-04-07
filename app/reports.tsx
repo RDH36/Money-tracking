@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ScrollView, Pressable, View, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { usePostHog } from 'posthog-react-native';
 import { PeriodSelector } from '@/components/PeriodSelector';
-import { useTransactions } from '@/hooks';
+import { useTransactions, useGamification } from '@/hooks';
 import { useBudgetForPeriod } from '@/hooks/useBudgets';
 import { useTransactionStats, getBarChartData, filterByPeriod } from '@/hooks/useTransactionStats';
 import type { PeriodType } from '@/hooks/useTransactionStats';
@@ -29,9 +29,16 @@ export default function ReportsScreen() {
   const isDark = useEffectiveColorScheme() === 'dark';
   const colors = getDarkModeColors(isDark);
 
+  const gamification = useGamification();
   const [period, setPeriod] = useState<PeriodType>('month');
   const [date, setDate] = useState(new Date());
   const [showAmounts, setShowAmounts] = useState(false);
+
+  useEffect(() => {
+    // Trigger "review_budget" daily challenge on reports screen mount
+    gamification.checkDailyChallenge('review_budget');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { getBudgetForCategory } = useBudgetForPeriod(period, date);
   const { stats } = useTransactionStats(transactions, period, date);
   const filtered = useMemo(() => filterByPeriod(transactions, period, date), [transactions, period, date]);

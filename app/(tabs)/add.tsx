@@ -10,7 +10,7 @@ import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
 import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
 import { PrimaryButton, PremiumInput, Divider } from '@/components/premium';
-import { useCategories, useTransactions, useAccounts, useTips, useGamification, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { useCategories, useTransactions, useAccounts, useTips, useGamification, useWeeklyChallenge, useMonthlyChallenge, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useSQLiteContext } from '@/lib/database';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
@@ -36,6 +36,8 @@ export default function AddTransactionScreen() {
   const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
   const { currentTip, showTip } = useTips('add');
   const gamification = useGamification();
+  const weekly = useWeeklyChallenge();
+  const monthly = useMonthlyChallenge();
   const { incrementAndCheck: checkStoreReview } = useStoreReview();
   const posthog = usePostHog();
   const isDark = useEffectiveColorScheme() === 'dark';
@@ -146,6 +148,10 @@ export default function AddTransactionScreen() {
         if (type === 'expense') totalXPGained += await gamification.checkDailyChallenge('log_expense');
         if (type === 'income') totalXPGained += await gamification.checkDailyChallenge('log_income');
         totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
+        // Validate active challenges that depend on live state (log_before_noon, categorize_all)
+        totalXPGained += await gamification.tryCompleteDailyChallenge();
+        totalXPGained += await weekly.refreshProgress();
+        totalXPGained += await monthly.refreshProgress();
         await gamification.checkBadges();
         setXpToast(totalXPGained);
         const level = gamification.getLevelUp();
@@ -175,6 +181,8 @@ export default function AddTransactionScreen() {
         totalXPGained += xpResult.xpGained;
         await gamification.recordActivity();
         totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
+        totalXPGained += await weekly.refreshProgress();
+        totalXPGained += await monthly.refreshProgress();
         await gamification.checkBadges();
         setXpToast(totalXPGained);
         const level = gamification.getLevelUp();

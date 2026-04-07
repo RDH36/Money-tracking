@@ -16,13 +16,16 @@ import {
   CREATE_GAMIFICATION_TABLE,
   CREATE_BADGES_TABLE,
   CREATE_GAMIFICATION_INDEX,
+  CREATE_UNLOCKS_TABLE,
+  CREATE_UNLOCKS_INDEX,
+  CREATE_QUESTS_TABLE,
   SYSTEM_CATEGORY_TRANSFER_ID,
   SYSTEM_CATEGORY_INCOME_ID,
   ADD_BUDGET_LIMIT_TO_CATEGORIES,
   CREATE_BUDGET_HISTORY_TABLE,
 } from './schema';
 
-const DATABASE_VERSION = 18;
+const DATABASE_VERSION = 22;
 
 interface VersionResult {
   user_version: number;
@@ -124,7 +127,99 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     currentVersion = 18;
   }
 
+  if (currentVersion < 19) {
+    await migrateToV19(db);
+    currentVersion = 19;
+  }
+
+  if (currentVersion < 20) {
+    await migrateToV20(db);
+    currentVersion = 20;
+  }
+
+  if (currentVersion < 21) {
+    await migrateToV21(db);
+    currentVersion = 21;
+  }
+
+  if (currentVersion < 22) {
+    await migrateToV22(db);
+    currentVersion = 22;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
+
+async function migrateToV21(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(CREATE_QUESTS_TABLE);
+}
+
+async function migrateToV22(db: SQLiteDatabase): Promise<void> {
+  // Add monthly challenge state to gamification key-value table
+  const now = new Date().toISOString();
+  const defaults: [string, string][] = [
+    ['monthly_challenge_month', ''],
+    ['monthly_challenge_type', ''],
+    ['monthly_challenge_completed', '0'],
+  ];
+  for (const [key, value] of defaults) {
+    await db.runAsync(
+      'INSERT OR IGNORE INTO gamification (key, value, updated_at) VALUES (?, ?, ?)',
+      [key, value, now]
+    );
+  }
+}
+
+async function migrateToV20(db: SQLiteDatabase): Promise<void> {
+  // Add weekly challenge state to gamification key-value table
+  const now = new Date().toISOString();
+  const defaults: [string, string][] = [
+    ['weekly_challenge_start', ''],
+    ['weekly_challenge_type', ''],
+    ['weekly_challenge_completed', '0'],
+  ];
+  for (const [key, value] of defaults) {
+    await db.runAsync(
+      'INSERT OR IGNORE INTO gamification (key, value, updated_at) VALUES (?, ?, ?)',
+      [key, value, now]
+    );
+  }
+}
+
+// Retroactive map: if a user already owns a badge, its unlocks activate.
+// Must stay in sync with BADGE_UNLOCKS in lib/gamification/unlocks.ts
+const RETROACTIVE_BADGE_UNLOCKS: Record<string, string[]> = {
+  streak_14: ['streak_freeze_plus_1'],
+  streak_60: ['theme_gold'],
+  streak_100: ['theme_platinum', 'streak_freeze_plus_2'],
+  budget_master: ['category_slot_plus_1'],
+  budget_legend: ['category_slot_plus_2'],
+  planner: ['account_slot_plus_1'],
+  theme_switcher: ['theme_midnight'],
+  transactions_500: ['theme_ruby'],
+  level_10: ['theme_emerald'],
+  level_25: ['theme_all_premium'],
+};
+
+async function migrateToV19(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(CREATE_UNLOCKS_TABLE);
+  await db.execAsync(CREATE_UNLOCKS_INDEX);
+
+  // Retroactively apply unlocks for badges already earned by existing users
+  const earnedBadges = await db.getAllAsync<{ badge_type: string; earned_at: string }>(
+    'SELECT badge_type, earned_at FROM badges'
+  );
+
+  for (const badge of earnedBadges) {
+    const unlocks = RETROACTIVE_BADGE_UNLOCKS[badge.badge_type];
+    if (!unlocks) continue;
+    for (const key of unlocks) {
+      await db.runAsync(
+        `INSERT OR IGNORE INTO unlocks (key, unlocked_at, source) VALUES (?, ?, ?)`,
+        [key, badge.earned_at, `badge:${badge.badge_type}`]
+      );
+    }
+  }
 }
 
 async function migrateToV1(db: SQLiteDatabase): Promise<void> {

@@ -164,6 +164,27 @@ export const CREATE_GAMIFICATION_INDEX = `
 CREATE INDEX IF NOT EXISTS idx_badges_badge_type ON badges(badge_type);
 `;
 
+export const CREATE_UNLOCKS_TABLE = `
+CREATE TABLE IF NOT EXISTS unlocks (
+  key TEXT PRIMARY KEY,
+  unlocked_at TEXT NOT NULL,
+  source TEXT
+);
+`;
+
+export const CREATE_UNLOCKS_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_unlocks_unlocked_at ON unlocks(unlocked_at);
+`;
+
+export const CREATE_QUESTS_TABLE = `
+CREATE TABLE IF NOT EXISTS quests (
+  id TEXT PRIMARY KEY,
+  current_step INTEGER NOT NULL DEFAULT 0,
+  completed_at TEXT,
+  updated_at TEXT NOT NULL
+);
+`;
+
 export const SYSTEM_CATEGORY_TRANSFER_ID = 'system-transfer';
 export const SYSTEM_CATEGORY_INCOME_ID = 'system-income';
 
