@@ -16,8 +16,40 @@ const REMINDER_MESSAGES = [
   { title: 'Check rapide', body: 'Tes dépenses sont-elles à jour ?' },
 ];
 
+const EXPENSE_REMINDER_DATA_TYPE = 'expense_reminder';
+const REMINDER_TITLES = new Set(REMINDER_MESSAGES.map((m) => m.title));
+
 function getRandomMessage() {
   return REMINDER_MESSAGES[Math.floor(Math.random() * REMINDER_MESSAGES.length)];
+}
+
+/**
+ * Cancels every currently scheduled expense reminder. We cannot rely solely on
+ * `cancelScheduledNotificationAsync(EXPENSE_REMINDER_ID)` because on Android,
+ * expo-notifications does not always honor a custom `identifier` for repeating
+ * `TIME_INTERVAL` triggers — it stores the notification under an auto-generated
+ * UUID instead. That caused the "reminder fires twice" bug: on each reschedule
+ * the old one stayed alive because the identifier-based cancel matched nothing,
+ * and a fresh reminder was added alongside it. We also match on `data.type` and
+ * on the known reminder titles to clean up stale entries from previous sessions.
+ */
+async function cancelExistingExpenseReminders(): Promise<void> {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    for (const req of scheduled) {
+      const data = req.content?.data as { type?: string } | null | undefined;
+      const title = req.content?.title;
+      const matches =
+        req.identifier === EXPENSE_REMINDER_ID ||
+        data?.type === EXPENSE_REMINDER_DATA_TYPE ||
+        (typeof title === 'string' && REMINDER_TITLES.has(title));
+      if (matches) {
+        try {
+          await Notifications.cancelScheduledNotificationAsync(req.identifier);
+        } catch {}
+      }
+    }
+  } catch {}
 }
 
 Notifications.setNotificationHandler({
@@ -75,7 +107,9 @@ function getIntervalHours(frequency: ReminderFrequency): number {
 }
 
 export async function scheduleReminders(frequency: ReminderFrequency): Promise<void> {
-  try { await Notifications.cancelScheduledNotificationAsync(EXPENSE_REMINDER_ID); } catch {}
+  // Always cancel any existing expense reminder (identifier-based cancel alone
+  // is unreliable on Android for TIME_INTERVAL triggers — see helper comment).
+  await cancelExistingExpenseReminders();
 
   if (frequency === 'off') return;
 
@@ -90,6 +124,7 @@ export async function scheduleReminders(frequency: ReminderFrequency): Promise<v
     content: {
       title: message.title,
       body: message.body,
+      data: { type: EXPENSE_REMINDER_DATA_TYPE },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,

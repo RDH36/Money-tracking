@@ -7,10 +7,8 @@ import { VStack } from '@/components/ui/vstack';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
-
-const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface CategoryPickerProps {
   categories: Category[];
@@ -28,12 +26,7 @@ export function CategoryPicker({
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
 
-  const getCategoryName = (cat: Category) => {
-    if (DEFAULT_CATEGORY_IDS.includes(cat.id)) {
-      return t(`categories.${cat.id}`);
-    }
-    return cat.name;
-  };
+  const getCategoryName = (cat: Category) => getCategoryDisplayName(cat.id, cat.name, t);
 
   const handlePress = (id: string) => {
     if (selectedId === id) {

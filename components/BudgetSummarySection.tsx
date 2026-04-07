@@ -5,10 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts';
 import { useAccounts } from '@/hooks';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { BudgetData } from '@/hooks/useBudgets';
 
-const DEFAULT_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 const STATUS_COLORS = { green: '#22C55E', orange: '#F59E0B', red: '#EF4444' };
 
 interface BudgetSummarySectionProps {
@@ -16,22 +15,26 @@ interface BudgetSummarySectionProps {
 }
 
 export function BudgetSummarySection({ budgets }: BudgetSummarySectionProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const router = useRouter();
   const { formatMoney } = useAccounts();
 
   if (budgets.length === 0) return null;
 
+  const monthLabel = new Date().toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' });
+
   return (
     <View className="px-4 gap-2">
-      <RNText className="font-display text-display-sm text-content-primary">{t('budget.monthBudgets')}</RNText>
+      <RNText className="font-display text-display-sm text-content-primary capitalize">
+        {t('budget.monthBudgetsWithMonth', { month: monthLabel })}
+      </RNText>
 
       {budgets.map((b) => {
         const color = b.category.color || '#95A5A6';
         const barColor = b.status ? STATUS_COLORS[b.status] : color;
         const barWidth = b.percentage ? Math.min(b.percentage, 100) : 0;
-        const name = DEFAULT_IDS.includes(b.category.id) ? t(`categories.${b.category.id}`) : b.category.name;
+        const name = getCategoryDisplayName(b.category.id, b.category.name, t);
 
         return (
           <Pressable key={b.category.id} onPress={() => router.push(`/category/${b.category.id}` as any)}>

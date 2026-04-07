@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
 interface CategoriesSectionProps {
@@ -17,8 +17,6 @@ interface CategoriesSectionProps {
   onAdd: () => void;
   onDelete: (category: Category) => void;
 }
-
-const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 export function CategoriesSection({
   categories,
@@ -32,12 +30,7 @@ export function CategoriesSection({
   const effectiveScheme = useEffectiveColorScheme();
   const colors = getDarkModeColors(effectiveScheme === 'dark');
 
-  const getCategoryName = (cat: Category) => {
-    if (DEFAULT_CATEGORY_IDS.includes(cat.id)) {
-      return t(`categories.${cat.id}`);
-    }
-    return cat.name;
-  };
+  const getCategoryName = (cat: Category) => getCategoryDisplayName(cat.id, cat.name, t);
 
   return (
     <Box className="mb-6">

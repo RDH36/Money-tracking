@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
+import { ensureCurrentMonthBudgetHistory } from '@/lib/database/budgetHistory';
 import type { Category } from '@/types';
 
 export interface BudgetData {
@@ -45,6 +46,10 @@ export function useBudgets() {
   const fetchBudgets = useCallback(async () => {
     try {
       setIsLoading(true);
+      // Ensure current month has a budget_history row carried over from the
+      // previous month for each category with an active limit. Idempotent —
+      // preserves manual edits for the current month (INSERT OR IGNORE).
+      await ensureCurrentMonthBudgetHistory(db);
       const { monthStart, monthEnd } = getLocalMonthBounds();
 
       const categories = await db.getAllAsync<Category>(
@@ -200,6 +205,10 @@ export function useBudgetForPeriod(period: 'day' | 'week' | 'month' | 'year', da
 
   const fetchPeriodBudgets = useCallback(async () => {
     try {
+      // Backfill current month's budget_history before aggregating, so the
+      // annual cumulative report correctly includes the current month even
+      // when the user hasn't manually set a new threshold.
+      await ensureCurrentMonthBudgetHistory(db);
       const year = date.getFullYear();
 
       if (period === 'year') {

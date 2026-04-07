@@ -12,14 +12,14 @@ import { useTheme } from '@/contexts';
 import { TransactionCard } from '@/components/TransactionCard';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EditCategoryModal } from '@/components/EditCategoryModal';
+import { DeleteCategoryDialog } from '@/components/DeleteCategoryDialog';
 import { PremiumCard } from '@/components/premium';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
-const DEFAULT_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 const STATUS_COLORS = { green: '#22C55E', orange: '#F59E0B', red: '#EF4444' };
 
 export default function CategoryDetailPage() {
@@ -31,7 +31,10 @@ export default function CategoryDetailPage() {
   const currencyCode = useCurrencyCode();
   const { formatMoney } = useAccounts();
   const { theme } = useTheme();
-  const { categories, updateCategory, refresh: refreshCats } = useCategories();
+  const {
+    categories, updateCategory, refresh: refreshCats,
+    deleteCategoryWithOptions, getTransactionCount,
+  } = useCategories();
   const { deleteTransaction } = useTransactions();
 
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>([]);
@@ -40,9 +43,26 @@ export default function CategoryDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
+  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null);
+  const [deleteCategoryTxCount, setDeleteCategoryTxCount] = useState(0);
+
+  const handleRequestDeleteCategory = async (cat: Category) => {
+    const count = await getTransactionCount(cat.id);
+    setDeleteCategoryTxCount(count);
+    setDeleteCategoryTarget(cat);
+  };
+
+  const handleConfirmDeleteCategory = async (action: 'move' | 'delete' | 'simple') => {
+    if (!deleteCategoryTarget) return;
+    const resolved = action === 'simple' ? 'delete' : action;
+    await deleteCategoryWithOptions(deleteCategoryTarget.id, resolved);
+    setDeleteCategoryTarget(null);
+    // Category no longer exists — leave this detail page.
+    router.back();
+  };
 
   const category = useMemo(() => categories.find((c) => c.id === id), [categories, id]);
-  const displayName = category ? (DEFAULT_IDS.includes(category.id) ? t(`categories.${category.id}`) : category.name) : '';
+  const displayName = category ? getCategoryDisplayName(category.id, category.name, t) : '';
 
   const currentMonth = useMemo(() => {
     const now = new Date();
@@ -210,9 +230,19 @@ export default function CategoryDetailPage() {
           onClose={() => setShowEdit(false)}
           onSave={updateCategory}
           onSaveComplete={() => { refreshBudget(); refreshCats(); fetchTransactions(); }}
-          onDelete={category.is_default === 0 ? undefined : undefined}
+          onDelete={category.id !== 'other' ? handleRequestDeleteCategory : undefined}
         />
       )}
+
+      <DeleteCategoryDialog
+        isOpen={!!deleteCategoryTarget}
+        category={deleteCategoryTarget}
+        transactionCount={deleteCategoryTxCount}
+        onClose={() => setDeleteCategoryTarget(null)}
+        onMoveToOther={() => handleConfirmDeleteCategory('move')}
+        onDeleteAll={() => handleConfirmDeleteCategory('delete')}
+        onDeleteSimple={() => handleConfirmDeleteCategory('simple')}
+      />
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

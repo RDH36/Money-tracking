@@ -5,10 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { PressableCard } from '@/components/premium';
 import { useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { BudgetData } from '@/hooks/useBudgets';
-
-const DEFAULT_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 const STATUS_COLORS = { green: '#22C55E', orange: '#F59E0B', red: '#EF4444' };
 
@@ -26,8 +24,7 @@ export function BudgetCategoryCard({ budget, onPress }: BudgetCategoryCardProps)
   const barColor = status ? STATUS_COLORS[status] : theme.colors.primary;
   const barWidth = percentage ? Math.min(percentage, 100) : 0;
 
-  const displayName = DEFAULT_IDS.includes(category.id)
-    ? t(`categories.${category.id}`) : category.name;
+  const displayName = getCategoryDisplayName(category.id, category.name, t);
 
   return (
     <PressableCard onPress={onPress} className="mx-4 mb-3 rounded-2xl bg-bg-surface">

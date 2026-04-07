@@ -3,12 +3,14 @@ import { SQLiteProvider as ExpoSQLiteProvider } from 'expo-sqlite';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { DATABASE_NAME } from './schema';
 import { migrateDatabase } from './migrations';
+import { ensureCurrentMonthBudgetHistory } from './budgetHistory';
 
 export { useSQLiteContext } from 'expo-sqlite';
 export { DATABASE_NAME };
 
 export async function initDatabase(db: SQLiteDatabase): Promise<void> {
   await migrateDatabase(db);
+  await ensureCurrentMonthBudgetHistory(db);
 }
 
 interface DatabaseProviderProps {

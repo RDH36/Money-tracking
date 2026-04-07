@@ -30,7 +30,8 @@
     "noTransactions": "Aucune transaction",
     "viewMore": "Voir plus",
     "expensesByCategory": "Dépenses par catégorie",
-    "addAccount": "Ajouter"
+    "addAccount": "Ajouter",
+    "myAccounts": "Mes comptes"
   },
   "add": {
     "newTransaction": "Nouvelle transaction",
@@ -165,7 +166,10 @@
     "resetIn": "Reset dans",
     "budgetOptional": "Budget (optionnel)",
     "budgetPlaceholder": "Ex: 500000",
+    "editCurrentMonthOnly": "Modifie uniquement le seuil du mois en cours. Les mois passés restent inchangés.",
     "monthBudgets": "Budgets du mois",
+    "monthBudgetsWithMonth": "Budgets {{month}}",
+    "currentMonthBudgetsInfo": "Les seuils affichés s'appliquent au mois en cours ({{month}}). Les mois passés restent inchangés.",
     "viewAll": "Voir tout",
     "exceeded": "Budget {{category}} dépassé !",
     "exceededBanner": "Budget {{category}} dépassé · Restez vigilant ce mois-ci !",
@@ -182,10 +186,12 @@
     "newCategoryTitle": "Nouvelle catégorie",
     "deleteCategory": "Supprimer",
     "deleteCategoryConfirm": "Supprimer \"{{name}}\" ?",
-    "deleteCategoryHasTransactions": "Cette catégorie contient {{count}} transactions. Que faire avec ces transactions ?",
+    "deleteCategoryHasTransactions": "Cette catégorie contient {{count}} transactions, y compris celles des mois précédents. Que souhaitez-vous en faire ?",
     "deleteCategoryNoTransactions": "Cette action est irréversible.",
-    "moveToOther": "Déplacer vers Autre",
-    "deleteAlso": "Supprimer aussi"
+    "deleteMoveExplanation": "Déplacer et supprimer : toutes les transactions (mois en cours et mois passés) sont réaffectées à la catégorie « Autre », puis cette catégorie est supprimée.",
+    "deleteAllExplanation": "Tout supprimer : cette catégorie et toutes ses transactions, y compris celles des mois passés, sont supprimées définitivement.",
+    "moveToOther": "Déplacer et supprimer",
+    "deleteAlso": "Tout supprimer"
   },
   "account": {
     "new": "Nouveau compte",

@@ -140,8 +140,11 @@ export function useCategories() {
     async (id: string): Promise<boolean> => {
       try {
         const now = new Date().toISOString();
+        // Protect 'other' (fallback bucket) and system categories.
+        // Expense categories (base or custom) can all be deleted.
         await db.runAsync(
-          'UPDATE categories SET deleted_at = ? WHERE id = ? AND is_default = 0',
+          `UPDATE categories SET deleted_at = ?
+           WHERE id = ? AND id != 'other' AND category_type = 'expense'`,
           [now, id]
         );
         await loadCategories();
@@ -159,9 +162,8 @@ export function useCategories() {
       try {
         const now = new Date().toISOString();
         if (action === 'move') {
-          const otherCategory = categories.find(
-            (c) => c.name === 'Autre' || c.name === 'Other'
-          );
+          // Move orphaned transactions to the 'other' category (matched by id).
+          const otherCategory = categories.find((c) => c.id === 'other');
           if (otherCategory) {
             await db.runAsync(
               'UPDATE transactions SET category_id = ? WHERE category_id = ? AND deleted_at IS NULL',
@@ -175,7 +177,8 @@ export function useCategories() {
           );
         }
         await db.runAsync(
-          'UPDATE categories SET deleted_at = ? WHERE id = ? AND is_default = 0',
+          `UPDATE categories SET deleted_at = ?
+           WHERE id = ? AND id != 'other' AND category_type = 'expense'`,
           [now, id]
         );
         await loadCategories();

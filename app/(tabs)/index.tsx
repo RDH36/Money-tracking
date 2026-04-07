@@ -179,27 +179,38 @@ export default function DashboardScreen() {
             />
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-            {accounts.map((account) => (
-              <PremiumCard key={account.id} className="p-4 min-w-[150px]">
-                <View className="gap-2 mb-2 flex-row items-center gap-sm">
-                  <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} style={{ color: getAccountColor(account.type) }} />
-                  <RNText className="text-ui-sm font-ui flex-1" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
-                    {getAccountName(account)}
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <RNText className="font-ui text-ui-lg text-content-primary">{t('dashboard.myAccounts')}</RNText>
+              {canCreateAccount && (
+                <Pressable
+                  onPress={() => setShowAddAccount(true)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('dashboard.addAccount')}
+                  className="w-8 h-8 rounded-full items-center justify-center"
+                  style={{ backgroundColor: `${theme.colors.primary}20` }}
+                >
+                  <Ionicons name="add" size={20} color={theme.colors.primary} />
+                </Pressable>
+              )}
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+              {accounts.map((account) => (
+                <PremiumCard key={account.id} className="p-4 min-w-[150px]">
+                  <View className="gap-2 mb-2 flex-row items-center gap-sm">
+                    <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} style={{ color: getAccountColor(account.type) }} />
+                    <RNText className="text-ui-sm font-ui flex-1" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
+                      {getAccountName(account)}
+                    </RNText>
+                  </View>
+                  <RNText className="font-ui text-ui-lg" style={{ color: getAccountColor(account.type) }}>
+                    {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
                   </RNText>
-                </View>
-                <RNText className="font-ui text-ui-lg" style={{ color: getAccountColor(account.type) }}>
-                  {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
-                </RNText>
-              </PremiumCard>
-            ))}
-            <Pressable onPress={() => setShowAddAccount(true)}>
-              <View className="p-4 rounded-xl border-2 border-dashed border-content-disabled items-center justify-center bg-bg-raised" style={{ minWidth: 100, minHeight: 80 }}>
-                <Ionicons name="add-circle-outline" size={28} style={{ color: theme.colors.primary }} />
-                <RNText className="text-xs mt-1" style={{ color: theme.colors.primary }}>{t('dashboard.addAccount')}</RNText>
-              </View>
-            </Pressable>
-          </ScrollView>
+                </PremiumCard>
+              ))}
+            </ScrollView>
+          </View>
 
           <BudgetSummarySection budgets={topBudgets} />
 

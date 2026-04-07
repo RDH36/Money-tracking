@@ -5,10 +5,8 @@ import { PressableCard } from '@/components/premium/PremiumCard';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useTheme } from '@/contexts';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
-
-const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
@@ -32,10 +30,10 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
     if (transaction.category_id === 'system-income') {
       return t('add.income');
     }
-    if (DEFAULT_CATEGORY_IDS.includes(transaction.category_id)) {
-      return t(`categories.${transaction.category_id}`);
-    }
-    return transaction.category_name || t('common.noCategory');
+    return (
+      getCategoryDisplayName(transaction.category_id, transaction.category_name, t) ||
+      t('common.noCategory')
+    );
   };
 
   const getAccountDisplayName = (name: string | null, type: string | null) => {

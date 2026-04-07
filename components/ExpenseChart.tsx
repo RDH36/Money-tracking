@@ -5,9 +5,7 @@ import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
-
-const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
+import { getCategoryDisplayName } from '@/constants/categories';
 
 interface CategoryData {
   id?: string | null;
@@ -29,10 +27,7 @@ export function ExpenseChart({ data, title }: ExpenseChartProps) {
 
   const getCategoryName = (item: CategoryData) => {
     if (!item.id) return t('common.noCategory');
-    if (DEFAULT_CATEGORY_IDS.includes(item.id)) {
-      return t(`categories.${item.id}`);
-    }
-    return item.name;
+    return getCategoryDisplayName(item.id, item.name, t) || item.name;
   };
 
   const displayTitle = title || t('dashboard.expensesByCategory');

@@ -13,14 +13,13 @@ import { SettingSection } from '@/components/settings';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { EditCategoryModal } from '@/components/EditCategoryModal';
 import { DeleteCategoryDialog } from '@/components/DeleteCategoryDialog';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
-const DEFAULT_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
-
 export default function CategoriesBudgetsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const monthLabel = new Date().toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' });
   const posthog = usePostHog();
   const { formatMoney } = useAccounts();
   const {
@@ -60,10 +59,7 @@ export default function CategoriesBudgetsPage() {
     return `${formatMoney(cat.budget_limit)}${t('budget.perMonth')}`;
   };
 
-  const getCategoryDisplayName = (cat: Category) => {
-    if (DEFAULT_IDS.includes(cat.id)) return t(`categories.${cat.id}`);
-    return cat.name;
-  };
+  const getDisplayName = (cat: Category) => getCategoryDisplayName(cat.id, cat.name, t);
 
   const renderCategoryRow = (cat: Category, isLast: boolean) => (
     <Pressable key={cat.id} onPress={() => setEditCategory(cat)}>
@@ -74,7 +70,7 @@ export default function CategoriesBudgetsPage() {
             color={cat.color || '#95A5A6'} />
         </View>
         <RNText className="font-body-bold text-body-md text-content-primary flex-1">
-          {getCategoryDisplayName(cat)}
+          {getDisplayName(cat)}
         </RNText>
         <RNText className="text-content-tertiary text-sm mr-2">{formatBudget(cat)}</RNText>
         <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
@@ -84,6 +80,13 @@ export default function CategoriesBudgetsPage() {
 
   return (
     <SettingsPageWrapper title={t('settings.categoriesBudgets')}>
+      <View className="mx-4 mb-3 p-3 rounded-xl bg-bg-raised flex-row items-start gap-2">
+        <Ionicons name="information-circle-outline" size={16} color={theme.colors.primary} style={{ marginTop: 2 }} />
+        <RNText className="flex-1 font-body-regular text-body-sm text-content-secondary capitalize">
+          {t('budget.currentMonthBudgetsInfo', { month: monthLabel })}
+        </RNText>
+      </View>
+
       <SettingSection title={t('budget.baseCategories')}>
         {baseCategories.map((cat, i) => renderCategoryRow(cat, i === baseCategories.length - 1))}
       </SettingSection>
@@ -114,7 +117,7 @@ export default function CategoriesBudgetsPage() {
         canCreateCategory={canCreateCategory} customCategoriesCount={customCategoriesCount} maxCustomCategories={maxCustomCategories} />
 
       <EditCategoryModal isOpen={!!editCategory} category={editCategory} onClose={() => setEditCategory(null)}
-        onSave={updateCategory} onSaveComplete={refresh} onDelete={editCategory?.is_default === 0 ? handleDelete : undefined} />
+        onSave={updateCategory} onSaveComplete={refresh} onDelete={editCategory && editCategory.id !== 'other' ? handleDelete : undefined} />
 
       <DeleteCategoryDialog isOpen={!!deleteTarget} category={deleteTarget} transactionCount={deleteTransactionCount}
         onClose={() => setDeleteTarget(null)}

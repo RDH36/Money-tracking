@@ -3,10 +3,8 @@ import { Pressable, View } from 'react-native';
 import { Text as RNText } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { BudgetData } from '@/hooks/useBudgets';
-
-const DEFAULT_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 
 interface BudgetOverspendBannerProps {
   overspentBudgets: BudgetData[];
@@ -30,8 +28,7 @@ export function BudgetOverspendBanner({ overspentBudgets }: BudgetOverspendBanne
   const current = overspentBudgets[currentIndex % overspentBudgets.length];
   if (!current) return null;
 
-  const categoryName = DEFAULT_IDS.includes(current.category.id)
-    ? t(`categories.${current.category.id}`) : current.category.name;
+  const categoryName = getCategoryDisplayName(current.category.id, current.category.name, t);
 
   return (
     <Pressable onPress={() => router.push(`/category/${current.category.id}` as any)}>

@@ -22,7 +22,8 @@ export default function HistoryScreen() {
   const router = useRouter();
   const { transactions, isFetching, refresh: refreshTransactions } = useTransactions();
   const { budgets, isLoading: budgetsLoading, refresh: refreshBudgets } = useBudgets();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const monthLabel = new Date().toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' });
   const posthog = usePostHog();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<TabType>(params.tab === 'achievements' ? 'achievements' : 'history');
@@ -67,7 +68,29 @@ export default function HistoryScreen() {
             renderItem={({ item }) => (
               <BudgetCategoryCard budget={item} onPress={() => router.push(`/category/${item.category.id}` as any)} />
             )}
-            ListHeaderComponent={() => <ActivityHeader transactions={transactions} />}
+            ListHeaderComponent={() => (
+              <>
+                <ActivityHeader transactions={transactions} />
+                {budgets.length > 0 && (
+                  <View className="px-4 mt-4 mb-2 flex-row items-center gap-2">
+                    <View
+                      className="w-8 h-8 rounded-xl items-center justify-center"
+                      style={{ backgroundColor: `${theme.colors.primary}15` }}
+                    >
+                      <Ionicons name="calendar-outline" size={16} color={theme.colors.primary} />
+                    </View>
+                    <RNText className="flex-1 font-display text-display-sm text-content-primary capitalize">
+                      {t('budget.monthBudgetsWithMonth', { month: monthLabel })}
+                    </RNText>
+                    <View className="px-2 py-0.5 rounded-full bg-bg-raised">
+                      <RNText className="text-content-secondary text-xs font-body-bold">
+                        {budgets.length}
+                      </RNText>
+                    </View>
+                  </View>
+                )}
+              </>
+            )}
             ListEmptyComponent={() => (
               <View className="flex-1 py-20 items-center justify-center">
                 <EmptyState icon="wallet-outline" title={t('history.noTransactions')} description={t('history.addFirst')}

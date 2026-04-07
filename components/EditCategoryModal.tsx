@@ -7,9 +7,10 @@ import {
   AlertDialog, AlertDialogBackdrop, AlertDialogContent,
   AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { GhostButton, PrimaryButton, DangerButton } from '@/components/premium';
+import { GhostButton, PrimaryButton } from '@/components/premium';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
 const CATEGORY_ICONS = [
@@ -35,6 +36,7 @@ interface EditCategoryModalProps {
 export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveComplete, onDelete }: EditCategoryModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
+  const [initialDisplayName, setInitialDisplayName] = useState('');
   const [icon, setIcon] = useState('cube');
   const [color, setColor] = useState('#3498DB');
   const [budgetLimit, setBudgetLimit] = useState('');
@@ -42,19 +44,30 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
 
   useEffect(() => {
     if (category) {
-      setName(category.name);
+      // Show the localized display name when the stored name still matches
+      // the seeded default. This way a user in English sees "Food" instead of
+      // the raw stored "Nourriture" for base categories that were never renamed.
+      const displayName = getCategoryDisplayName(category.id, category.name, t);
+      setName(displayName);
+      setInitialDisplayName(displayName);
       setIcon(category.icon || 'cube');
       setColor(category.color || '#3498DB');
       setBudgetLimit(category.budget_limit ? String(category.budget_limit / 100) : '');
     }
-  }, [category]);
+  }, [category, t]);
 
   const handleSave = async () => {
     if (!category || !name.trim()) return;
     setIsSaving(true);
     const parsedBudget = budgetLimit.trim() ? parseInt(budgetLimit.replace(/\s/g, ''), 10) * 100 : null;
+    const trimmedName = name.trim();
+    // Only send `name` if the user actually changed it. Skipping the field
+    // keeps the stored seeded default intact so auto-localization still
+    // applies when the user switches languages.
+    const nameChanged = trimmedName !== initialDisplayName;
     await onSave(category.id, {
-      name: name.trim(), icon, color,
+      ...(nameChanged ? { name: trimmedName } : {}),
+      icon, color,
       budget_limit: parsedBudget && !isNaN(parsedBudget) ? parsedBudget : null,
     });
     setIsSaving(false);
@@ -63,21 +76,37 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
   };
 
   if (!category) return null;
-  const isCustom = category.is_default === 0;
+  // The "other" category is the fallback bucket — it must stay non-editable
+  // and non-deletable. All other categories (base or custom) are fully editable.
+  const isEditable = category.id !== 'other';
 
   return (
     <AlertDialog isOpen={isOpen} onClose={onClose}>
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <RNText className="font-display text-display-md text-content-primary">
-            {t('budget.editCategory')}
-          </RNText>
+          <View className="flex-row items-center justify-between flex-1">
+            <RNText className="font-display text-display-md text-content-primary">
+              {t('budget.editCategory')}
+            </RNText>
+            {isEditable && onDelete && (
+              <Pressable
+                onPress={() => { onClose(); onDelete(category); }}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={t('budget.deleteCategory')}
+                className="w-9 h-9 rounded-full items-center justify-center"
+                style={{ backgroundColor: '#EF444415' }}
+              >
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+              </Pressable>
+            )}
+          </View>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bottomOffset={20} style={{ maxHeight: 400 }}>
             <View className="gap-4">
-              {isCustom && (
+              {isEditable && (
                 <>
                   <View className="gap-2">
                     <RNText className="font-body-bold text-body-md text-content-primary">{t('category.name')}</RNText>
@@ -126,14 +155,14 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
                     keyboardType="numeric" className="font-body-regular text-body-md text-content-primary flex-1" placeholderTextColor="#8E8EA0" />
                   <RNText className="text-content-tertiary text-sm ml-2">Ar</RNText>
                 </View>
+                <View className="flex-row items-start gap-1.5 mt-0.5">
+                  <Ionicons name="information-circle-outline" size={14} color="#8E8EA0" style={{ marginTop: 2 }} />
+                  <RNText className="flex-1 text-content-tertiary text-body-sm font-body-regular">
+                    {t('budget.editCurrentMonthOnly')}
+                  </RNText>
+                </View>
               </View>
 
-              {isCustom && onDelete && (
-                <Pressable onPress={() => { onClose(); onDelete(category); }} className="flex-row items-center gap-2 py-2">
-                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                  <RNText className="text-[#EF4444] font-body-bold text-body-md">{t('budget.deleteCategory')}</RNText>
-                </Pressable>
-              )}
             </View>
           </KeyboardAwareScrollView>
         </AlertDialogBody>

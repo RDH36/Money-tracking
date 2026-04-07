@@ -30,7 +30,8 @@
     "noTransactions": "No transactions",
     "viewMore": "View more",
     "expensesByCategory": "Expenses by category",
-    "addAccount": "Add"
+    "addAccount": "Add",
+    "myAccounts": "My accounts"
   },
   "add": {
     "newTransaction": "New Transaction",
@@ -165,7 +166,10 @@
     "resetIn": "Reset in",
     "budgetOptional": "Budget (optional)",
     "budgetPlaceholder": "Ex: 500000",
+    "editCurrentMonthOnly": "Only modifies the current month's threshold. Past months remain unchanged.",
     "monthBudgets": "Monthly budgets",
+    "monthBudgetsWithMonth": "Budgets {{month}}",
+    "currentMonthBudgetsInfo": "The thresholds shown apply to the current month ({{month}}). Past months remain unchanged.",
     "viewAll": "View all",
     "exceeded": "Budget {{category}} exceeded!",
     "exceededBanner": "Budget {{category}} exceeded · Stay vigilant this month!",
@@ -182,10 +186,12 @@
     "newCategoryTitle": "New category",
     "deleteCategory": "Delete",
     "deleteCategoryConfirm": "Delete \"{{name}}\"?",
-    "deleteCategoryHasTransactions": "This category has {{count}} transactions. What to do with them?",
+    "deleteCategoryHasTransactions": "This category has {{count}} transactions, including those from previous months. What do you want to do with them?",
     "deleteCategoryNoTransactions": "This action is irreversible.",
-    "moveToOther": "Move to Other",
-    "deleteAlso": "Delete as well"
+    "deleteMoveExplanation": "Move & delete: all transactions (current and past months) are reassigned to the \"Other\" category, then this category is deleted.",
+    "deleteAllExplanation": "Delete all: this category and all its transactions, including those from past months, are permanently deleted.",
+    "moveToOther": "Move & delete",
+    "deleteAlso": "Delete all"
   },
   "account": {
     "new": "New Account",
