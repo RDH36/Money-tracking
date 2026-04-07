@@ -9,6 +9,7 @@ import { useSQLiteContext } from '@/lib/database';
 import { migrateDatabase } from '@/lib/database/migrations';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { cancelAllReminders } from '@/lib/notifications';
+import { recalculateXP } from '@/lib/gamification/recalculateXP';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { SettingSection, SettingRow, AboutSection, DangerZoneSection } from '@/components/settings';
 import { usePostHog } from 'posthog-react-native';
@@ -24,6 +25,17 @@ export default function SettingsScreen() {
   const [confirmAction, setConfirmAction] = useState<{
     title: string; message: string; confirmText: string; onConfirm: () => void;
   } | null>(null);
+
+  const handleRecalculateXP = async () => {
+    try {
+      const newTotal = await recalculateXP(db);
+      useGamificationStore.getState().setTotalXP(newTotal);
+      posthog.capture('xp_recalculated', { new_total: newTotal });
+    } catch (err) {
+      console.error('Error recalculating XP:', err);
+    }
+    setConfirmAction(null);
+  };
 
   const handleResetApp = async () => {
     posthog.capture('app_reset');
@@ -86,6 +98,21 @@ export default function SettingsScreen() {
         </SettingSection>
 
         <AboutSection />
+
+        <SettingSection title={t('settings.gameDataTitle')}>
+          <SettingRow
+            label={t('settings.recalculateXP')}
+            leftIcon="refresh-outline"
+            leftIconColor="#F59E0B"
+            onPress={() => setConfirmAction({
+              title: t('settings.recalculateXPConfirm'),
+              message: t('settings.recalculateXPMessage'),
+              confirmText: t('settings.recalculateXP'),
+              onConfirm: handleRecalculateXP,
+            })}
+            isLast
+          />
+        </SettingSection>
 
         <DangerZoneSection onReset={() => setConfirmAction({
           title: t('settings.resetConfirm'),

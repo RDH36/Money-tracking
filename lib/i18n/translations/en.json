@@ -120,6 +120,10 @@
   "settings": {
     "title": "Settings",
     "whatsNew": "What's New",
+    "gameDataTitle": "Game data",
+    "recalculateXP": "Recalculate XP",
+    "recalculateXPConfirm": "Recalculate XP?",
+    "recalculateXPMessage": "Recomputes your total XP from completed quests and earned badges. Useful if your XP is abnormally high after a bug. Keeps your quests, badges and transactions.",
     "appearance": "Appearance",
     "mode": "Mode",
     "light": "Light",

@@ -119,6 +119,10 @@
   "settings": {
     "title": "Firafitra",
     "whatsNew": "Vaovao",
+    "gameDataTitle": "Angona lalao",
+    "recalculateXP": "Hamerina manisa XP",
+    "recalculateXPConfirm": "Hamerina manisa XP?",
+    "recalculateXPMessage": "Hamerina manisa ny XP total avy amin'ny iraka vita sy baikiboky azo. Ilaina raha avo loatra ny XP-nao noho ny bug. Tsy voakasika ny iraka, baikiboky, na fifanakalozana.",
     "appearance": "Fisehoana",
     "mode": "Fomba",
     "light": "Mazava",
