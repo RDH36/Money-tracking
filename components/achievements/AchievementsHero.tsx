@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
-import { View, Text as RNText } from 'react-native';
+import { View, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { PremiumCard, FadeIn } from '@/components/premium';
-import { useTheme } from '@/contexts';
+import { useV2 } from '@/constants/designTokensV2';
 import { useGamification } from '@/hooks';
-import { BADGES, calculateLevel, xpProgress, xpForLevel } from '@/constants/badges';
+import { BADGES, calculateLevel, xpProgress, xpToNextLevel } from '@/constants/badges';
 
 function getTimeUntilMidnight(): string {
   const now = new Date();
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const diff = midnight.getTime() - now.getTime();
-  const hours = Math.floor(diff / 3_600_000);
-  const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  const seconds = Math.floor((diff % 60_000) / 1_000);
+  const hours = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
   const mm = String(minutes).padStart(2, '0');
   const ss = String(seconds).padStart(2, '0');
   if (hours > 0) return `${hours}h ${mm}m`;
@@ -21,89 +21,138 @@ function getTimeUntilMidnight(): string {
 }
 
 export function AchievementsHero() {
+  const v2 = useV2();
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const gamification = useGamification();
   const [countdown, setCountdown] = useState(getTimeUntilMidnight);
 
   useEffect(() => {
-    const interval = setInterval(() => setCountdown(getTimeUntilMidnight()), 1_000);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setCountdown(getTimeUntilMidnight()), 1000);
+    return () => clearInterval(id);
   }, []);
 
   const level = calculateLevel(gamification.totalXP);
   const progress = xpProgress(gamification.totalXP);
-  const nextLevelXP = xpForLevel(level + 1);
+  const remaining = xpToNextLevel(gamification.totalXP);
   const earnedCount = gamification.badges.length;
 
   return (
-    <View className="gap-3">
-      <FadeIn>
-        <PremiumCard className="p-4">
-          <View className="gap-3">
-            {/* Level + XP */}
-            <View className="flex-row items-center gap-3">
-              <View
-                style={{
-                  width: 44, height: 44, borderRadius: 22,
-                  backgroundColor: theme.colors.primary + '20',
-                  alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="trophy" size={22} color={theme.colors.primary} />
-              </View>
-              <View className="flex-1">
-                <RNText className="text-ui-md font-ui text-content-primary">
-                  {t('gamification.level', { level })}
-                </RNText>
-                <RNText className="text-ui-xs font-ui text-content-secondary">
-                  {t('gamification.xpOf', { current: gamification.totalXP, next: nextLevelXP })}
-                </RNText>
-              </View>
-            </View>
-            <View className="h-2.5 bg-bg-raised rounded-full overflow-hidden">
-              <View
-                className="h-full rounded-full"
-                style={{
-                  width: `${Math.min(progress * 100, 100)}%`,
-                  backgroundColor: theme.colors.primary,
-                }}
-              />
-            </View>
-            {/* Compact stat chips */}
-            <View className="flex-row gap-2 pt-1">
-              <StatChip icon="flame" color="#EF4444"
-                value={`${gamification.currentStreak}j`} />
-              <StatChip icon="shield-checkmark" color="#3B82F6"
-                value={String(gamification.streakFreezeAvailable)} />
-              <StatChip icon="star" color="#EAB308"
-                value={String(gamification.totalXP)} />
-              <StatChip icon="ribbon" color="#8B5CF6"
-                value={`${earnedCount}/${BADGES.length}`} />
-            </View>
-            {gamification.currentStreak > 0 && (
-              <View className="flex-row items-center gap-1 pt-0.5">
-                <Ionicons name="time-outline" size={10} color="#9CA3AF" />
-                <RNText className="text-content-tertiary font-body-regular" style={{ fontSize: 10 }}>
-                  {t('gamification.nextStreak', { time: countdown })}
-                </RNText>
-              </View>
-            )}
+    <View style={{ borderRadius: 18, overflow: 'hidden' }}>
+      <LinearGradient
+        colors={[v2.bgInk, v2.bgInkSoft]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ padding: 18 }}
+      >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute', right: -40, top: -40,
+            width: 160, height: 160, borderRadius: 80,
+            backgroundColor: 'rgba(14,140,130,0.18)',
+          }}
+        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute', left: -30, bottom: -30,
+            width: 100, height: 100, borderRadius: 50,
+            backgroundColor: 'rgba(245,245,241,0.04)',
+          }}
+        />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <View style={{ borderRadius: 16, overflow: 'hidden', shadowColor: v2.brand, shadowOpacity: 0.4, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
+            <LinearGradient
+              colors={[v2.brand, v2.brandDeep]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ width: 56, height: 56, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 26, color: v2.inkOnDark, letterSpacing: -0.5 }}>
+                {level}
+              </Text>
+            </LinearGradient>
           </View>
-        </PremiumCard>
-      </FadeIn>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={{
+                fontFamily: v2.fontUI, fontSize: 10, fontWeight: '600',
+                letterSpacing: 1.5, textTransform: 'uppercase',
+                color: v2.inkOnDarkM, marginBottom: 2,
+              }}
+            >
+              {t('achievements.heroLevelOverline')}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 22, color: v2.inkOnDark, letterSpacing: -0.4 }}
+            >
+              {t('gamification.level', { level })}
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ marginTop: 14, height: 6, borderRadius: 999, backgroundColor: 'rgba(245,245,241,0.12)', overflow: 'hidden' }}>
+          <LinearGradient
+            colors={[v2.brand, '#2EBDA8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: '100%', width: `${Math.min(progress * 100, 100)}%`, borderRadius: 999 }}
+          />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '600', color: v2.inkOnDarkM, fontVariant: ['tabular-nums'] }}>
+            {gamification.totalXP} XP
+          </Text>
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 11, color: v2.inkOnDarkM }}>
+            {t('achievements.heroNextLevelGap', { xp: remaining, level: level + 1 })}
+          </Text>
+        </View>
+
+        <View style={{ marginTop: 14, flexDirection: 'row', gap: 6 }}>
+          <Chip v2={v2} icon="flame" tone="#EF4444" value={t('achievements.streakDaysShort', { count: gamification.currentStreak })} label={t('achievements.statStreakLabel')} />
+          <Chip v2={v2} icon="snow" tone="#06B6D4" value={String(gamification.streakFreezeAvailable)} label={t('achievements.statFreezesLabel')} />
+          <Chip v2={v2} icon="trophy" tone="#EAB308" value={String(gamification.totalXP)} label={t('achievements.statXPLabel')} />
+          <Chip v2={v2} icon="checkmark-circle" tone={v2.brand} value={`${earnedCount}/${BADGES.length}`} label={t('achievements.statBadgesLabel')} />
+        </View>
+
+        {gamification.currentStreak > 0 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
+            <Ionicons name="time-outline" size={11} color={v2.inkOnDarkM} />
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkOnDarkM, fontWeight: '500' }}>
+              {t('achievements.nextDailyIn', { time: countdown })}
+            </Text>
+          </View>
+        ) : null}
+      </LinearGradient>
     </View>
   );
 }
 
-function StatChip({ icon, color, value }: { icon: string; color: string; value: string }) {
+interface ChipProps { v2: ReturnType<typeof useV2>; icon: any; tone: string; value: string; label: string; }
+function Chip({ v2, icon, tone, value, label }: ChipProps) {
   return (
     <View
-      className="flex-1 flex-row items-center justify-center gap-1 rounded-lg py-1.5"
-      style={{ backgroundColor: color + '12' }}
+      style={{
+        flex: 1,
+        backgroundColor: 'rgba(245,245,241,0.08)',
+        borderRadius: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 6,
+        alignItems: 'center',
+        gap: 2,
+      }}
     >
-      <Ionicons name={icon as any} size={12} color={color} />
-      <RNText className="text-ui-xs font-ui" style={{ color }}>{value}</RNText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Ionicons name={icon} size={12} color={tone} />
+        <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.inkOnDark, fontVariant: ['tabular-nums'] }}>
+          {value}
+        </Text>
+      </View>
+      <Text style={{ fontFamily: v2.fontUI, fontSize: 9, color: v2.inkOnDarkM, fontWeight: '500' }}>
+        {label}
+      </Text>
     </View>
   );
 }

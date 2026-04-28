@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
-import { Text as RNText } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Pressable, ScrollView, TextInput, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  AlertDialog, AlertDialogBackdrop, AlertDialogContent,
-  AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import { GhostButton, PrimaryButton } from '@/components/premium';
-import { cn } from '@/lib/utils';
+import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { useV2 } from '@/constants/designTokensV2';
 import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
-const CATEGORY_ICONS = [
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
+
+const CATEGORY_ICONS: IoniconName[] = [
   'fast-food', 'car', 'bag', 'document-text', 'medical', 'game-controller',
   'school', 'cube', 'home', 'gift', 'airplane', 'cafe',
 ];
@@ -33,20 +30,20 @@ interface EditCategoryModalProps {
   onDelete?: (category: Category) => void;
 }
 
-export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveComplete, onDelete }: EditCategoryModalProps) {
+export function EditCategoryModal({
+  isOpen, category, onClose, onSave, onSaveComplete, onDelete,
+}: EditCategoryModalProps) {
+  const v2 = useV2();
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [initialDisplayName, setInitialDisplayName] = useState('');
-  const [icon, setIcon] = useState('cube');
+  const [icon, setIcon] = useState<string>('cube');
   const [color, setColor] = useState('#3498DB');
   const [budgetLimit, setBudgetLimit] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (category) {
-      // Show the localized display name when the stored name still matches
-      // the seeded default. This way a user in English sees "Food" instead of
-      // the raw stored "Nourriture" for base categories that were never renamed.
       const displayName = getCategoryDisplayName(category.id, category.name, t);
       setName(displayName);
       setInitialDisplayName(displayName);
@@ -59,16 +56,13 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
   const handleSave = async () => {
     if (!category || !name.trim()) return;
     setIsSaving(true);
-    const parsedBudget = budgetLimit.trim() ? parseInt(budgetLimit.replace(/\s/g, ''), 10) * 100 : null;
-    const trimmedName = name.trim();
-    // Only send `name` if the user actually changed it. Skipping the field
-    // keeps the stored seeded default intact so auto-localization still
-    // applies when the user switches languages.
-    const nameChanged = trimmedName !== initialDisplayName;
+    const parsed = budgetLimit.trim() ? parseInt(budgetLimit.replace(/\s/g, ''), 10) * 100 : null;
+    const trimmed = name.trim();
+    const nameChanged = trimmed !== initialDisplayName;
     await onSave(category.id, {
-      ...(nameChanged ? { name: trimmedName } : {}),
+      ...(nameChanged ? { name: trimmed } : {}),
       icon, color,
-      budget_limit: parsedBudget && !isNaN(parsedBudget) ? parsedBudget : null,
+      budget_limit: parsed && !isNaN(parsed) ? parsed : null,
     });
     setIsSaving(false);
     onClose();
@@ -76,101 +70,158 @@ export function EditCategoryModal({ isOpen, category, onClose, onSave, onSaveCom
   };
 
   if (!category) return null;
-  // The "other" category is the fallback bucket — it must stay non-editable
-  // and non-deletable. All other categories (base or custom) are fully editable.
   const isEditable = category.id !== 'other';
 
   return (
-    <AlertDialog isOpen={isOpen} onClose={onClose}>
-      <AlertDialogBackdrop />
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <View className="flex-row items-center justify-between flex-1">
-            <RNText className="font-display text-display-md text-content-primary">
-              {t('budget.editCategory')}
-            </RNText>
-            {isEditable && onDelete && (
-              <Pressable
-                onPress={() => { onClose(); onDelete(category); }}
-                hitSlop={10}
-                accessibilityRole="button"
-                accessibilityLabel={t('budget.deleteCategory')}
-                className="w-9 h-9 rounded-full items-center justify-center"
-                style={{ backgroundColor: '#EF444415' }}
-              >
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-              </Pressable>
-            )}
-          </View>
-        </AlertDialogHeader>
-        <AlertDialogBody className="mt-3 mb-4">
-          <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bottomOffset={20} style={{ maxHeight: 400 }}>
-            <View className="gap-4">
-              {isEditable && (
-                <>
-                  <View className="gap-2">
-                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.name')}</RNText>
-                    <View className="rounded-xl bg-bg-raised px-4 py-3">
-                      <TextInput placeholder={t('category.namePlaceholder')} value={name} onChangeText={setName}
-                        className="font-body-regular text-body-md text-content-primary" placeholderTextColor="#8E8EA0" />
-                    </View>
-                  </View>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('budget.editCategory')}
+      footer={
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            onPress={onClose}
+            disabled={isSaving}
+            style={{
+              flex: 1, paddingVertical: 14, borderRadius: 12,
+              borderWidth: 1, borderColor: v2.hairlineStrong,
+              alignItems: 'center', justifyContent: 'center',
+              opacity: isSaving ? 0.5 : 1,
+            }}
+          >
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink }}>
+              {t('common.cancel')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleSave}
+            disabled={!name.trim() || isSaving}
+            style={{
+              flex: 1, paddingVertical: 14, borderRadius: 12,
+              backgroundColor: v2.bgInk,
+              alignItems: 'center', justifyContent: 'center',
+              opacity: !name.trim() || isSaving ? 0.5 : 1,
+            }}
+          >
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
+              {isSaving ? '...' : t('common.save')}
+            </Text>
+          </Pressable>
+        </View>
+      }
+    >
+      <View style={{ gap: 16 }}>
+        {isEditable && onDelete ? (
+          <Pressable
+            onPress={() => { onClose(); onDelete(category); }}
+            style={{
+              alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 6,
+              paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999,
+              backgroundColor: v2.badSoft,
+            }}
+          >
+            <Ionicons name="trash-outline" size={14} color={v2.bad} />
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.bad }}>
+              {t('budget.deleteCategory')}
+            </Text>
+          </Pressable>
+        ) : null}
 
-                  <View className="gap-2">
-                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.icon')}</RNText>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View className="flex-row gap-3">
-                        {CATEGORY_ICONS.map((ic) => (
-                          <Pressable key={ic} onPress={() => setIcon(ic)}>
-                            <View className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== ic && 'bg-bg-raised')}
-                              style={icon === ic ? { backgroundColor: `${color}20` } : undefined}>
-                              <Ionicons name={ic as keyof typeof Ionicons.glyphMap} size={24} color={icon === ic ? color : '#8E8EA0'} />
-                            </View>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </ScrollView>
-                  </View>
-
-                  <View className="gap-2">
-                    <RNText className="font-body-bold text-body-md text-content-primary">{t('category.color')}</RNText>
-                    <View className="flex-row flex-wrap gap-3">
-                      {CATEGORY_COLORS.map((c) => (
-                        <Pressable key={c} onPress={() => setColor(c)}>
-                          <View className="w-10 h-10 rounded-full items-center justify-center"
-                            style={{ backgroundColor: c, borderWidth: color === c ? 3 : 0, borderColor: color === c ? '#FFF' : 'transparent' }}>
-                            {color === c && <Ionicons name="checkmark" size={20} color="#FFF" />}
-                          </View>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
-                </>
-              )}
-
-              <View className="gap-2">
-                <RNText className="font-body-bold text-body-md text-content-primary">{t('budget.budgetOptional')}</RNText>
-                <View className="rounded-xl bg-bg-raised px-4 py-3 flex-row items-center">
-                  <TextInput placeholder={t('budget.budgetPlaceholder')} value={budgetLimit} onChangeText={setBudgetLimit}
-                    keyboardType="numeric" className="font-body-regular text-body-md text-content-primary flex-1" placeholderTextColor="#8E8EA0" />
-                  <RNText className="text-content-tertiary text-sm ml-2">Ar</RNText>
-                </View>
-                <View className="flex-row items-start gap-1.5 mt-0.5">
-                  <Ionicons name="information-circle-outline" size={14} color="#8E8EA0" style={{ marginTop: 2 }} />
-                  <RNText className="flex-1 text-content-tertiary text-body-sm font-body-regular">
-                    {t('budget.editCurrentMonthOnly')}
-                  </RNText>
-                </View>
+        {isEditable ? (
+          <>
+            <Field v2={v2} label={t('category.name')}>
+              <View style={{ backgroundColor: v2.bgRaised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+                <TextInput
+                  placeholder={t('category.namePlaceholder')} placeholderTextColor={v2.inkSubtle}
+                  value={name} onChangeText={setName}
+                  style={{ fontFamily: v2.fontUI, fontSize: 14, color: v2.ink, padding: 0 }}
+                />
               </View>
+            </Field>
 
-            </View>
-          </KeyboardAwareScrollView>
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <GhostButton label={t('common.cancel')} onPress={onClose} disabled={isSaving} compact />
-          <PrimaryButton label={isSaving ? '...' : t('common.save')} onPress={handleSave} disabled={!name.trim() || isSaving} compact />
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <Field v2={v2} label={t('category.icon')}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+                {CATEGORY_ICONS.map((ic) => {
+                  const active = icon === ic;
+                  return (
+                    <Pressable
+                      key={ic}
+                      onPress={() => setIcon(ic)}
+                      style={{
+                        width: 48, height: 48, borderRadius: 12,
+                        backgroundColor: active ? color + '20' : v2.bgRaised,
+                        borderWidth: active ? 1.5 : 0, borderColor: color,
+                        alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name={ic} size={22} color={active ? color : v2.inkSubtle} />
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </Field>
+
+            <Field v2={v2} label={t('category.color')}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {CATEGORY_COLORS.map((c) => (
+                  <Pressable key={c} onPress={() => setColor(c)}>
+                    <View
+                      style={{
+                        width: 40, height: 40, borderRadius: 999,
+                        backgroundColor: c,
+                        alignItems: 'center', justifyContent: 'center',
+                        borderWidth: color === c ? 3 : 0,
+                        borderColor: color === c ? v2.bgSurface : 'transparent',
+                      }}
+                    >
+                      {color === c ? <Ionicons name="checkmark" size={18} color="#FFF" /> : null}
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            </Field>
+          </>
+        ) : null}
+
+        <Field v2={v2} label={t('budget.budgetOptional')}>
+          <View
+            style={{
+              backgroundColor: v2.bgRaised, borderRadius: 12,
+              paddingHorizontal: 14, paddingVertical: 12,
+              flexDirection: 'row', alignItems: 'center', gap: 8,
+            }}
+          >
+            <TextInput
+              placeholder={t('budget.budgetPlaceholder')} placeholderTextColor={v2.inkSubtle}
+              value={budgetLimit} onChangeText={setBudgetLimit} keyboardType="numeric"
+              style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 14, color: v2.ink, padding: 0 }}
+            />
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle }}>Ar</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 6 }}>
+            <Ionicons name="information-circle-outline" size={14} color={v2.inkSubtle} style={{ marginTop: 1 }} />
+            <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle }}>
+              {t('budget.editCurrentMonthOnly')}
+            </Text>
+          </View>
+        </Field>
+      </View>
+    </BottomSheet>
+  );
+}
+
+interface FieldProps { v2: ReturnType<typeof useV2>; label: string; children: React.ReactNode; }
+function Field({ v2, label, children }: FieldProps) {
+  return (
+    <View>
+      <Text style={{
+        fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+        letterSpacing: 1.5, textTransform: 'uppercase',
+        color: v2.inkSubtle, marginBottom: 8,
+      }}>
+        {label}
+      </Text>
+      {children}
+    </View>
   );
 }

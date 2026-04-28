@@ -1,50 +1,39 @@
-import { useState, useCallback } from 'react';
-import { View, Pressable, Text as RNText, TextInput } from 'react-native';
+import { useState, useCallback, useMemo } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { CategoryPicker } from '@/components/CategoryPicker';
-import { AccountPicker } from '@/components/AccountPicker';
-import { TransferForm } from '@/components/TransferForm';
-import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
-import { PrimaryButton, PremiumInput, Divider } from '@/components/premium';
-import { useCategories, useTransactions, useAccounts, useTips, useGamification, useWeeklyChallenge, useMonthlyChallenge, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
-import { useSQLiteContext } from '@/lib/database';
-import { useTheme } from '@/contexts';
-import { usePostHog } from 'posthog-react-native';
+import { useCategories, useAccounts, useTips } from '@/hooks';
+import { useBudgetPreview } from '@/hooks/useBudgetPreview';
+import { useAddTransactionSave, type BudgetWarningPayload } from '@/hooks/useAddTransactionSave';
 import { XPToast } from '@/components/XPToast';
 import { LevelUpModal } from '@/components/LevelUpModal';
-import { XP_VALUES } from '@/constants/badges';
+import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
 import { useCurrency } from '@/stores/settingsStore';
-import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
-import { cn } from '@/lib/utils';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
-import type { TransactionType } from '@/types';
-
-type ScreenMode = 'transaction' | 'transfer';
+import { formatAmountInput, getNumericValue } from '@/lib/amountInput';
+import { useV2 } from '@/constants/designTokensV2';
+import {
+  AddTransactionHeader, ModeToggle, TypePills, AmountDisplay,
+  ThresholdPreviewCard, AccountPickerV2, CategoryQuickGrid,
+  CategorySelectSheet, TransferFormV2, IncomeCategoryCard, NoteField,
+  type TxMode, type TxType,
+} from '@/components/add';
+import type { AccountWithBalance } from '@/types';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const v2 = useV2();
   const currency = useCurrency();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
-  const { createTransaction, isLoading } = useTransactions();
-  const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
+  const { accounts, refresh: refreshAccounts } = useAccounts();
   const { currentTip, showTip } = useTips('add');
-  const gamification = useGamification();
-  const weekly = useWeeklyChallenge();
-  const monthly = useMonthlyChallenge();
-  const { incrementAndCheck: checkStoreReview } = useStoreReview();
-  const posthog = usePostHog();
-  const isDark = useEffectiveColorScheme() === 'dark';
-  const colors = getDarkModeColors(isDark);
+  const save = useAddTransactionSave(expenseCategories);
 
-  const [mode, setMode] = useState<ScreenMode>('transaction');
-  const [type, setType] = useState<TransactionType>('expense');
+  const [mode, setMode] = useState<TxMode>('transaction');
+  const [type, setType] = useState<TxType>('expense');
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -55,337 +44,188 @@ export default function AddTransactionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [xpToast, setXpToast] = useState<number | null>(null);
   const [levelUp, setLevelUp] = useState<number | null>(null);
-  const [budgetWarning, setBudgetWarning] = useState<{
-    categoryName: string; spent: string; limit: string; percentage: number; overAmount?: string;
-  } | null>(null);
-  const addDb = useSQLiteContext();
+  const [budgetWarning, setBudgetWarning] = useState<BudgetWarningPayload | null>(null);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      refreshAccounts();
-      refreshCategories();
-    }, [refreshAccounts, refreshCategories])
+  useFocusEffect(useCallback(() => {
+    refreshAccounts(); refreshCategories();
+  }, [refreshAccounts, refreshCategories]));
+
+  const topExpenseCategories = useMemo(() =>
+    [...expenseCategories]
+      .sort((a, b) => (b.is_default - a.is_default) || a.name.localeCompare(b.name))
+      .slice(0, 7),
+    [expenseCategories]
   );
 
-  const getNumericAmount = () => getNumericValue(amount);
+  const budgetPreview = useBudgetPreview({
+    active: mode === 'transaction' && type === 'expense',
+    amount, categoryId, expenseCategories,
+    formatMoney: save.formatMoney,
+  });
+
+  const getAccountName = (a: AccountWithBalance): string =>
+    a.is_default === 1
+      ? a.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash')
+      : a.name;
 
   const resetForm = () => {
-    setAmount('');
-    setCategoryId(null);
-    setAccountId(null);
-    setFromAccountId(null);
-    setToAccountId(null);
-    setNote('');
-    setError(null);
-    setSuccess(true);
+    setAmount(''); setCategoryId(null); setAccountId(null);
+    setFromAccountId(null); setToAccountId(null); setNote('');
+    setError(null); setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
   };
 
-  const checkBudgetAndSave = async () => {
-    const numericAmount = getNumericAmount();
-    if (numericAmount <= 0) return;
-    const amountValue = parseAmount(amount);
-
-    if (mode === 'transaction' && type === 'expense' && categoryId) {
-      const cat = expenseCategories.find((c) => c.id === categoryId);
-      if (cat?.budget_limit) {
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
-        const result = await addDb.getFirstAsync<{ total: number }>(
-          `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
-           WHERE category_id = ? AND type = 'expense' AND deleted_at IS NULL
-             AND transfer_id IS NULL AND created_at >= ? AND created_at < ?`,
-          [categoryId, monthStart, monthEnd]
-        );
-        const currentSpent = result?.total ?? 0;
-        const newTotal = currentSpent + amountValue;
-        const percentage = Math.round((newTotal / cat.budget_limit) * 100);
-        if (percentage >= 70) {
-          const overAmount = newTotal > cat.budget_limit ? formatMoney(newTotal - cat.budget_limit) : undefined;
-          setBudgetWarning({
-            categoryName: cat.name, spent: formatMoney(newTotal),
-            limit: formatMoney(cat.budget_limit), percentage, overAmount,
-          });
-          return;
-        }
-      }
-    }
-    await executeSave();
+  const form = { mode, type, amount, categoryId, accountId, fromAccountId, toAccountId, note };
+  const callbacks = {
+    onSuccess: resetForm,
+    onError: setError,
+    onXP: setXpToast,
+    onLevelUp: setLevelUp,
+    onBudgetWarning: setBudgetWarning,
   };
 
-  const executeSave = async () => {
-    const numericAmount = getNumericAmount();
-    if (numericAmount <= 0) return;
-    const amountValue = parseAmount(amount);
-    setError(null);
+  const handleSave = () => {
+    setError(null); setBudgetWarning(null);
+    save.checkBudgetAndSave(form, callbacks);
+  };
+  const handleContinueOverBudget = () => {
     setBudgetWarning(null);
-
-    if (mode === 'transaction') {
-      if (!accountId) return;
-      const finalCategoryId = type === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
-      const result = await createTransaction({
-        type,
-        amount: amountValue,
-        categoryId: finalCategoryId,
-        accountId,
-        note: note.trim() || null,
-      });
-      if (result.success) {
-        posthog.capture('transaction_created', {
-          transaction_type: type,
-          has_note: !!note.trim(),
-          currency: currency.code,
-        });
-        resetForm();
-        refreshAccounts();
-        // Gamification: income gives more XP than expense
-        let totalXPGained = 0;
-        const xpAmount = type === 'income' ? XP_VALUES.INCOME : XP_VALUES.EXPENSE;
-        const xpResult = await gamification.awardXP(xpAmount);
-        totalXPGained += xpResult.xpGained;
-        await gamification.recordActivity();
-        if (type === 'expense') totalXPGained += await gamification.checkDailyChallenge('log_expense');
-        if (type === 'income') totalXPGained += await gamification.checkDailyChallenge('log_income');
-        totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
-        // Validate active challenges that depend on live state (log_before_noon, categorize_all)
-        totalXPGained += await gamification.tryCompleteDailyChallenge();
-        totalXPGained += await weekly.refreshProgress();
-        totalXPGained += await monthly.refreshProgress();
-        await gamification.checkBadges();
-        setXpToast(totalXPGained);
-        const level = gamification.getLevelUp();
-        if (level) setLevelUp(level);
-        await checkStoreReview();
-      } else if (result.error) {
-        setError(result.error);
-      }
-    } else {
-      if (!fromAccountId || !toAccountId) return;
-      const result = await createTransfer({
-        fromAccountId,
-        toAccountId,
-        amount: amountValue,
-        note: note.trim() || undefined,
-      });
-      if (result.success) {
-        posthog.capture('transfer_created', {
-          has_note: !!note.trim(),
-          currency: currency.code,
-        });
-        resetForm();
-        refreshAccounts();
-        // Gamification: award XP for transfer
-        let totalXPGained = 0;
-        const xpResult = await gamification.awardXP(XP_VALUES.TRANSFER);
-        totalXPGained += xpResult.xpGained;
-        await gamification.recordActivity();
-        totalXPGained += await gamification.checkDailyChallenge('log_3_transactions');
-        totalXPGained += await weekly.refreshProgress();
-        totalXPGained += await monthly.refreshProgress();
-        await gamification.checkBadges();
-        setXpToast(totalXPGained);
-        const level = gamification.getLevelUp();
-        if (level) setLevelUp(level);
-        await checkStoreReview();
-      } else if (result.error) {
-        setError(result.error);
-      }
-    }
+    save.executeSave(form, callbacks);
   };
 
-  const isValidTransaction = getNumericAmount() > 0 && accountId;
-  const isValidTransfer = getNumericAmount() > 0 && fromAccountId && toAccountId && fromAccountId !== toAccountId;
-  const isValid = mode === 'transaction' ? isValidTransaction : isValidTransfer;
+  const isValid = mode === 'transaction'
+    ? getNumericValue(amount) > 0 && !!accountId
+    : getNumericValue(amount) > 0 && !!fromAccountId && !!toAccountId && fromAccountId !== toAccountId;
 
   return (
-    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
       <KeyboardAwareScrollView
-        className="flex-1"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
         bottomOffset={20}
       >
-          <View className="flex-1 p-6 pb-4">
-            <View className="flex-1 gap-6">
-              <RNText className="font-display text-display-md text-content-primary">
-                {mode === 'transaction' ? t('add.newTransaction') : t('add.transfer')}
-              </RNText>
+        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+          <AddTransactionHeader title={t('add.newTransaction')} />
+        </View>
 
-              <View>
-                <View className="bg-bg-raised p-1 rounded-xl">
-                  <View className="flex-row">
-                    <Pressable onPress={() => { setMode('transaction'); setError(null); }} className="flex-1">
-                      <View
-                        className={cn('py-3 rounded-lg items-center', mode === 'transaction' ? 'bg-brand' : '')}
-                      >
-                        <View className="flex-row gap-2 items-center">
-                          <Ionicons
-                            name="receipt-outline"
-                            size={18}
-                            color={mode === 'transaction' ? '#FFFFFF' : '#8E8EA0'}
-                          />
-                          <RNText
-                            className="font-ui font-semibold"
-                            style={{ color: mode === 'transaction' ? '#FFFFFF' : '#8E8EA0' }}
-                          >
-                            {t('add.transaction')}
-                          </RNText>
-                        </View>
-                      </View>
-                    </Pressable>
-                    <Pressable onPress={() => { setMode('transfer'); setError(null); }} className="flex-1">
-                      <View
-                        className={cn('py-3 rounded-lg items-center', mode === 'transfer' ? 'bg-income' : '')}
-                      >
-                        <View className="flex-row gap-2 items-center">
-                          <Ionicons
-                            name="swap-horizontal-outline"
-                            size={18}
-                            color={mode === 'transfer' ? '#FFFFFF' : '#8E8EA0'}
-                          />
-                          <RNText
-                            className="font-ui font-semibold"
-                            style={{ color: mode === 'transfer' ? '#FFFFFF' : '#8E8EA0' }}
-                          >
-                            {t('add.transfer')}
-                          </RNText>
-                        </View>
-                      </View>
-                    </Pressable>
-                  </View>
-                </View>
-                {showTip && currentTip && (
-                <View className="mt-2 p-3 rounded-xl flex-row items-center bg-bg-surface gap-2">
-                  <Ionicons name="bulb" size={16} color="#8B5CF6" />
-                  <RNText className="flex-1 text-xs text-brand">{t(currentTip)}</RNText>
-                </View>
-              )}
-              </View>
+        <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
+          <ModeToggle
+            mode={mode}
+            onChange={(m) => { setMode(m); setError(null); }}
+            transactionLabel={t('add.transaction')}
+            transferLabel={t('add.transfer')}
+          />
+          {mode === 'transaction' && (
+            <TypePills type={type} onChange={setType}
+              expenseLabel={t('add.expense')} incomeLabel={t('add.income')} />
+          )}
 
-              {mode === 'transaction' && (
-                <View className="flex-row gap-2 justify-center">
-                  <Pressable onPress={() => setType('expense')} className="flex-1">
-                    <View
-                      className={cn('py-3 px-4 rounded-xl items-center', type === 'expense' ? 'bg-expense-soft' : 'bg-bg-raised')}
-                    >
-                      <View className="flex-row gap-2 items-center">
-                        <Ionicons
-                          name="arrow-down-circle"
-                          size={20}
-                          color={type === 'expense' ? '#EF4444' : '#8E8EA0'}
-                        />
-                        <RNText
-                          className="font-ui font-semibold"
-                          style={{ color: type === 'expense' ? '#EF4444' : '#8E8EA0' }}
-                        >
-                          {t('add.expense')}
-                        </RNText>
-                      </View>
-                    </View>
-                  </Pressable>
-                  <Pressable onPress={() => setType('income')} className="flex-1">
-                    <View
-                      className={cn('py-3 px-4 rounded-xl items-center', type === 'income' ? 'bg-income-soft' : 'bg-bg-raised')}
-                    >
-                      <View className="flex-row gap-2 items-center">
-                        <Ionicons
-                          name="arrow-up-circle"
-                          size={20}
-                          color={type === 'income' ? '#22C55E' : '#8E8EA0'}
-                        />
-                        <RNText
-                          className="font-ui font-semibold"
-                          style={{ color: type === 'income' ? '#22C55E' : '#8E8EA0' }}
-                        >
-                          {t('add.income')}
-                        </RNText>
-                      </View>
-                    </View>
-                  </Pressable>
-                </View>
-              )}
+          <AmountDisplay
+            value={amount}
+            onChangeText={(text) => { setAmount(formatAmountInput(text)); setError(null); }}
+            currencyCode={currency.code}
+          />
 
-              <View className="py-4 items-center">
-                <RNText className="text-ui-sm mb-2" style={{ color: '#8E8EA0' }}>{t('add.amount')} ({currency.code})</RNText>
-                <TextInput
-                  placeholder="0"
-                  keyboardType="decimal-pad"
-                  value={amount}
-                  onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); setError(null); }}
-                  className="text-4xl text-center font-display w-full max-w-[250px]"
-                  style={{ color: isDark ? '#EDEDF0' : '#14141A' }}
-                  placeholderTextColor={'#8E8EA0'}
-                />
-                <Divider className="mt-2 w-full max-w-[250px]" />
-              </View>
-
-              {mode === 'transaction' ? (
-                <>
-                  <View className="gap-2">
-                    <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.account')}</RNText>
-                    <AccountPicker accounts={accounts} selectedId={accountId} onSelect={setAccountId} formatMoney={formatMoney} />
-                  </View>
-                  {type === 'expense' ? (
-                    <View className="gap-2">
-                      <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.category')}</RNText>
-                      <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
-                    </View>
-                  ) : (
-                    <View className="gap-2">
-                      <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.category')}</RNText>
-                      <View className="p-3 rounded-xl bg-income-soft">
-                        <View className="flex-row gap-3 items-center">
-                          <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
-                            <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
-                          </View>
-                          <RNText className="font-ui font-medium" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.income')}</RNText>
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <TransferForm
-                  accounts={accounts}
-                  fromAccountId={fromAccountId}
-                  toAccountId={toAccountId}
-                  onFromChange={setFromAccountId}
-                  onToChange={setToAccountId}
-                />
-              )}
-
-              <View className="gap-2">
-                <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.noteOptional')}</RNText>
-                <PremiumInput placeholder={t('add.notePlaceholder')} value={note} onChangeText={setNote} maxLength={20} />
-                <RNText className="text-ui-xs text-right" style={{ color: colors.textMuted }}>{t('common.characters', { current: note.length, max: 20 })}</RNText>
-              </View>
-
-              {success && (
-                <View className="bg-income-soft p-3 rounded-xl">
-                  <RNText className="text-income font-ui text-center">
-                    {mode === 'transaction' ? t('add.transactionSaved') : t('add.transferSaved')}
-                  </RNText>
-                </View>
-              )}
-
-              {error && (
-                <View className="bg-error-soft p-3 rounded-xl">
-                  <RNText className="text-error font-ui text-center">
-                    {t(error)}
-                  </RNText>
-                </View>
-              )}
+          {showTip && currentTip && (
+            <View style={{ marginTop: 4, padding: 12, borderRadius: 12, backgroundColor: v2.bgSurface,
+                            borderWidth: 1, borderColor: v2.hairline, flexDirection: 'row',
+                            alignItems: 'center', gap: 8 }}>
+              <Ionicons name="bulb-outline" size={14} color={v2.brand} />
+              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
+                {t(currentTip)}
+              </Text>
             </View>
+          )}
 
-            <PrimaryButton
-              label={isLoading ? t('add.saving') : t('common.save')}
-              onPress={checkBudgetAndSave}
-              disabled={!isValid || isLoading}
-              isLoading={isLoading}
+          {mode === 'transaction' ? (
+            <>
+              <AccountPickerV2
+                accounts={accounts} selectedId={accountId} onSelect={setAccountId}
+                formatMoney={save.formatMoney}
+                label={t('add.account')}
+                getAccountName={getAccountName}
+              />
+              {type === 'expense' ? (
+                <CategoryQuickGrid
+                  categories={topExpenseCategories} selectedId={categoryId}
+                  onSelect={setCategoryId}
+                  onMorePress={() => setShowCategorySheet(true)}
+                  totalCount={expenseCategories.length}
+                />
+              ) : (
+                <IncomeCategoryCard
+                  incomeCategory={incomeCategory}
+                  label={t('add.income')}
+                  sectionLabel={t('add.category')}
+                />
+              )}
+              {budgetPreview && (
+                <ThresholdPreviewCard
+                  spent={budgetPreview.spent}
+                  limit={budgetPreview.limit}
+                  percentage={budgetPreview.percentage}
+                />
+              )}
+            </>
+          ) : (
+            <TransferFormV2
+              accounts={accounts}
+              fromAccountId={fromAccountId} toAccountId={toAccountId}
+              onFromChange={setFromAccountId} onToChange={setToAccountId}
+              fromLabel={t('add.fromAccount')}
+              toLabel={t('add.toAccount')}
+              getAccountName={getAccountName}
             />
-          </View>
+          )}
+
+          <NoteField
+            value={note}
+            onChangeText={setNote}
+            placeholder={t('add.notePlaceholder')}
+            label={t('add.noteOptional')}
+            maxLength={100}
+          />
+
+          {success && (
+            <View style={{ marginTop: 12, backgroundColor: v2.goodSoft, padding: 12, borderRadius: 12 }}>
+              <Text style={{ color: v2.good, fontFamily: v2.fontUI, textAlign: 'center' }}>
+                {mode === 'transaction' ? t('add.transactionSaved') : t('add.transferSaved')}
+              </Text>
+            </View>
+          )}
+          {error && (
+            <View style={{ marginTop: 12, backgroundColor: v2.badSoft, padding: 12, borderRadius: 12 }}>
+              <Text style={{ color: v2.bad, fontFamily: v2.fontUI, textAlign: 'center' }}>{t(error)}</Text>
+            </View>
+          )}
+
+          <Pressable
+            onPress={handleSave}
+            disabled={!isValid || save.isLoading}
+            style={{
+              marginTop: 20, backgroundColor: v2.bgInk, borderRadius: 14, paddingVertical: 16,
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              opacity: !isValid || save.isLoading ? 0.5 : 1,
+              shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
+            }}
+          >
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700',
+                            color: v2.inkOnDark, letterSpacing: 0.3 }}>
+              {save.isLoading ? t('add.saving') : t('common.save')}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={v2.inkOnDark} />
+          </Pressable>
+        </View>
       </KeyboardAwareScrollView>
+
+      <CategorySelectSheet
+        isOpen={showCategorySheet}
+        categories={expenseCategories}
+        selectedId={categoryId}
+        onSelect={setCategoryId}
+        onClose={() => setShowCategorySheet(false)}
+      />
       <XPToast xpAmount={xpToast} onHide={() => setXpToast(null)} />
       <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
       <BudgetWarningDialog
@@ -396,7 +236,7 @@ export default function AddTransactionScreen() {
         percentage={budgetWarning?.percentage || 0}
         overAmount={budgetWarning?.overAmount}
         onClose={() => setBudgetWarning(null)}
-        onContinue={executeSave}
+        onContinue={handleContinueOverBudget}
       />
     </View>
   );

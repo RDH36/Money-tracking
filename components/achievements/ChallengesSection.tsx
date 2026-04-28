@@ -1,11 +1,14 @@
-import { View, Text as RNText } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { PremiumCard, FadeIn } from '@/components/premium';
-import { UpcomingUnlocksSection } from '@/components/UpcomingUnlocksSection';
+import { useV2 } from '@/constants/designTokensV2';
 import { useGamification, useWeeklyChallenge, useMonthlyChallenge } from '@/hooks';
+import { useUnlocksStore } from '@/stores/unlocksStore';
+import { useGamificationStore } from '@/stores/gamificationStore';
+import { UNLOCK_KEYS } from '@/lib/gamification/unlocks';
+import { ChallengeCard } from './ChallengeCard';
 
-const challengeKeyMap: Record<string, string> = {
+const dailyKey: Record<string, string> = {
   log_expense: 'gamification.challengeLogExpense',
   log_3_transactions: 'gamification.challengeLog3',
   check_planification: 'gamification.challengeCheckPlan',
@@ -17,16 +20,14 @@ const challengeKeyMap: Record<string, string> = {
   stay_under_budget: 'gamification.challengeStayUnderBudget',
   save_today: 'gamification.challengeSaveToday',
 };
-
-const weeklyKeyMap: Record<string, string> = {
+const weeklyKey: Record<string, string> = {
   weekly_streak: 'gamification.weeklyStreak',
   weekly_budget_respect: 'gamification.weeklyBudgetRespect',
   weekly_3_categories: 'gamification.weekly3Categories',
   weekly_plan_validate: 'gamification.weeklyPlanValidate',
   weekly_save: 'gamification.weeklySave',
 };
-
-const monthlyKeyMap: Record<string, string> = {
+const monthlyKey: Record<string, string> = {
   monthly_50_transactions: 'gamification.monthly50Tx',
   monthly_full_budget_clean: 'gamification.monthlyBudgetClean',
   monthly_3_plans: 'gamification.monthly3Plans',
@@ -34,180 +35,165 @@ const monthlyKeyMap: Record<string, string> = {
   monthly_6_categories: 'gamification.monthly6Categories',
 };
 
-export function ChallengesSection() {
+interface UpcomingEntry {
+  key: string;
+  titleKey: string;
+  descKey: string;
+  current: number;
+  target: number;
+}
+
+function buildUnlocks(longestStreak: number, badgesCount: number): UpcomingEntry[] {
+  return [
+    { key: UNLOCK_KEYS.STREAK_FREEZE_PLUS_1, titleKey: 'unlock.freezeTitle', descKey: 'unlock.reqStreak14', current: Math.min(longestStreak, 14), target: 14 },
+    { key: UNLOCK_KEYS.THEME_GOLD, titleKey: 'unlock.themeGold', descKey: 'unlock.reqStreak60', current: Math.min(longestStreak, 60), target: 60 },
+    { key: UNLOCK_KEYS.THEME_PLATINUM, titleKey: 'unlock.themePlatinum', descKey: 'unlock.reqStreak100', current: Math.min(longestStreak, 100), target: 100 },
+    { key: UNLOCK_KEYS.THEME_PRISM, titleKey: 'unlock.themePrism', descKey: 'unlock.reqBadges25', current: Math.min(badgesCount, 25), target: 25 },
+  ];
+}
+
+interface ChallengesSectionProps {
+  onViewAllUnlocks?: () => void;
+}
+
+export function ChallengesSection({ onViewAllUnlocks }: ChallengesSectionProps = {}) {
+  const v2 = useV2();
   const { t } = useTranslation();
   const gamification = useGamification();
   const weekly = useWeeklyChallenge();
   const monthly = useMonthlyChallenge();
-  const challengeText = challengeKeyMap[gamification.dailyChallengeType] || '';
+  const unlocks = useUnlocksStore((s) => s.unlocks);
+  const longestStreak = useGamificationStore((s) => s.longestStreak);
+  const badgesCount = useGamificationStore((s) => s.badges.length);
+
+  const dailyDone = gamification.dailyChallengeCompleted;
+  const weeklyDone = weekly.weeklyChallengeCompleted;
+  const monthlyDone = monthly.monthlyChallengeCompleted;
+
+  const upcomingEntries = buildUnlocks(longestStreak, badgesCount)
+    .filter((e) => !unlocks.has(e.key))
+    .sort((a, b) => b.current / b.target - a.current / a.target)
+    .slice(0, 3);
 
   return (
-    <View className="gap-3">
-      {/* Daily */}
+    <View style={{ gap: 10 }}>
       {gamification.dailyChallengeType ? (
-        <FadeIn>
-          <PremiumCard
-            className="p-4"
-            style={{
-              backgroundColor: gamification.dailyChallengeCompleted
-                ? '#22C55E12' : '#EAB30812',
-            }}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-3 flex-1">
-                <IconCircle
-                  bg={gamification.dailyChallengeCompleted ? '#22C55E20' : '#EAB30820'}
-                  icon={gamification.dailyChallengeCompleted ? 'checkmark-circle' : 'star'}
-                  color={gamification.dailyChallengeCompleted ? '#22C55E' : '#EAB308'}
-                />
-                <View className="flex-1">
-                  <RNText className="text-ui-sm font-ui text-content-primary">
-                    {t('gamification.dailyChallenge')}
-                  </RNText>
-                  <RNText className="text-body-sm font-body-regular text-content-secondary">
-                    {gamification.dailyChallengeCompleted
-                      ? t('gamification.challengeCompleted')
-                      : t(challengeText)}
-                  </RNText>
-                </View>
-              </View>
-              <RNText className="text-ui-sm font-ui" style={{ color: '#EAB308' }}>
-                +50 XP
-              </RNText>
-            </View>
-          </PremiumCard>
-        </FadeIn>
+        <ChallengeCard
+          kind={dailyDone ? t('achievements.kindDailyDone') : t('achievements.kindDaily')}
+          label={t(dailyKey[gamification.dailyChallengeType] || '')}
+          xp={50}
+          color="#EAB308"
+          icon="receipt-outline"
+          completed={dailyDone}
+        />
       ) : null}
 
-      {/* Weekly */}
       {weekly.weeklyChallengeType ? (
-        <FadeIn>
-          <PremiumCard
-            className="p-4"
-            style={{
-              backgroundColor: weekly.weeklyChallengeCompleted ? '#22C55E12' : '#8B5CF612',
-            }}
-          >
-            <View className="gap-2">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-3 flex-1">
-                  <IconCircle
-                    bg={weekly.weeklyChallengeCompleted ? '#22C55E20' : '#8B5CF620'}
-                    icon={weekly.weeklyChallengeCompleted ? 'checkmark-circle' : 'calendar'}
-                    color={weekly.weeklyChallengeCompleted ? '#22C55E' : '#8B5CF6'}
-                  />
-                  <View className="flex-1">
-                    <RNText className="text-ui-sm font-ui text-content-primary">
-                      {t('gamification.weeklyChallenge')}
-                    </RNText>
-                    <RNText className="text-body-sm font-body-regular text-content-secondary">
-                      {weekly.weeklyChallengeCompleted
-                        ? t('gamification.weeklyCompleted')
-                        : t(weeklyKeyMap[weekly.weeklyChallengeType] || '')}
-                    </RNText>
-                  </View>
-                </View>
-                <RNText className="text-ui-sm font-ui" style={{ color: '#8B5CF6' }}>
-                  +{weekly.reward} XP
-                </RNText>
-              </View>
-              {!weekly.weeklyChallengeCompleted && weekly.target > 1 && (
-                <View className="gap-1">
-                  <View className="flex-row justify-between">
-                    <RNText className="text-ui-xs font-ui text-content-secondary">
-                      {t('gamification.progress')}
-                    </RNText>
-                    <RNText className="text-ui-xs font-ui text-content-secondary">
-                      {weekly.progress}/{weekly.target}
-                    </RNText>
-                  </View>
-                  <View className="h-2 bg-bg-raised rounded-full overflow-hidden">
-                    <View
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min((weekly.progress / weekly.target) * 100, 100)}%`,
-                        backgroundColor: '#8B5CF6',
-                      }}
-                    />
-                  </View>
-                </View>
-              )}
-            </View>
-          </PremiumCard>
-        </FadeIn>
+        <ChallengeCard
+          kind={weeklyDone ? t('achievements.kindWeeklyDone') : t('achievements.kindWeekly')}
+          label={t(weeklyKey[weekly.weeklyChallengeType] || '')}
+          xp={weekly.reward}
+          color="#8B5CF6"
+          icon="calendar-outline"
+          completed={weeklyDone}
+          progress={weekly.progress}
+          target={weekly.target}
+        />
       ) : null}
 
-      {/* Monthly */}
       {monthly.monthlyChallengeType ? (
-        <FadeIn>
-          <PremiumCard
-            className="p-4"
-            style={{
-              backgroundColor: monthly.monthlyChallengeCompleted ? '#22C55E12' : '#F59E0B12',
-            }}
-          >
-            <View className="gap-2">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-3 flex-1">
-                  <IconCircle
-                    bg={monthly.monthlyChallengeCompleted ? '#22C55E20' : '#F59E0B20'}
-                    icon={monthly.monthlyChallengeCompleted ? 'checkmark-circle' : 'diamond'}
-                    color={monthly.monthlyChallengeCompleted ? '#22C55E' : '#F59E0B'}
-                  />
-                  <View className="flex-1">
-                    <RNText className="text-ui-sm font-ui text-content-primary">
-                      {t('gamification.monthlyChallenge')}
-                    </RNText>
-                    <RNText className="text-body-sm font-body-regular text-content-secondary">
-                      {monthly.monthlyChallengeCompleted
-                        ? t('gamification.monthlyCompleted')
-                        : t(monthlyKeyMap[monthly.monthlyChallengeType] || '')}
-                    </RNText>
-                  </View>
-                </View>
-                <RNText className="text-ui-sm font-ui" style={{ color: '#F59E0B' }}>
-                  +{monthly.reward} XP
-                </RNText>
-              </View>
-              {!monthly.monthlyChallengeCompleted && monthly.target > 1 && (
-                <View className="gap-1">
-                  <View className="flex-row justify-between">
-                    <RNText className="text-ui-xs font-ui text-content-secondary">
-                      {t('gamification.progress')}
-                    </RNText>
-                    <RNText className="text-ui-xs font-ui text-content-secondary">
-                      {monthly.progress}/{monthly.target}
-                    </RNText>
-                  </View>
-                  <View className="h-2 bg-bg-raised rounded-full overflow-hidden">
-                    <View
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min((monthly.progress / monthly.target) * 100, 100)}%`,
-                        backgroundColor: '#F59E0B',
-                      }}
-                    />
-                  </View>
-                </View>
-              )}
-            </View>
-          </PremiumCard>
-        </FadeIn>
+        <ChallengeCard
+          kind={monthlyDone ? t('achievements.kindMonthlyDone') : t('achievements.kindMonthly')}
+          label={t(monthlyKey[monthly.monthlyChallengeType] || '')}
+          xp={monthly.reward}
+          color="#F59E0B"
+          icon="ribbon-outline"
+          completed={monthlyDone}
+          progress={monthly.progress}
+          target={monthly.target}
+        />
       ) : null}
 
-      {/* Upcoming unlocks */}
-      <UpcomingUnlocksSection />
+      {upcomingEntries.length > 0 ? (
+        <UpcomingUnlocks v2={v2} t={t} entries={upcomingEntries} onViewAll={onViewAllUnlocks} />
+      ) : null}
     </View>
   );
 }
 
-function IconCircle({ bg, icon, color }: { bg: string; icon: string; color: string }) {
+interface UpcomingProps {
+  v2: ReturnType<typeof useV2>;
+  t: (k: string, p?: any) => string;
+  entries: UpcomingEntry[];
+  onViewAll?: () => void;
+}
+function UpcomingUnlocks({ v2, t, entries, onViewAll }: UpcomingProps) {
   return (
-    <View
-      className="w-10 h-10 rounded-full items-center justify-center"
-      style={{ backgroundColor: bg }}
-    >
-      <Ionicons name={icon as any} size={22} color={color} />
+    <View style={{ marginTop: 12 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 6, marginBottom: 10 }}>
+        <Text
+          style={{
+            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+            letterSpacing: 1.6, textTransform: 'uppercase', color: v2.inkSubtle,
+          }}
+        >
+          {t('achievements.upcomingUnlocks')}
+        </Text>
+        {onViewAll ? (
+          <Pressable hitSlop={6} onPress={onViewAll}>
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '600', color: v2.brand }}>
+              {t('achievements.viewAll')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      <View style={{ backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, borderRadius: 18, padding: 4 }}>
+        {entries.map((e, i) => {
+          const remaining = e.target - e.current;
+          const close = remaining <= 3;
+          const isLast = i === entries.length - 1;
+          return (
+            <View
+              key={e.key}
+              style={{
+                flexDirection: 'row', alignItems: 'center', gap: 12,
+                paddingVertical: 12, paddingHorizontal: 12,
+                borderBottomWidth: isLast ? 0 : 1, borderBottomColor: v2.hairline,
+              }}
+            >
+              <View
+                style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  backgroundColor: close ? v2.brandSoft : 'rgba(15,19,17,0.06)',
+                  alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Ionicons
+                  name={close ? 'sparkles' : 'lock-closed-outline'}
+                  size={14}
+                  color={close ? v2.brand : v2.inkSubtle}
+                />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text numberOfLines={1} style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.ink }}>
+                  {t(e.titleKey)}
+                </Text>
+                <Text numberOfLines={1} style={{ fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1 }}>
+                  {t(e.descKey)}
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: close ? v2.brand : v2.inkMuted, fontVariant: ['tabular-nums'] }}>
+                  {e.current}/{e.target}
+                </Text>
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkSubtle, marginTop: 1 }}>
+                  {close ? t('achievements.veryClose') : t('achievements.toReach')}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 }

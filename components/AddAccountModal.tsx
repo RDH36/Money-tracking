@@ -1,31 +1,19 @@
 import { useState } from 'react';
-import { Pressable, View, TextInput } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Pressable, View, TextInput, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Text as RNText } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  AlertDialog,
-  AlertDialogBackdrop,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import { useTheme } from '@/contexts';
+import type { ComponentProps } from 'react';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount } from '@/lib/amountInput';
 import type { AccountType } from '@/types';
-import { GhostButton, PrimaryButton } from '@/components/premium';
-import { cn } from '@/lib/utils';
 
-const ACCOUNT_ICONS = [
-  { icon: 'card', label: 'Carte' },
-  { icon: 'cash', label: 'Espèce' },
-  { icon: 'wallet', label: 'Portefeuille' },
-  { icon: 'business', label: 'Entreprise' },
-  { icon: 'phone-portrait', label: 'Mobile' },
-  { icon: 'globe', label: 'En ligne' },
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
+
+const ACCOUNT_ICONS: { icon: IoniconName }[] = [
+  { icon: 'card' }, { icon: 'cash' }, { icon: 'wallet' },
+  { icon: 'business' }, { icon: 'phone-portrait' }, { icon: 'globe' },
 ];
 
 interface AddAccountModalProps {
@@ -50,192 +38,199 @@ export function AddAccountModal({
   customAccountsCount,
   maxCustomAccounts,
 }: AddAccountModalProps) {
-  const { theme } = useTheme();
-  const currency = useCurrency();
+  const v2 = useV2();
   const { t } = useTranslation();
+  const currency = useCurrency();
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
-  const [icon, setIcon] = useState('wallet');
+  const [icon, setIcon] = useState<string>('wallet');
   const [balance, setBalance] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  const resetForm = () => {
+    setName(''); setType('bank'); setIcon('wallet'); setBalance('');
+  };
+  const handleClose = () => { resetForm(); onClose(); };
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setIsCreating(true);
     await onCreateAccount({
-      name: name.trim(),
-      type,
-      initialBalance: parseAmount(balance),
-      icon,
+      name: name.trim(), type,
+      initialBalance: parseAmount(balance), icon,
     });
     resetForm();
     setIsCreating(false);
   };
 
-  const resetForm = () => {
-    setName('');
-    setType('bank');
-    setIcon('wallet');
-    setBalance('');
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
-  // Show limit reached view
   if (!canCreateAccount) {
     return (
-      <AlertDialog isOpen={isOpen} onClose={handleClose}>
-        <AlertDialogBackdrop />
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <View className="flex-row items-center gap-3">
-              <View
-                className="w-10 h-10 rounded-full items-center justify-center bg-error/10"
-              >
-                <Ionicons name="alert-circle" size={24} color="#EF4444" />
-              </View>
-              <RNText className="font-display text-display-md text-content-primary">{t('account.limitReached')}</RNText>
-            </View>
-          </AlertDialogHeader>
-          <AlertDialogBody className="mt-3 mb-4">
-            <RNText className="text-body-md text-content-secondary">
-              {t('account.limitMessage', { max: maxCustomAccounts })}
-            </RNText>
-          </AlertDialogBody>
-          <AlertDialogFooter>
-            <PrimaryButton label={t('common.understood')} onPress={handleClose} compact />
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <BottomSheet
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={t('account.limitReached')}
+        scrollable={false}
+        footer={
+          <Pressable
+            onPress={handleClose}
+            style={{
+              backgroundColor: v2.bgInk, borderRadius: 12,
+              paddingVertical: 14, alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
+              {t('common.understood')}
+            </Text>
+          </Pressable>
+        }
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View
+            style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: v2.badSoft,
+              alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="alert-circle" size={20} color={v2.bad} />
+          </View>
+          <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 13, color: v2.ink }}>
+            {t('account.limitMessage', { max: maxCustomAccounts })}
+          </Text>
+        </View>
+      </BottomSheet>
     );
   }
 
   return (
-    <AlertDialog isOpen={isOpen} onClose={handleClose}>
-      <AlertDialogBackdrop />
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <View className="flex-row items-center justify-between w-full gap-3">
-            <RNText className="font-display text-display-md text-content-primary">{t('account.new')}</RNText>
-            <RNText className="text-body-sm text-content-tertiary">
-              {t('account.customCount', { count: customAccountsCount, max: maxCustomAccounts })}
-            </RNText>
-          </View>
-        </AlertDialogHeader>
-        <AlertDialogBody className="mt-3 mb-4">
-          <KeyboardAwareScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            bottomOffset={20}
-            style={{ maxHeight: 400 }}
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={t('account.new')}
+      overline={t('account.customCount', { count: customAccountsCount, max: maxCustomAccounts })}
+      footer={
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            onPress={handleClose}
+            disabled={isCreating}
+            style={{
+              flex: 1, paddingVertical: 14, borderRadius: 12,
+              borderWidth: 1, borderColor: v2.hairlineStrong,
+              alignItems: 'center', justifyContent: 'center',
+              opacity: isCreating ? 0.5 : 1,
+            }}
           >
-          <View className="gap-4">
-            <View className="gap-2">
-              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.name')}</RNText>
-              <View className="rounded-xl bg-bg-raised px-4 py-3">
-                <TextInput
-                  placeholder={t('account.namePlaceholder')}
-                  placeholderTextColor="#8E8EA0"
-                  value={name}
-                  onChangeText={setName}
-                  maxLength={20}
-                  className="font-body-regular text-body-md text-content-primary"
-                />
-              </View>
-              <RNText className="text-body-xs text-content-tertiary text-right">{t('common.characters', { current: name.length, max: 20 })}</RNText>
-            </View>
-
-            <View className="gap-2">
-              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.type')}</RNText>
-              <View className="flex-row gap-3">
-                <Pressable onPress={() => setType('bank')} className="flex-1">
-                  <View
-                    className={cn('p-3 rounded-xl items-center', type !== 'bank' && 'bg-bg-raised')}
-                    style={type === 'bank' ? { backgroundColor: theme.colors.primaryLight } : undefined}
-                  >
-                    <Ionicons
-                      name="card"
-                      size={24}
-                      color={type === 'bank' ? theme.colors.primary : '#8E8EA0'}
-                    />
-                    <RNText
-                      className="text-body-xs mt-1"
-                      style={{ color: type === 'bank' ? theme.colors.primary : '#8E8EA0' }}
-                    >
-                      {t('account.bank')}
-                    </RNText>
-                  </View>
-                </Pressable>
-                <Pressable onPress={() => setType('cash')} className="flex-1">
-                  <View
-                    className={cn('p-3 rounded-xl items-center', type !== 'cash' && 'bg-bg-raised')}
-                    style={type === 'cash' ? { backgroundColor: theme.colors.secondaryLight } : undefined}
-                  >
-                    <Ionicons
-                      name="cash"
-                      size={24}
-                      color={type === 'cash' ? theme.colors.secondary : '#8E8EA0'}
-                    />
-                    <RNText
-                      className="text-body-xs mt-1"
-                      style={{ color: type === 'cash' ? theme.colors.secondary : '#8E8EA0' }}
-                    >
-                      {t('account.cash')}
-                    </RNText>
-                  </View>
-                </Pressable>
-              </View>
-            </View>
-
-            <View className="gap-2">
-              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.icon')}</RNText>
-              <View className="flex-row flex-wrap gap-2">
-                {ACCOUNT_ICONS.map((item) => (
-                  <Pressable key={item.icon} onPress={() => setIcon(item.icon)}>
-                    <View
-                      className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== item.icon && 'bg-bg-raised')}
-                      style={icon === item.icon ? { backgroundColor: theme.colors.primaryLight } : undefined}
-                    >
-                      <Ionicons
-                        name={item.icon as keyof typeof Ionicons.glyphMap}
-                        size={24}
-                        color={icon === item.icon ? theme.colors.primary : '#8E8EA0'}
-                      />
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            <View className="gap-2">
-              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.initialBalance', { currency: currency.code })}</RNText>
-              <View className="rounded-xl bg-bg-raised px-4 py-3">
-                <TextInput
-                  placeholder="0"
-                  placeholderTextColor="#8E8EA0"
-                  keyboardType="decimal-pad"
-                  value={balance}
-                  onChangeText={(text) => setBalance(formatAmountInput(text))}
-                  className="font-body-regular text-body-md text-content-primary"
-                />
-              </View>
-            </View>
-          </View>
-          </KeyboardAwareScrollView>
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <GhostButton label={t('common.cancel')} onPress={handleClose} disabled={isCreating} compact />
-          <PrimaryButton
-            label={isCreating ? t('account.creating') : t('account.create')}
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink }}>
+              {t('common.cancel')}
+            </Text>
+          </Pressable>
+          <Pressable
             onPress={handleCreate}
             disabled={!name.trim() || isCreating}
-            compact
-          />
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            style={{
+              flex: 1, paddingVertical: 14, borderRadius: 12,
+              backgroundColor: v2.bgInk,
+              alignItems: 'center', justifyContent: 'center',
+              opacity: !name.trim() || isCreating ? 0.5 : 1,
+            }}
+          >
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
+              {isCreating ? t('account.creating') : t('account.create')}
+            </Text>
+          </Pressable>
+        </View>
+      }
+    >
+      <View style={{ gap: 16 }}>
+        <Field v2={v2} label={t('account.name')}>
+          <View style={{ backgroundColor: v2.bgRaised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+            <TextInput
+              placeholder={t('account.namePlaceholder')} placeholderTextColor={v2.inkSubtle}
+              value={name} onChangeText={setName} maxLength={20}
+              style={{ fontFamily: v2.fontUI, fontSize: 14, color: v2.ink, padding: 0 }}
+            />
+          </View>
+          <Text style={{ marginTop: 4, textAlign: 'right', fontFamily: v2.fontUI, fontSize: 10, color: v2.inkSubtle, fontVariant: ['tabular-nums'] }}>
+            {name.length} / 20
+          </Text>
+        </Field>
+
+        <Field v2={v2} label={t('account.type')}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TypeBtn v2={v2} active={type === 'bank'} icon="card" label={t('account.bank')} onPress={() => setType('bank')} />
+            <TypeBtn v2={v2} active={type === 'cash'} icon="cash" label={t('account.cash')} onPress={() => setType('cash')} />
+          </View>
+        </Field>
+
+        <Field v2={v2} label={t('account.icon')}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {ACCOUNT_ICONS.map((item) => {
+              const active = icon === item.icon;
+              return (
+                <Pressable
+                  key={item.icon}
+                  onPress={() => setIcon(item.icon)}
+                  style={{
+                    width: 48, height: 48, borderRadius: 12,
+                    backgroundColor: active ? v2.brandTint : v2.bgRaised,
+                    borderWidth: active ? 1.5 : 0, borderColor: v2.brand,
+                    alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name={item.icon} size={22} color={active ? v2.brand : v2.inkSubtle} />
+                </Pressable>
+              );
+            })}
+          </View>
+        </Field>
+
+        <Field v2={v2} label={t('account.initialBalance', { currency: currency.code })}>
+          <View style={{ backgroundColor: v2.bgRaised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+            <TextInput
+              placeholder="0" placeholderTextColor={v2.inkSubtle}
+              keyboardType="decimal-pad" value={balance}
+              onChangeText={(text) => setBalance(formatAmountInput(text))}
+              style={{ fontFamily: v2.fontUI, fontSize: 14, color: v2.ink, padding: 0 }}
+            />
+          </View>
+        </Field>
+      </View>
+    </BottomSheet>
+  );
+}
+
+interface FieldProps { v2: ReturnType<typeof useV2>; label: string; children: React.ReactNode; }
+function Field({ v2, label, children }: FieldProps) {
+  return (
+    <View>
+      <Text style={{
+        fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+        letterSpacing: 1.5, textTransform: 'uppercase',
+        color: v2.inkSubtle, marginBottom: 8,
+      }}>
+        {label}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+interface TypeBtnProps { v2: ReturnType<typeof useV2>; active: boolean; icon: IoniconName; label: string; onPress: () => void; }
+function TypeBtn({ v2, active, icon, label, onPress }: TypeBtnProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flex: 1, paddingVertical: 12, borderRadius: 12,
+        backgroundColor: active ? v2.brandTint : v2.bgRaised,
+        borderWidth: active ? 1.5 : 0, borderColor: v2.brand,
+        alignItems: 'center', justifyContent: 'center', gap: 4,
+      }}
+    >
+      <Ionicons name={icon} size={22} color={active ? v2.brand : v2.inkSubtle} />
+      <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '600', color: active ? v2.brand : v2.inkSubtle }}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }

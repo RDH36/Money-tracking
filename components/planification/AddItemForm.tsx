@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { View, Pressable, Text as RNText, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CategoryPicker } from '@/components/CategoryPicker';
-import { PremiumCard, PrimaryButton } from '@/components/premium';
-import { Divider } from '@/components/premium';
-import { useTheme } from '@/contexts';
+import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import { useCategories, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
-import { cn } from '@/lib/utils';
+import { TypePill, CategoryChip } from './AddItemFields';
 import type { TransactionType } from '@/types';
+
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 interface AddItemFormProps {
   isLoading: boolean;
@@ -18,8 +18,8 @@ interface AddItemFormProps {
 }
 
 export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
+  const v2 = useV2();
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const currency = useCurrency();
   const { expenseCategories, incomeCategory } = useCategories();
 
@@ -29,108 +29,172 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
   const [note, setNote] = useState('');
 
   const isValid = amount && getNumericValue(amount) > 0;
-
   const handleSubmit = async () => {
     const numericAmount = getNumericValue(amount);
     if (!numericAmount || numericAmount <= 0) return;
     const finalCategoryId = itemType === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
     await onAddItem(parseAmount(amount), itemType, finalCategoryId, note.trim() || null);
-    setAmount('');
-    setItemType('expense');
-    setCategoryId(null);
-    setNote('');
+    setAmount(''); setItemType('expense'); setCategoryId(null); setNote('');
   };
 
   return (
-    <View className="gap-4">
-      <RNText className="font-ui text-ui-lg text-content-primary">{t('planification.addElement')}</RNText>
+    <View
+      style={{
+        backgroundColor: v2.bgSurface,
+        borderWidth: 1, borderColor: v2.hairline,
+        borderRadius: 14, padding: 14, gap: 14,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+          letterSpacing: 1.5, textTransform: 'uppercase',
+          color: v2.inkSubtle,
+        }}
+      >
+        {t('planification.addElement')}
+      </Text>
 
-      {/* Type selector */}
-      <View className="flex-row gap-3">
-        <Pressable onPress={() => setItemType('expense')} className="flex-1">
-          <View className={cn(
-            'py-3 px-4 rounded-xl items-center',
-            itemType === 'expense' ? 'bg-expense/10' : 'bg-bg-raised',
-          )}>
-            <View className="flex-row gap-2 items-center">
-              <Ionicons name="arrow-down-circle" size={20} color={itemType === 'expense' ? '#EF4444' : '#8E8EA0'} />
-              <RNText className="font-ui text-ui-md" style={{ color: itemType === 'expense' ? '#EF4444' : '#8E8EA0' }}>
-                {t('add.expense')}
-              </RNText>
-            </View>
-          </View>
-        </Pressable>
-        <Pressable onPress={() => setItemType('income')} className="flex-1">
-          <View className={cn(
-            'py-3 px-4 rounded-xl items-center',
-            itemType === 'income' ? 'bg-success/10' : 'bg-bg-raised',
-          )}>
-            <View className="flex-row gap-2 items-center">
-              <Ionicons name="arrow-up-circle" size={20} color={itemType === 'income' ? '#22C55E' : '#8E8EA0'} />
-              <RNText className="font-ui text-ui-md" style={{ color: itemType === 'income' ? '#22C55E' : '#8E8EA0' }}>
-                {t('add.income')}
-              </RNText>
-            </View>
-          </View>
-        </Pressable>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <TypePill
+          active={itemType === 'expense'}
+          icon="arrow-down"
+          label={t('add.expense')}
+          tone="bad"
+          onPress={() => setItemType('expense')}
+        />
+        <TypePill
+          active={itemType === 'income'}
+          icon="arrow-up"
+          label={t('add.income')}
+          tone="good"
+          onPress={() => setItemType('income')}
+        />
       </View>
 
-      {/* Amount input */}
-      <View className="items-center py-2">
-        <RNText className="text-content-tertiary text-body-sm mb-2">{t('planification.amount')} ({currency.code})</RNText>
+      <View style={{ alignItems: 'center', paddingVertical: 4 }}>
+        <Text
+          style={{
+            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '600',
+            letterSpacing: 1.5, textTransform: 'uppercase',
+            color: v2.inkSubtle, marginBottom: 6,
+          }}
+        >
+          {t('planification.amount')} · {currency.code}
+        </Text>
         <TextInput
           placeholder="0"
+          placeholderTextColor={v2.inkSubtle}
           keyboardType="decimal-pad"
           value={amount}
-          onChangeText={(t) => setAmount(formatAmountInput(t))}
-          className="font-display text-display-lg text-content-primary text-center w-48"
-          placeholderTextColor="#6E6E7D"
+          onChangeText={(s) => setAmount(formatAmountInput(s))}
+          style={{
+            fontFamily: v2.fontDisplay, fontWeight: '700',
+            fontSize: 38, letterSpacing: -1,
+            color: v2.ink, textAlign: 'center',
+            fontVariant: ['tabular-nums'],
+            minWidth: 200,
+          }}
           textAlign="center"
         />
       </View>
 
-      <Divider />
-
-      {/* Category */}
-      <View className="gap-2">
-        <RNText className="font-ui text-ui-md text-content-primary">{t('add.category')}</RNText>
+      <View>
+        <Text
+          style={{
+            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+            letterSpacing: 1.5, textTransform: 'uppercase',
+            color: v2.inkSubtle, marginBottom: 8,
+          }}
+        >
+          {t('add.category')}
+        </Text>
         {itemType === 'expense' ? (
-          <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {expenseCategories.slice(0, 8).map((c) => (
+              <CategoryChip
+                key={c.id}
+                category={c}
+                active={categoryId === c.id}
+                onPress={() => setCategoryId(categoryId === c.id ? null : c.id)}
+              />
+            ))}
+          </View>
         ) : (
-          <PremiumCard className="p-3">
-            <View className="flex-row gap-3 items-center">
-              <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
-                <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
-              </View>
-              <RNText className="font-ui text-ui-md text-content-primary">{t('add.income')}</RNText>
+          <View
+            style={{
+              backgroundColor: v2.goodSoft,
+              borderRadius: 12, padding: 12,
+              flexDirection: 'row', alignItems: 'center', gap: 10,
+            }}
+          >
+            <View
+              style={{
+                width: 32, height: 32, borderRadius: 9,
+                backgroundColor: v2.good,
+                alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Ionicons name={(incomeCategory?.icon as IoniconName) ?? 'trending-up'} size={16} color="#fff" />
             </View>
-          </PremiumCard>
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: v2.good }}>
+              {t('add.income')}
+            </Text>
+          </View>
         )}
       </View>
 
-      {/* Note */}
-      <View className="gap-2">
-        <RNText className="font-ui text-ui-md text-content-primary">{t('add.noteOptional')}</RNText>
-        <View className="rounded-xl bg-bg-raised px-4 py-3">
+      <View>
+        <Text
+          style={{
+            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+            letterSpacing: 1.5, textTransform: 'uppercase',
+            color: v2.inkSubtle, marginBottom: 8,
+          }}
+        >
+          {t('add.noteOptional')}
+        </Text>
+        <View
+          style={{
+            backgroundColor: v2.bgRaised, borderRadius: 12,
+            paddingHorizontal: 14, paddingVertical: 10,
+          }}
+        >
           <TextInput
-            placeholder="Ex: Restaurant..."
+            placeholder={t('add.notePlaceholder')}
+            placeholderTextColor={v2.inkSubtle}
             value={note}
             onChangeText={setNote}
             maxLength={20}
-            className="font-body-regular text-body-md text-content-primary"
-            placeholderTextColor="#6E6E7D"
+            style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.ink, padding: 0 }}
           />
         </View>
-        <RNText className="text-content-tertiary text-body-sm text-right">{t('common.characters', { current: note.length, max: 20 })}</RNText>
+        <Text
+          style={{
+            marginTop: 4, textAlign: 'right',
+            fontFamily: v2.fontUI, fontSize: 10,
+            color: v2.inkSubtle, fontVariant: ['tabular-nums'],
+          }}
+        >
+          {note.length} / 20
+        </Text>
       </View>
 
-      {/* Submit */}
-      <PrimaryButton
-        label={t('planification.add')}
+      <Pressable
         onPress={handleSubmit}
         disabled={!isValid || isLoading}
-        className={itemType === 'income' ? 'bg-success' : ''}
-      />
+        style={{
+          paddingVertical: 14, borderRadius: 12,
+          backgroundColor: itemType === 'income' ? v2.good : v2.bgInk,
+          alignItems: 'center', justifyContent: 'center',
+          opacity: !isValid || isLoading ? 0.5 : 1,
+        }}
+      >
+        <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
+          {t('planification.add')}
+        </Text>
+      </Pressable>
     </View>
   );
 }
+

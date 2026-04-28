@@ -2,38 +2,37 @@ import { Tabs, router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getBgBaseHex } from '@/constants/designTokens';
 import { useTranslation } from 'react-i18next';
+import { useV2 } from '@/constants/designTokensV2';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
+  const v2 = useV2();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: isDark ? '#6E6E7D' : '#9C9CA8',
+        tabBarActiveTintColor: v2.brand,
+        tabBarInactiveTintColor: v2.inkSubtle,
         tabBarStyle: {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom + 8,
-          paddingTop: 8,
-          backgroundColor: isDark ? '#1A1A20' : '#FFFFFF',
-          borderTopColor: isDark ? '#2A2A34' : '#F0F0F4',
+          paddingTop: 10,
+          backgroundColor: v2.bgSurface,
+          borderTopColor: v2.hairline,
+          borderTopWidth: 1,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: 'PlusJakartaSans-SemiBold',
+          fontSize: 10,
+          fontFamily: v2.fontUI,
+          fontWeight: '600',
+          letterSpacing: 0.2,
         },
         animation: 'shift',
         sceneStyle: {
-          backgroundColor: getBgBaseHex(isDark),
+          backgroundColor: v2.bgBase,
         },
       }}
     >
@@ -62,21 +61,21 @@ export default function TabsLayout() {
           tabBarIcon: () => (
             <View
               style={{
-                width: 52,
-                height: 52,
-                borderRadius: 26,
-                backgroundColor: theme.colors.primary,
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                backgroundColor: v2.bgInk,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginTop: -18,
-                shadowColor: '#000',
-                shadowOpacity: 0.2,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 3 },
-                elevation: 6,
+                marginTop: -22,
+                shadowColor: v2.brand,
+                shadowOpacity: 0.25,
+                shadowRadius: 20,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 8,
               }}
             >
-              <Ionicons name="add" size={30} color="#FFFFFF" />
+              <Ionicons name="add" size={24} color={v2.inkOnDark} />
             </View>
           ),
           tabBarButton: (props) => (
@@ -100,16 +99,16 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="achievements"
+        name="settings"
         options={{
-          title: t('tabs.achievements'),
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'trophy' : 'trophy-outline'} size={22} color={color} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="achievements"
         options={{
           href: null,
         }}

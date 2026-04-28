@@ -1,65 +1,81 @@
-import { Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
-import { useTheme, useLanguage } from '@/contexts';
-import { SettingSection } from './SettingSection';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
-import { LANGUAGES, LanguageCode } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
+import { useV2 } from '@/constants/designTokensV2';
+import { useLanguage } from '@/contexts';
+import { LANGUAGES, type LanguageCode } from '@/lib/i18n';
+import { SectionLabel, SettingsCard } from '@/components/settings/v2';
+
+const NATIVE: Record<string, string> = {
+  fr: 'Français',
+  mg: 'Malagasy',
+  en: 'English',
+};
 
 export function LanguageSection() {
+  const v2 = useV2();
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const { language, setLanguage } = useLanguage();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
 
   return (
-    <SettingSection title={t('settings.language')}>
-      <Box className="px-4 py-3">
-        <HStack space="sm">
-          {LANGUAGES.filter((lang) => lang.code !== 'mg').map((lang) => {
-            const isSelected = language === lang.code;
-            return (
-              <Pressable
-                key={lang.code}
-                onPress={() => setLanguage(lang.code as LanguageCode)}
-                className="flex-1"
-              >
-                <VStack
-                  className="items-center py-3 rounded-xl border-2"
+    <View>
+      <SectionLabel>{t('languageV2.section')}</SectionLabel>
+      <SettingsCard>
+        {LANGUAGES.filter((lang) => lang.code !== 'mg').map((lang, i, arr) => {
+          const isActive = language === lang.code;
+          const isLast = i === arr.length - 1;
+          return (
+            <Pressable
+              key={lang.code}
+              onPress={() => setLanguage(lang.code as LanguageCode)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 14,
+                borderBottomWidth: isLast ? 0 : 1,
+                borderBottomColor: v2.hairline,
+              }}
+            >
+              <Text style={{ fontSize: 24 }}>{lang.flag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.ink }}>
+                  {lang.name}
+                </Text>
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, fontStyle: 'italic', marginTop: 2 }}>
+                  {NATIVE[lang.code] ?? lang.name}
+                </Text>
+              </View>
+              {isActive ? (
+                <View
                   style={{
-                    borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
-                    backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
+                    width: 24, height: 24, borderRadius: 12,
+                    backgroundColor: v2.brand,
+                    alignItems: 'center', justifyContent: 'center',
                   }}
-                  space="xs"
                 >
-                  <Text className="text-2xl">{lang.flag}</Text>
-                  <Text
-                    className="text-xs font-medium"
-                    style={{ color: isSelected ? theme.colors.primary : colors.textMuted }}
-                  >
-                    {lang.name}
-                  </Text>
-                  {isSelected && (
-                    <Box
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
-                      style={{ backgroundColor: theme.colors.primary }}
-                    >
-                      <Ionicons name="checkmark" size={10} color="#FFF" />
-                    </Box>
-                  )}
-                </VStack>
-              </Pressable>
-            );
-          })}
-        </HStack>
-      </Box>
-    </SettingSection>
+                  <Ionicons name="checkmark" size={13} color={v2.inkOnDark} />
+                </View>
+              ) : null}
+            </Pressable>
+          );
+        })}
+      </SettingsCard>
+
+      <View
+        style={{
+          marginTop: 14, padding: 14,
+          borderRadius: 14,
+          backgroundColor: v2.bgRaised,
+          flexDirection: 'row', gap: 10, alignItems: 'flex-start',
+        }}
+      >
+        <Ionicons name="information-circle-outline" size={15} color={v2.inkSubtle} style={{ marginTop: 1 }} />
+        <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.inkMuted, lineHeight: 17 }}>
+          {t('languageV2.info')}
+        </Text>
+      </View>
+    </View>
   );
 }

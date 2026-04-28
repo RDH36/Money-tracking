@@ -1,30 +1,28 @@
-import { Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { SettingSection } from './SettingSection';
+import { useV2 } from '@/constants/designTokensV2';
+import { SectionLabel, SettingsCard, SettingsRow } from '@/components/settings/v2';
 
 interface DangerZoneSectionProps {
   onReset: () => void;
 }
 
 export function DangerZoneSection({ onReset }: DangerZoneSectionProps) {
+  const v2 = useV2();
   const { t } = useTranslation();
-
   return (
-    <SettingSection title={t('settings.dangerZone')}>
-      <Pressable onPress={onReset}>
-        <HStack className="px-4 py-3.5 justify-between items-center">
-          <HStack className="items-center" space="sm">
-            <Ionicons name="refresh-circle" size={20} color="#DC2626" />
-            <Text style={{ color: '#DC2626' }} className="font-medium">
-              {t('settings.resetApp')}
-            </Text>
-          </HStack>
-          <Ionicons name="chevron-forward" size={18} color="#DC2626" />
-        </HStack>
-      </Pressable>
-    </SettingSection>
+    <>
+      <SectionLabel>{t('settingsV2.dangerZoneSection')}</SectionLabel>
+      <SettingsCard danger>
+        <SettingsRow
+          icon="trash-outline"
+          iconColor={v2.bad}
+          label={t('settingsV2.resetAppLabel')}
+          sublabel={t('settingsV2.resetAppSub')}
+          danger
+          isLast
+          onPress={onReset}
+        />
+      </SettingsCard>
+    </>
   );
 }

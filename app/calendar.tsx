@@ -1,27 +1,24 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ScrollView, Pressable, View, Text as RNText } from 'react-native';
+import { ScrollView, Pressable, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { usePostHog } from 'posthog-react-native';
 import { ExpenseCalendar } from '@/components/ExpenseCalendar';
 import { TransactionCard } from '@/components/TransactionCard';
 import { useTransactions } from '@/hooks';
 import { getDailyTotals } from '@/hooks/useTransactionStats';
-import { useTheme } from '@/contexts';
-import { SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
-import { cn } from '@/lib/utils';
-import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { useV2 } from '@/constants/designTokensV2';
+import { MonthSelector } from '@/components/category-detail';
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
+  const v2 = useV2();
   const currencyCode = useCurrencyCode();
   const { transactions, refresh } = useTransactions();
   const posthog = usePostHog();
@@ -34,15 +31,8 @@ export default function CalendarScreen() {
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const dailyTotals = useMemo(() => getDailyTotals(transactions, year, month), [transactions, year, month]);
-
-  const monthExpenses = useMemo(() => {
-    return Object.values(dailyTotals).reduce((sum, dt) => sum + dt.expenses, 0);
-  }, [dailyTotals]);
-
-  const monthIncome = useMemo(() => {
-    return Object.values(dailyTotals).reduce((sum, dt) => sum + dt.income, 0);
-  }, [dailyTotals]);
-
+  const monthExpenses = useMemo(() => Object.values(dailyTotals).reduce((s, dt) => s + dt.expenses, 0), [dailyTotals]);
+  const monthIncome = useMemo(() => Object.values(dailyTotals).reduce((s, dt) => s + dt.income, 0), [dailyTotals]);
   const dayTransactions = useMemo(() => {
     if (!selectedDay) return [];
     return transactions.filter((tx) => {
@@ -58,101 +48,136 @@ export default function CalendarScreen() {
     const newMonth = d.getMonth();
     setYear(newYear);
     setMonth(newMonth);
-    // Auto-select today if navigating to current month, otherwise 1st day
-    const isCurrentMonth = today.getFullYear() === newYear && today.getMonth() === newMonth;
-    setSelectedDay(isCurrentMonth ? today.getDate() : 1);
+    const isCurrent = today.getFullYear() === newYear && today.getMonth() === newMonth;
+    setSelectedDay(isCurrent ? today.getDate() : 1);
   };
 
   const locale = i18n.language === 'mg' ? 'fr-MG' : i18n.language === 'fr' ? 'fr-FR' : 'en-US';
   const monthLabel = new Date(year, month).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-
-  const renderTransaction = ({ item }: { item: TransactionWithCategory }) => (
-    <TransactionCard transaction={item} />
-  );
+  const todayDateLabel = selectedDay
+    ? new Date(year, month, selectedDay).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+    : '';
 
   return (
-    <ScrollView
-      style={{ flex: 1, paddingTop: insets.top }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }}
-    >
-      <View className="flex-row items-center mb-4 mt-2">
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
+    <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={6}
+          style={{
+            width: 36, height: 36, borderRadius: 18,
+            backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline,
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Ionicons name="chevron-back" size={18} color={v2.ink} />
         </Pressable>
-        <RNText className="font-display text-display-md text-content-primary ml-3">{t('calendar.title')}</RNText>
+        <Text style={{ fontFamily: v2.fontDisplay, fontSize: 22, color: v2.ink, letterSpacing: -0.5 }}>
+          {t('calendar.title')}
+        </Text>
       </View>
 
-      <View className="gap-4">
-        {/* Month Navigation */}
-        <View className="flex-row items-center justify-between px-2">
-          <Pressable onPress={() => navigateMonth(-1)} hitSlop={12}>
-            <Ionicons name="chevron-back" size={20} color={theme.colors.primary} />
-          </Pressable>
-          <View className="items-center">
-            <RNText className="font-ui text-ui-lg text-content-primary capitalize">{monthLabel}</RNText>
-            <View className="flex-row gap-3">
-              <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.expense }}>
-                -{formatCurrency(monthExpenses, currencyCode)}
-              </RNText>
-              <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.income }}>
-                +{formatCurrency(monthIncome, currencyCode)}
-              </RNText>
-            </View>
-          </View>
-          <Pressable onPress={() => navigateMonth(1)} hitSlop={12}>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
-          </Pressable>
-        </View>
-
-        {/* Calendar Grid */}
-        <View className="p-3 rounded-xl bg-bg-surface">
-          <ExpenseCalendar
-            dailyTotals={dailyTotals}
-            selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
-            year={year}
-            month={month}
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingHorizontal: 20 }}
+      >
+        <View style={{ gap: 14 }}>
+          <MonthSelector
+            label={monthLabel}
+            onPrev={() => navigateMonth(-1)}
+            onNext={() => navigateMonth(1)}
           />
-        </View>
 
-        {/* Selected Day Detail */}
-        {selectedDay && (
-          <View className="gap-2">
-            <View className="flex-row items-center justify-between">
-              <RNText className="font-ui text-ui-md text-content-primary">
-                {new Date(year, month, selectedDay).toLocaleDateString(locale, {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
-              </RNText>
-              <View className="flex-row gap-2">
-                {dailyTotals[selectedDay] && dailyTotals[selectedDay].expenses > 0 && (
-                  <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.expense }}>
-                    -{formatCurrency(dailyTotals[selectedDay].expenses, currencyCode)}
-                  </RNText>
-                )}
-                {dailyTotals[selectedDay] && dailyTotals[selectedDay].income > 0 && (
-                  <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.income }}>
-                    +{formatCurrency(dailyTotals[selectedDay].income, currencyCode)}
-                  </RNText>
-                )}
-              </View>
-            </View>
-
-            {dayTransactions.length === 0 ? (
-              <View className="py-8 items-center justify-center">
-                <RNText className="text-2xl mb-1">📭</RNText>
-                <RNText className="text-body-sm text-content-tertiary">{t('calendar.noExpenses')}</RNText>
-              </View>
-            ) : (
-              dayTransactions.map((tx) => (
-                <TransactionCard key={tx.id} transaction={tx} />
-              ))
-            )}
+          <View style={{ flexDirection: 'row', gap: 14, justifyContent: 'center' }}>
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.bad, fontVariant: ['tabular-nums'] }}>
+              -{formatCurrency(monthExpenses, currencyCode)}
+            </Text>
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.good, fontVariant: ['tabular-nums'] }}>
+              +{formatCurrency(monthIncome, currencyCode)}
+            </Text>
           </View>
-        )}
-      </View>
-    </ScrollView>
+
+          <View
+            style={{
+              backgroundColor: v2.bgSurface,
+              borderWidth: 1, borderColor: v2.hairline,
+              borderRadius: 14, padding: 12,
+            }}
+          >
+            <ExpenseCalendar
+              dailyTotals={dailyTotals}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+              year={year}
+              month={month}
+            />
+          </View>
+
+          {selectedDay ? (
+            <View style={{ gap: 10 }}>
+              <View>
+                <Text style={{
+                  fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+                  letterSpacing: 1.5, textTransform: 'uppercase',
+                  color: v2.inkSubtle, marginBottom: 4,
+                }}>
+                  {todayDateLabel}
+                </Text>
+                <Text style={{ fontFamily: v2.fontDisplay, fontSize: 22, color: v2.ink, letterSpacing: -0.5 }}>
+                  {t('calendar.dailyTotal')}
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <SoftBox v2={v2} bg={v2.badSoft} tone={v2.bad} label={t('reports.expenses')} value={dailyTotals[selectedDay]?.expenses ?? 0} prefix="-" currencyCode={currencyCode} />
+                <SoftBox v2={v2} bg={v2.goodSoft} tone={v2.good} label={t('reports.income')} value={dailyTotals[selectedDay]?.income ?? 0} prefix="+" currencyCode={currencyCode} />
+              </View>
+
+              {dayTransactions.length === 0 ? (
+                <View style={{ paddingVertical: 30, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 24, marginBottom: 4 }}>📭</Text>
+                  <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle }}>
+                    {t('calendar.noExpenses')}
+                  </Text>
+                </View>
+              ) : (
+                dayTransactions.map((tx) => (
+                  <TransactionCard key={tx.id} transaction={tx} />
+                ))
+              )}
+            </View>
+          ) : null}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+interface SoftBoxProps {
+  v2: ReturnType<typeof useV2>;
+  bg: string;
+  tone: string;
+  label: string;
+  value: number;
+  prefix: string;
+  currencyCode: string;
+}
+
+function SoftBox({ v2, bg, tone, label, value, prefix, currencyCode }: SoftBoxProps) {
+  return (
+    <View style={{ flex: 1, backgroundColor: bg, borderRadius: 9, paddingVertical: 10, paddingHorizontal: 12 }}>
+      <Text style={{
+        fontFamily: v2.fontUI, fontSize: 9, fontWeight: '700',
+        letterSpacing: 1.2, textTransform: 'uppercase',
+        color: tone, marginBottom: 2,
+      }}>
+        {label}
+      </Text>
+      <Text style={{
+        fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700',
+        color: tone, fontVariant: ['tabular-nums'],
+      }}>
+        {prefix}{formatCurrency(value, currencyCode)}
+      </Text>
+    </View>
   );
 }

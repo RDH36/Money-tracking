@@ -1,20 +1,50 @@
-import { View, Text as RNText } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import { AchievementsTab } from '@/components/AchievementsTab';
+import { useFocusEffect } from 'expo-router';
+import { useGamification, useQuests } from '@/hooks';
+import { useV2 } from '@/constants/designTokensV2';
+import {
+  AchievementsHero,
+  AchHeader,
+  ChallengesSection,
+  BadgesGrid,
+  type AchTabKey,
+} from '@/components/achievements';
+import { QuestsList } from '@/components/QuestsList';
 
 export default function AchievementsScreen() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
+  const v2 = useV2();
+  const gamification = useGamification();
+  const quests = useQuests();
+  const [activeTab, setActiveTab] = useState<AchTabKey>('challenges');
+
+  useFocusEffect(useCallback(() => {
+    gamification.checkBadges();
+    quests.refreshQuests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []));
 
   return (
-    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
-      <View className="px-4 pb-2">
-        <RNText className="text-display-md font-display text-content-primary">
-          {t('tabs.achievements')}
-        </RNText>
-      </View>
-      <AchievementsTab />
+    <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 14 }}>
+          <AchHeader activeTab={activeTab} onTabChange={setActiveTab} />
+        </View>
+
+        <View style={{ paddingHorizontal: 16, marginBottom: 14 }}>
+          <AchievementsHero />
+        </View>
+
+        <View style={{ paddingHorizontal: 16 }}>
+          {activeTab === 'challenges' ? (
+            <ChallengesSection onViewAllUnlocks={() => setActiveTab('badges')} />
+          ) : null}
+          {activeTab === 'quests' ? <QuestsList /> : null}
+          {activeTab === 'badges' ? <BadgesGrid /> : null}
+        </View>
+      </ScrollView>
     </View>
   );
 }

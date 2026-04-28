@@ -1,9 +1,8 @@
-import { Pressable, View, Text as RNText } from 'react-native';
+import { Pressable, View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/contexts';
-import { SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { useV2 } from '@/constants/designTokensV2';
 import type { DailyTotal } from '@/hooks/useTransactionStats';
 
 interface ExpenseCalendarProps {
@@ -14,9 +13,15 @@ interface ExpenseCalendarProps {
   month: number;
 }
 
-export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, month }: ExpenseCalendarProps) {
+export function ExpenseCalendar({
+  dailyTotals,
+  selectedDay,
+  onSelectDay,
+  year,
+  month,
+}: ExpenseCalendarProps) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const v2 = useV2();
   const currencyCode = useCurrencyCode();
 
   const dayLabels = [
@@ -32,13 +37,11 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
 
   const maxExpense = Object.values(dailyTotals).reduce((max, dt) => Math.max(max, dt.expenses), 0);
 
-  const getIntensity = (expenses: number): string => {
-    if (expenses === 0 || maxExpense === 0) return 'transparent';
+  const intensityFor = (expenses: number): { bg: string; border: string } => {
+    if (expenses === 0 || maxExpense === 0) return { bg: 'transparent', border: 'transparent' };
     const ratio = expenses / maxExpense;
-    if (ratio < 0.25) return theme.colors.primary + '20';
-    if (ratio < 0.5) return theme.colors.primary + '40';
-    if (ratio < 0.75) return theme.colors.primary + '80';
-    return theme.colors.primary + 'CC';
+    const color = ratio >= 0.66 ? v2.bad : ratio >= 0.33 ? v2.warn : v2.good;
+    return { bg: color + '20', border: color + '40' };
   };
 
   const cells: (number | null)[] = [];
@@ -47,31 +50,36 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
   while (cells.length % 7 !== 0) cells.push(null);
 
   const rows: (number | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    rows.push(cells.slice(i, i + 7));
-  }
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
 
   return (
     <View>
-      <View className="flex-row mb-1">
+      <View style={{ flexDirection: 'row', marginBottom: 6 }}>
         {dayLabels.map((label, i) => (
-          <View key={i} className="flex-1 items-center">
-            <RNText className="font-ui text-ui-xs text-content-tertiary">{label}</RNText>
+          <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: v2.inkSubtle }}>
+              {label}
+            </Text>
           </View>
         ))}
       </View>
 
       {rows.map((row, rowIdx) => (
-        <View key={rowIdx} className="flex-row mb-1">
+        <View key={rowIdx} style={{ flexDirection: 'row', marginBottom: 4 }}>
           {row.map((day, colIdx) => {
             if (day === null) {
-              return <View key={colIdx} style={{ flex: 1, height: 58 }} />;
+              return <View key={colIdx} style={{ flex: 1, height: 58, margin: 1 }} />;
             }
 
             const dt = dailyTotals[day];
             const isToday = isCurrentMonth && today.getDate() === day;
             const isSelected = selectedDay === day;
-            const bg = getIntensity(dt?.expenses || 0);
+            const intensity = intensityFor(dt?.expenses || 0);
+
+            const bg = isSelected ? v2.bgInk : intensity.bg;
+            const borderColor = isToday ? v2.brand : intensity.border;
+            const borderWidth = isToday ? 2 : intensity.bg !== 'transparent' ? 1 : 0;
+            const dayColor = isSelected ? v2.inkOnDark : v2.ink;
 
             return (
               <Pressable
@@ -83,36 +91,39 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: 8,
-                  backgroundColor: isSelected ? theme.colors.primary : bg,
-                  borderWidth: isToday ? 2 : 0,
-                  borderColor: theme.colors.primary,
+                  backgroundColor: bg,
+                  borderWidth,
+                  borderColor,
                   margin: 1,
                 }}
               >
-                <RNText
-                  className="font-body-regular text-body-sm"
-                  style={{ color: isSelected ? '#FFF' : isToday ? theme.colors.primary : '#9CA3AF' }}
+                <Text
+                  style={{
+                    fontFamily: v2.fontUI,
+                    fontSize: 12,
+                    fontWeight: isToday || isSelected ? '700' : '600',
+                    color: dayColor,
+                    fontVariant: ['tabular-nums'],
+                  }}
                 >
                   {day}
-                </RNText>
-                {dt && dt.expenses > 0 && (
-                  <RNText
-                    className="text-[8px]"
-                    style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.expense }}
+                </Text>
+                {dt && dt.expenses > 0 ? (
+                  <Text
                     numberOfLines={1}
+                    style={{ fontSize: 8, color: isSelected ? v2.inkOnDarkM : v2.bad, fontVariant: ['tabular-nums'] }}
                   >
                     -{formatCurrency(dt.expenses, currencyCode)}
-                  </RNText>
-                )}
-                {dt && dt.income > 0 && (
-                  <RNText
-                    className="text-[8px]"
-                    style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.income }}
+                  </Text>
+                ) : null}
+                {dt && dt.income > 0 ? (
+                  <Text
                     numberOfLines={1}
+                    style={{ fontSize: 8, color: isSelected ? v2.inkOnDarkM : v2.good, fontVariant: ['tabular-nums'] }}
                   >
                     +{formatCurrency(dt.income, currencyCode)}
-                  </RNText>
-                )}
+                  </Text>
+                ) : null}
               </Pressable>
             );
           })}

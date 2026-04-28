@@ -1,41 +1,37 @@
-import { useCallback, useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { useWhatsNew } from '@/hooks';
+import { useState } from 'react';
+import { ScrollView, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text } from '@/components/ui/text';
+import { usePostHog } from 'posthog-react-native';
+import { useAccounts, useCategories } from '@/hooks';
+import { useGamificationStore } from '@/stores/gamificationStore';
 import { useSQLiteContext } from '@/lib/database';
 import { migrateDatabase } from '@/lib/database/migrations';
-import { useGamificationStore } from '@/stores/gamificationStore';
 import { cancelAllReminders } from '@/lib/notifications';
-import { recalculateXP } from '@/lib/gamification/recalculateXP';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { SettingSection, SettingRow, AboutSection, DangerZoneSection } from '@/components/settings';
-import { usePostHog } from 'posthog-react-native';
+import { AboutSection, DangerZoneSection } from '@/components/settings';
+import { useV2 } from '@/constants/designTokensV2';
+import {
+  SectionLabel,
+  SettingsCard,
+  SettingsRow,
+  SettingsHeader,
+} from '@/components/settings/v2';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const v2 = useV2();
   const router = useRouter();
   const db = useSQLiteContext();
   const posthog = usePostHog();
-  const { hasNew } = useWhatsNew();
+  const { accounts } = useAccounts();
+  const { customCategoriesCount } = useCategories();
 
   const [confirmAction, setConfirmAction] = useState<{
     title: string; message: string; confirmText: string; onConfirm: () => void;
   } | null>(null);
-
-  const handleRecalculateXP = async () => {
-    try {
-      const newTotal = await recalculateXP(db);
-      useGamificationStore.getState().setTotalXP(newTotal);
-      posthog.capture('xp_recalculated', { new_total: newTotal });
-    } catch (err) {
-      console.error('Error recalculating XP:', err);
-    }
-    setConfirmAction(null);
-  };
 
   const handleResetApp = async () => {
     posthog.capture('app_reset');
@@ -66,60 +62,84 @@ export default function SettingsScreen() {
       });
       setConfirmAction(null);
       setTimeout(() => router.replace('/onboarding'), 300);
-    } catch (err) {
-      console.error('Error resetting app:', err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   return (
-    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
-        <Text className="font-display text-display-lg text-content-primary px-4 py-6">
-          {t('settings.title')}
-        </Text>
-
-        <SettingSection>
-          <SettingRow
-            label={t('settings.whatsNew')}
-            leftIcon="sparkles-outline"
-            leftIconColor="#EF4444"
-            onPress={() => router.push('/whats-new' as any)}
-            rightElement={hasNew ? (
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444', marginRight: 8 }} />
-            ) : undefined}
+    <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14 }}>
+        <SettingsHeader title={t('settingsV2.headerTitle')} showBack={false} />
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
+        <SectionLabel>{t('settingsV2.preferencesSection')}</SectionLabel>
+        <SettingsCard>
+          <SettingsRow
+            icon="business-outline"
+            iconColor="#3B82F6"
+            label={t('settings.accounts')}
+            value={String(accounts.length)}
+            onPress={() => router.push('/settings/accounts' as any)}
           />
-          <SettingRow label={t('settings.accounts')} leftIcon="person-outline" leftIconColor="#3B82F6" onPress={() => router.push('/settings/accounts' as any)} />
-          <SettingRow label={t('settings.categoriesBudgets')} leftIcon="grid-outline" leftIconColor="#8B5CF6" onPress={() => router.push('/settings/categories' as any)} />
-          <SettingRow label={t('settings.appearance')} leftIcon="color-palette-outline" leftIconColor="#EC4899" onPress={() => router.push('/settings/appearance' as any)} />
-          <SettingRow label={t('settings.language')} leftIcon="globe-outline" leftIconColor="#10B981" onPress={() => router.push('/settings/language' as any)} />
-          <SettingRow label={t('settings.notifications')} leftIcon="notifications-outline" leftIconColor="#F59E0B" onPress={() => router.push('/settings/notifications' as any)} />
-          <SettingRow label={t('settings.privacy')} leftIcon="lock-closed-outline" leftIconColor="#6366F1" onPress={() => router.push('/settings/privacy' as any)} />
-          <SettingRow label={t('settings.feedback')} leftIcon="chatbubble-outline" leftIconColor="#14B8A6" onPress={() => router.push('/settings/feedback' as any)} isLast />
-        </SettingSection>
+          <SettingsRow
+            icon="grid-outline"
+            iconColor="#8B5CF6"
+            label={t('settings.categoriesBudgets')}
+            value={t('settingsV2.categoriesActiveCount', { count: customCategoriesCount })}
+            onPress={() => router.push('/settings/categories' as any)}
+          />
+          <SettingsRow
+            icon="color-palette-outline"
+            iconColor="#EC4899"
+            label={t('settings.appearance')}
+            onPress={() => router.push('/settings/appearance' as any)}
+          />
+          <SettingsRow
+            icon="globe-outline"
+            iconColor="#10B981"
+            label={t('settings.language')}
+            onPress={() => router.push('/settings/language' as any)}
+          />
+          <SettingsRow
+            icon="notifications-outline"
+            iconColor="#F59E0B"
+            label={t('settings.notifications')}
+            onPress={() => router.push('/settings/notifications' as any)}
+          />
+          <SettingsRow
+            icon="lock-closed-outline"
+            iconColor="#6366F1"
+            label={t('settings.privacy')}
+            onPress={() => router.push('/settings/privacy' as any)}
+          />
+          <SettingsRow
+            icon="chatbubble-outline"
+            iconColor="#14B8A6"
+            label={t('settings.feedback')}
+            onPress={() => router.push('/settings/feedback' as any)}
+            isLast
+          />
+        </SettingsCard>
 
         <AboutSection />
 
-        <SettingSection title={t('settings.gameDataTitle')}>
-          <SettingRow
-            label={t('settings.recalculateXP')}
-            leftIcon="refresh-outline"
-            leftIconColor="#F59E0B"
-            onPress={() => setConfirmAction({
-              title: t('settings.recalculateXPConfirm'),
-              message: t('settings.recalculateXPMessage'),
-              confirmText: t('settings.recalculateXP'),
-              onConfirm: handleRecalculateXP,
-            })}
-            isLast
-          />
-        </SettingSection>
+        <DangerZoneSection
+          onReset={() => setConfirmAction({
+            title: t('settings.resetConfirm'),
+            message: t('settings.resetMessage'),
+            confirmText: t('settings.reset'),
+            onConfirm: handleResetApp,
+          })}
+        />
 
-        <DangerZoneSection onReset={() => setConfirmAction({
-          title: t('settings.resetConfirm'),
-          message: t('settings.resetMessage'),
-          confirmText: t('settings.reset'),
-          onConfirm: handleResetApp,
-        })} />
+        <Text
+          style={{
+            marginTop: 18, textAlign: 'center',
+            fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 14, fontStyle: 'italic',
+            color: v2.inkSubtle,
+          }}
+        >
+          {t('settingsV2.tagline')}
+        </Text>
       </ScrollView>
 
       <ConfirmDialog
