@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { usePostHog } from 'posthog-react-native';
 import { useAccounts, useCategories } from '@/hooks';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { useUnlocksStore } from '@/stores/unlocksStore';
+import { useQuestsStore } from '@/stores/questsStore';
 import { useSQLiteContext } from '@/lib/database';
 import { migrateDatabase } from '@/lib/database/migrations';
 import { cancelAllReminders } from '@/lib/notifications';
@@ -47,6 +49,9 @@ export default function SettingsScreen() {
         DROP TABLE IF EXISTS sync_meta;
         DROP TABLE IF EXISTS gamification;
         DROP TABLE IF EXISTS badges;
+        DROP TABLE IF EXISTS budget_history;
+        DROP TABLE IF EXISTS unlocks;
+        DROP TABLE IF EXISTS quests;
         PRAGMA foreign_keys = ON;
         PRAGMA user_version = 0;
       `);
@@ -60,6 +65,8 @@ export default function SettingsScreen() {
         monthlyChallengeMonth: '', monthlyChallengeType: '', monthlyChallengeCompleted: false,
         badges: [],
       });
+      useUnlocksStore.getState().initialize([]);
+      useQuestsStore.getState().initialize([]);
       setConfirmAction(null);
       setTimeout(() => router.replace('/onboarding'), 300);
     } catch (err) { console.error(err); }

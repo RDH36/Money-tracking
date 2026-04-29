@@ -1,8 +1,10 @@
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
+import { groupByPlanification } from '@/lib/groupTransactions';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -38,6 +40,8 @@ export function RecentTransactionsCard({
 }: RecentTransactionsCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
+  const router = useRouter();
+  const items = groupByPlanification(transactions);
 
   return (
     <View>
@@ -101,7 +105,7 @@ export function RecentTransactionsCard({
           padding: 4,
         }}
       >
-        {transactions.length === 0 ? (
+        {items.length === 0 ? (
           <Text
             style={{
               fontFamily: v2.fontUI,
@@ -114,47 +118,97 @@ export function RecentTransactionsCard({
             {t('dashboard.noRecentTransactions')}
           </Text>
         ) : (
-          transactions.map((tx, i) => {
-            const isLast = i === transactions.length - 1;
+          items.map((item, i) => {
+            const isLast = i === items.length - 1;
+            const rowStyle = {
+              flexDirection: 'row' as const,
+              alignItems: 'center' as const,
+              gap: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              borderBottomWidth: isLast ? 0 : 1,
+              borderBottomColor: v2.hairline,
+            };
+
+            if (item.kind === 'group') {
+              const totalExpense = item.transactions
+                .filter((tx) => tx.type === 'expense')
+                .reduce((s, tx) => s + tx.amount, 0);
+              const totalIncome = item.transactions
+                .filter((tx) => tx.type === 'income')
+                .reduce((s, tx) => s + tx.amount, 0);
+              return (
+                <Pressable
+                  key={`g-${item.planificationId}`}
+                  onPress={() => router.push(`/planification/${item.planificationId}` as any)}
+                  style={rowStyle}
+                >
+                  <View
+                    style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      backgroundColor: v2.brandSoft,
+                      alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="layers-outline" size={16} color={v2.brand} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink,
+                      }}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1,
+                      }}
+                    >
+                      {t('planification.transactionCount', { count: item.transactions.length })} · {formatHM(item.latestCreatedAt)}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    {totalExpense > 0 ? (
+                      <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.bad, fontVariant: ['tabular-nums'] }}>
+                        −{formatMoneyFr(totalExpense)} {currencyCode}
+                      </Text>
+                    ) : null}
+                    {totalIncome > 0 ? (
+                      <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.good, fontVariant: ['tabular-nums'] }}>
+                        +{formatMoneyFr(totalIncome)} {currencyCode}
+                      </Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+              );
+            }
+
+            const tx = item.transaction;
             const isExpense = tx.type === 'expense';
             const isIncome = tx.type === 'income';
             const tone = isExpense ? v2.bad : isIncome ? v2.good : v2.inkMuted;
             const sign = isIncome ? '+' : isExpense ? '−' : '';
             const cat = tx.category_name ?? t('common.noCategory');
             const catColor = tx.category_color ?? v2.inkMuted;
-            const iconName: IoniconName =
-              (tx.category_icon as IoniconName) ?? 'pricetag-outline';
+            const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
             const time = formatHM(tx.created_at);
-            const meta =
-              [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
+            const meta = [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
 
             return (
               <Pressable
                 key={tx.id}
-                onLongPress={
-                  onTransactionLongPress
-                    ? () => onTransactionLongPress(tx)
-                    : undefined
-                }
+                onLongPress={onTransactionLongPress ? () => onTransactionLongPress(tx) : undefined}
                 delayLongPress={300}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  paddingVertical: 12,
-                  paddingHorizontal: 12,
-                  borderBottomWidth: isLast ? 0 : 1,
-                  borderBottomColor: v2.hairline,
-                }}
+                style={rowStyle}
               >
                 <View
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
+                    width: 36, height: 36, borderRadius: 10,
                     backgroundColor: alpha15(catColor),
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    alignItems: 'center', justifyContent: 'center',
                   }}
                 >
                   <Ionicons name={iconName} size={16} color={catColor} />
@@ -162,38 +216,24 @@ export function RecentTransactionsCard({
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text
                     numberOfLines={1}
-                    style={{
-                      fontFamily: v2.fontUI,
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: v2.ink,
-                    }}
+                    style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink }}
                   >
                     {cat}
                   </Text>
                   <Text
                     numberOfLines={1}
-                    style={{
-                      fontFamily: v2.fontUI,
-                      fontSize: 11,
-                      color: v2.inkSubtle,
-                      marginTop: 1,
-                    }}
+                    style={{ fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1 }}
                   >
                     {meta}
                   </Text>
                 </View>
                 <Text
                   style={{
-                    fontFamily: v2.fontUI,
-                    fontSize: 15,
-                    fontWeight: '700',
-                    color: tone,
-                    fontVariant: ['tabular-nums'],
+                    fontFamily: v2.fontUI, fontSize: 15, fontWeight: '700',
+                    color: tone, fontVariant: ['tabular-nums'],
                   }}
                 >
-                  {sign}
-                  {formatMoneyFr(tx.amount)} {currencyCode}
+                  {sign}{formatMoneyFr(tx.amount)} {currencyCode}
                 </Text>
               </Pressable>
             );

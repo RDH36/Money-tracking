@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EmptyState } from '@/components/premium';
 import { useTransactions, useAccounts } from '@/hooks';
 import { useV2 } from '@/constants/designTokensV2';
-import { RecentTransactionsCard } from '@/components/dashboard';
+import { TransactionsList } from '@/components/transactions/TransactionsList';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
@@ -39,7 +39,7 @@ export default function TransactionsScreen() {
         }}
       >
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => router.replace('/history')}
           hitSlop={6}
           style={{
             width: 36,
@@ -87,10 +87,10 @@ export default function TransactionsScreen() {
             />
           </View>
         ) : (
-          <RecentTransactionsCard
+          <TransactionsList
             transactions={transactions}
-            onTransactionLongPress={(tx) => setDeleteTarget(tx)}
             currencyCode={currency.code}
+            onDelete={(tx) => setDeleteTarget(tx)}
           />
         )}
       </ScrollView>

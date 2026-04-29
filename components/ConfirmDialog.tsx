@@ -1,14 +1,8 @@
-import {
-  AlertDialog,
-  AlertDialogBackdrop,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import { Text as RNText } from 'react-native';
-import { GhostButton, PrimaryButton, DangerButton } from '@/components/premium';
 import { useTranslation } from 'react-i18next';
+import { CenterDialog } from '@/components/ui/CenterDialog';
+import {
+  DialogButtonRow, DialogGhostBtn, DialogPrimaryBtn, DialogDangerBtn,
+} from '@/components/ui/DialogButtons';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -21,35 +15,27 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
-  isOpen,
-  title,
-  message,
-  confirmText,
-  isDestructive = false,
-  onClose,
-  onConfirm,
+  isOpen, title, message, confirmText, isDestructive = false, onClose, onConfirm,
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
-
   return (
-    <AlertDialog isOpen={isOpen} onClose={onClose}>
-      <AlertDialogBackdrop />
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <RNText className="font-display text-display-md text-content-primary">{title}</RNText>
-        </AlertDialogHeader>
-        <AlertDialogBody className="mt-3 mb-4">
-          <RNText className="text-content-secondary text-body-md">{message}</RNText>
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <GhostButton label={t('common.cancel')} onPress={onClose} compact />
+    <CenterDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      body={message}
+      iconName={isDestructive ? 'alert-circle-outline' : undefined}
+      variant={isDestructive ? 'danger' : 'neutral'}
+      footer={
+        <DialogButtonRow>
+          <DialogGhostBtn label={t('common.cancel')} onPress={onClose} />
           {isDestructive ? (
-            <DangerButton label={confirmText} onPress={onConfirm} compact />
+            <DialogDangerBtn label={confirmText} onPress={onConfirm} />
           ) : (
-            <PrimaryButton label={confirmText} onPress={onConfirm} compact />
+            <DialogPrimaryBtn label={confirmText} onPress={onConfirm} />
           )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogButtonRow>
+      }
+    />
   );
 }

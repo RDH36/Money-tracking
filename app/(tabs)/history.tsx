@@ -140,7 +140,7 @@ export default function HistoryScreen() {
             onCalendarPress={() => router.push('/calendar' as any)}
           />
 
-          <ManageCategoriesLink onPress={() => router.push('/categories' as any)} />
+          <ManageCategoriesLink onPress={() => router.push('/settings/categories' as any)} />
 
           {activityBudgets.length > 0 ? (
             <View style={{ marginTop: 4 }}>

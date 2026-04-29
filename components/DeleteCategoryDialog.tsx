@@ -1,12 +1,12 @@
-import { View } from 'react-native';
-import { Text as RNText } from 'react-native';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  AlertDialog, AlertDialogBackdrop, AlertDialogContent,
-  AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import { GhostButton, DangerButton, PrimaryButton } from '@/components/premium';
 import { useTranslation } from 'react-i18next';
+import { CenterDialog } from '@/components/ui/CenterDialog';
+import {
+  DialogButtonRow, DialogButtonStack, DialogGhostBtn,
+  DialogPrimaryBtn, DialogDangerBtn,
+} from '@/components/ui/DialogButtons';
+import { useV2 } from '@/constants/designTokensV2';
 import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
@@ -21,73 +21,96 @@ interface DeleteCategoryDialogProps {
 }
 
 export function DeleteCategoryDialog({
-  isOpen, category, transactionCount, onClose, onMoveToOther, onDeleteAll, onDeleteSimple,
+  isOpen, category, transactionCount, onClose,
+  onMoveToOther, onDeleteAll, onDeleteSimple,
 }: DeleteCategoryDialogProps) {
   const { t } = useTranslation();
+  const v2 = useV2();
 
-  if (!category) return null;
+  if (!category) {
+    return (
+      <CenterDialog isOpen={false} onClose={onClose} title="" showClose={false} />
+    );
+  }
 
   const hasTransactions = transactionCount > 0;
   const displayName = getCategoryDisplayName(category.id, category.name, t);
 
+  const body = hasTransactions ? (
+    <View style={{ gap: 12 }}>
+      <Text
+        style={{
+          fontFamily: v2.fontUI, fontSize: 13,
+          color: v2.inkMuted, lineHeight: 19,
+        }}
+      >
+        {t('budget.deleteCategoryHasTransactions', { count: transactionCount })}
+      </Text>
+      <View style={{ gap: 8, padding: 12, borderRadius: 12, backgroundColor: v2.bgRaised }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+          <Ionicons
+            name="archive-outline" size={14} color={v2.inkSubtle}
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            style={{
+              flex: 1, fontFamily: v2.fontUI, fontSize: 12,
+              color: v2.inkMuted, lineHeight: 17,
+            }}
+          >
+            {t('budget.deleteMoveExplanation')}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+          <Ionicons
+            name="trash-outline" size={14} color={v2.bad}
+            style={{ marginTop: 2 }}
+          />
+          <Text
+            style={{
+              flex: 1, fontFamily: v2.fontUI, fontSize: 12,
+              color: v2.inkMuted, lineHeight: 17,
+            }}
+          >
+            {t('budget.deleteAllExplanation')}
+          </Text>
+        </View>
+      </View>
+    </View>
+  ) : (
+    <Text
+      style={{
+        fontFamily: v2.fontUI, fontSize: 13,
+        color: v2.inkMuted, lineHeight: 19,
+      }}
+    >
+      {t('budget.deleteCategoryNoTransactions')}
+    </Text>
+  );
+
   return (
-    <AlertDialog isOpen={isOpen} onClose={onClose}>
-      <AlertDialogBackdrop />
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-error/10">
-              <Ionicons name="alert-circle" size={24} color="#EF4444" />
-            </View>
-            <RNText className="font-display text-display-md text-content-primary flex-1">
-              {t('budget.deleteCategoryConfirm', { name: displayName })}
-            </RNText>
-          </View>
-        </AlertDialogHeader>
-        <AlertDialogBody className="mt-3 mb-4">
-          {hasTransactions ? (
-            <View className="gap-3">
-              <RNText className="font-body-regular text-body-md text-content-secondary">
-                {t('budget.deleteCategoryHasTransactions', { count: transactionCount })}
-              </RNText>
-              <View className="gap-2 p-3 rounded-xl bg-bg-raised">
-                <View className="flex-row items-start gap-2">
-                  <Ionicons name="archive-outline" size={16} color="#8E8EA0" style={{ marginTop: 2 }} />
-                  <RNText className="flex-1 text-body-sm font-body-regular text-content-secondary">
-                    {t('budget.deleteMoveExplanation')}
-                  </RNText>
-                </View>
-                <View className="flex-row items-start gap-2">
-                  <Ionicons name="trash-outline" size={16} color="#EF4444" style={{ marginTop: 2 }} />
-                  <RNText className="flex-1 text-body-sm font-body-regular text-content-secondary">
-                    {t('budget.deleteAllExplanation')}
-                  </RNText>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <RNText className="font-body-regular text-body-md text-content-secondary">
-              {t('budget.deleteCategoryNoTransactions')}
-            </RNText>
-          )}
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <View className="gap-2 w-full">
-            {hasTransactions ? (
-              <>
-                <PrimaryButton label={t('budget.moveToOther')} onPress={onMoveToOther} compact />
-                <DangerButton label={t('budget.deleteAlso')} onPress={onDeleteAll} compact />
-                <GhostButton label={t('common.cancel')} onPress={onClose} compact />
-              </>
-            ) : (
-              <View className="flex-row gap-2">
-                <GhostButton label={t('common.cancel')} onPress={onClose} compact />
-                <DangerButton label={t('common.delete')} onPress={onDeleteSimple} compact />
-              </View>
-            )}
-          </View>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <CenterDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('budget.deleteCategoryConfirm', { name: displayName })}
+      iconName="alert-circle-outline"
+      variant="danger"
+      footer={
+        hasTransactions ? (
+          <DialogButtonStack>
+            <DialogPrimaryBtn label={t('budget.moveToOther')} onPress={onMoveToOther} />
+            <DialogDangerBtn label={t('budget.deleteAlso')} onPress={onDeleteAll} />
+            <DialogGhostBtn label={t('common.cancel')} onPress={onClose} />
+          </DialogButtonStack>
+        ) : (
+          <DialogButtonRow>
+            <DialogGhostBtn label={t('common.cancel')} onPress={onClose} />
+            <DialogDangerBtn label={t('common.delete')} onPress={onDeleteSimple} />
+          </DialogButtonRow>
+        )
+      }
+    >
+      {body}
+    </CenterDialog>
   );
 }

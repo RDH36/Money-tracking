@@ -1,86 +1,49 @@
-import { useState } from "react";
-import { useRouter } from "expo-router";
-import { View, Text as RNText, ScrollView } from "react-native";
-import { Image } from "expo-image";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { EaseView } from "react-native-ease";
-import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
-import { usePostHog } from "posthog-react-native";
-import { useTranslation } from "react-i18next";
-import { ProgressBar } from "@/components/onboarding/ProgressBar";
-import { QuizOptionCard } from "@/components/onboarding/QuizOptionCard";
+import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { usePostHog } from 'posthog-react-native';
+import { QuizScreenV2 } from '@/components/onboarding/v2';
 import {
   useOnboardingQuiz,
   type GoalAnswer,
-} from "@/contexts/OnboardingQuizContext";
+} from '@/contexts/OnboardingQuizContext';
 
-const OPTIONS: { key: GoalAnswer; emoji: string }[] = [
-  { key: "less_stress", emoji: "😌" },
-  { key: "reach_goals", emoji: "🎯" },
-  { key: "feel_free", emoji: "🕊️" },
-  { key: "enjoy_life", emoji: "🌟" },
+const KEYS: { key: GoalAnswer; emoji: string }[] = [
+  { key: 'less_stress', emoji: '😌' },
+  { key: 'reach_goals', emoji: '🎯' },
+  { key: 'feel_free', emoji: '🕊️' },
+  { key: 'enjoy_life', emoji: '🌟' },
 ];
 
 export default function QuizQ3Screen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { goal, setGoal } = useOnboardingQuiz();
   const [selected, setSelected] = useState<GoalAnswer | null>(goal);
   const posthog = usePostHog();
 
-  const handleSelect = (key: GoalAnswer) => {
-    setSelected(key);
-    setGoal(key);
-    posthog.capture("onboarding_quiz_answered", { question: 3, answer: key });
-    setTimeout(() => router.replace("/onboarding/empathy"), 300);
+  const handleSelect = (key: string) => {
+    const k = key as GoalAnswer;
+    setSelected(k);
+    setGoal(k);
+    posthog.capture('onboarding_quiz_answered', { question: 3, answer: k });
+    setTimeout(() => router.replace('/onboarding/empathy'), 300);
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-bg-base"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
-    >
-      <View className="flex-1 px-6 py-6 relative">
-        <ProgressBar step={3} totalSteps={8} />
-
-        <View className="gap-4 mb-2">
-          <RNText className="font-body-regular text-body-sm text-content-tertiary">
-            {t("quiz.questionLabel")} 3/3
-          </RNText>
-          <RNText className="font-display text-display-lg text-content-primary">
-            {t("quiz.q3Title")}
-          </RNText>
-        </View>
-
-        <EaseView
-          className="items-center mb-0"
-          initialAnimate={{ opacity: 0, translateY: 30 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 400, easing: "easeOut" }}
-          style={{ position: "relative" }}
-        >
-          <Image
-            source={require("@/assets/images/bubule-smile.png")}
-            style={{ width: 400, height: 400, alignSelf: "center" }}
-            contentFit="contain"
-          />
-          <SpeechBubble text={t("quiz.q3Subtitle")} />
-        </EaseView>
-
-        <View className="gap-3 flex-1 bottom-14">
-          {OPTIONS.map((option, index) => (
-            <QuizOptionCard
-              key={option.key}
-              label={t(`quiz.q3_${option.key}`)}
-              emoji={option.emoji}
-              isSelected={selected === option.key}
-              onPress={() => handleSelect(option.key)}
-              index={index}
-            />
-          ))}
-        </View>
-      </View>
-    </ScrollView>
+    <QuizScreenV2
+      step={4}
+      questionLabel={`${t('quiz.questionLabel')} 3 / 3`}
+      title={t('quiz.q3Title')}
+      bubbleSpeech={t('quiz.q3Subtitle')}
+      bubbleImage={require('@/assets/images/bubule-smile.png')}
+      options={KEYS.map((o) => ({
+        key: o.key,
+        emoji: o.emoji,
+        label: t(`quiz.q3_${o.key}`),
+      }))}
+      selected={selected}
+      onSelect={handleSelect}
+    />
   );
 }

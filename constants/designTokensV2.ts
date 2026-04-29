@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { useTheme } from '@/contexts';
 
 export interface V2Tokens {
   bgBase: string;
@@ -96,9 +98,46 @@ const DARK: V2Tokens = {
   ...FONTS,
 };
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return null;
+  return {
+    r: parseInt(m[1], 16),
+    g: parseInt(m[2], 16),
+    b: parseInt(m[3], 16),
+  };
+}
+
+function withAlpha(hex: string, alpha: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+}
+
+function adjust(hex: string, amount: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const f = (v: number) =>
+    Math.max(0, Math.min(255, Math.round(v + (amount < 0 ? v : 255 - v) * amount)));
+  const to = (v: number) => f(v).toString(16).padStart(2, '0');
+  return `#${to(rgb.r)}${to(rgb.g)}${to(rgb.b)}`.toUpperCase();
+}
+
 export function useV2(): V2Tokens {
   const isDark = useEffectiveColorScheme() === 'dark';
-  return isDark ? DARK : LIGHT;
+  const { theme } = useTheme();
+  const primary = theme.colors.primary;
+
+  return useMemo(() => {
+    const base = isDark ? DARK : LIGHT;
+    return {
+      ...base,
+      brand: primary,
+      brandDeep: isDark ? adjust(primary, 0.15) : adjust(primary, -0.18),
+      brandSoft: withAlpha(primary, isDark ? 0.18 : 0.10),
+      brandTint: isDark ? withAlpha(primary, 0.10) : withAlpha(primary, 0.08),
+    };
+  }, [isDark, primary]);
 }
 
 /**
@@ -109,6 +148,12 @@ export const V2 = LIGHT;
 
 const numberFormatterFr = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
 
-export function formatMoneyFr(value: number): string {
-  return numberFormatterFr.format(Math.abs(Math.round(value)));
+/**
+ * Format an amount stored as cents (DB convention) for display.
+ * Divides by 100 then formats with French thousands separators.
+ * Example: 50000000 (cents) → "500 000" (MGA).
+ */
+export function formatMoneyFr(amountInCents: number): string {
+  const amount = Math.abs(amountInCents) / 100;
+  return numberFormatterFr.format(amount);
 }

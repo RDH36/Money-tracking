@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSQLiteContext } from '@/lib/database';
+import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import type { Transaction, TransactionType, Category } from '@/types';
 
 interface CreateTransactionParams {
@@ -63,9 +64,10 @@ export function useTransactions() {
     }
   }, [db]);
 
+  const transactionsVersion = useDataRefreshStore((s) => s.transactionsVersion);
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+  }, [fetchTransactions, transactionsVersion]);
 
   const createTransaction = useCallback(
     async ({ type, amount, categoryId, accountId, note }: CreateTransactionParams): Promise<{ success: boolean; id: string | null; error?: string }> => {
@@ -110,7 +112,7 @@ export function useTransactions() {
           [id, type, amount, categoryId, accountId, note, now, now]
         );
 
-        fetchTransactions();
+        useDataRefreshStore.getState().bumpAll();
         return { success: true, id };
       } catch (err) {
         console.error('Error creating transaction:', err);
@@ -148,6 +150,7 @@ export function useTransactions() {
           }
         }
 
+        useDataRefreshStore.getState().bumpAll();
         return true;
       } catch (err) {
         console.error('Error deleting transaction:', err);

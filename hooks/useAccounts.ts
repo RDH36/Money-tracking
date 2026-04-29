@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { SYSTEM_CATEGORY_TRANSFER_ID, MAX_CUSTOM_ACCOUNTS } from '@/lib/database/schema';
 import { useUnlocksStore } from '@/stores/unlocksStore';
+import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import { getAccountSlotBonus } from '@/lib/gamification/unlocks';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
@@ -65,9 +66,10 @@ export function useAccounts() {
     }
   }, [db]);
 
+  const accountsVersion = useDataRefreshStore((s) => s.accountsVersion);
   useEffect(() => {
     fetchAccounts();
-  }, [fetchAccounts]);
+  }, [fetchAccounts, accountsVersion]);
 
   // Custom accounts are those with is_default = 0
   const customAccounts = useMemo(
@@ -96,7 +98,7 @@ export function useAccounts() {
           [id, name, type, initialBalance, icon, now, now]
         );
 
-        fetchAccounts();
+        useDataRefreshStore.getState().bumpAccounts();
         return { success: true, id, limitReached: false };
       } catch (error) {
         console.error('Error creating account:', error);
@@ -154,7 +156,7 @@ export function useAccounts() {
           );
         });
 
-        fetchAccounts();
+        useDataRefreshStore.getState().bumpAll();
         return { success: true, transferId };
       } catch (error) {
         console.error('Error creating transfer:', error);

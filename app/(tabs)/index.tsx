@@ -165,7 +165,7 @@ export default function DashboardScreen() {
             balanceHidden={balanceHidden}
             onToggleBalance={toggleBalanceVisibility}
             overspendBudget={overspendBudget}
-            onOverspendPress={() => router.push('/(tabs)/simulation')}
+            onOverspendPress={() => router.push('/history')}
             currencyCode={currency.code}
           />
 
@@ -174,9 +174,7 @@ export default function DashboardScreen() {
             level={calculateLevel(gamification.totalXP)}
             totalXP={gamification.totalXP}
             xpProgressPct={Math.round(xpProgress(gamification.totalXP) * 100)}
-            onPress={() =>
-              router.push({ pathname: '/history', params: { tab: 'achievements' } })
-            }
+            onPress={() => router.push('/(tabs)/achievements')}
           />
 
           <View style={{ marginTop: 22 }}>
@@ -196,14 +194,14 @@ export default function DashboardScreen() {
             <BudgetsCard
               monthLabel={formatMonthLabelFr(now, i18n.language)}
               budgets={topBudgets}
-              onSeeAllPress={() => router.push('/(tabs)/simulation')}
+              onSeeAllPress={() => router.push('/history')}
             />
           </View>
 
           <View style={{ marginTop: 24 }}>
             <RecentTransactionsCard
               transactions={recentTransactions}
-              onSeeAllPress={() => router.push('/history')}
+              onSeeAllPress={() => router.push('/transactions')}
               onTransactionLongPress={(tx) => setDeleteTarget(tx)}
               currencyCode={currency.code}
             />

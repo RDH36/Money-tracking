@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { ensureCurrentMonthBudgetHistory } from '@/lib/database/budgetHistory';
+import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import type { Category } from '@/types';
 
 export interface BudgetData {
@@ -107,9 +108,10 @@ export function useBudgets() {
     }
   }, [db]);
 
+  const budgetsVersion = useDataRefreshStore((s) => s.budgetsVersion);
   useEffect(() => {
     fetchBudgets();
-  }, [fetchBudgets]);
+  }, [fetchBudgets, budgetsVersion]);
 
   const overspentBudgets = useMemo(
     () => budgets.filter((b) => b.status === 'red'),

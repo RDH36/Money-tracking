@@ -1,249 +1,192 @@
-import { useEffect, useState } from "react";
-import { View, Dimensions, Text as RNText, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
+import { useEffect, useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSequence,
-  withRepeat,
-  Easing,
-} from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
-import { Image } from "expo-image";
-import { ProgressBar } from "@/components/onboarding/ProgressBar";
-import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
-import { useOnboardingQuiz } from "@/contexts/OnboardingQuizContext";
-import { useTheme } from "@/contexts";
-import { PrimaryButton } from "@/components/premium";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const CIRCLE_MAX = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT) * 1.5;
+  useSharedValue, useAnimatedStyle, withTiming, withDelay,
+  withRepeat, withSequence, Easing,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
+import { useV2 } from '@/constants/designTokensV2';
+import { useOnboardingQuiz } from '@/contexts/OnboardingQuizContext';
+import { ProgressDots, EyebrowLabel, BubuleHeadBubble, PrimaryBtn } from '@/components/onboarding/v2';
 
 export default function EmpathyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const v2 = useV2();
   const { frustration, duration, goal } = useOnboardingQuiz();
   const [analyzing, setAnalyzing] = useState(true);
 
   const pulseScale = useSharedValue(1);
-  const circleScale = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-  const line1Y = useSharedValue(20);
-  const line2Y = useSharedValue(20);
-  const line3Y = useSharedValue(20);
-  const line4Y = useSharedValue(20);
-  const ctaY = useSharedValue(20);
+  const fadeIn = useSharedValue(0);
+  const slideUp = useSharedValue(20);
 
   useEffect(() => {
     pulseScale.value = withRepeat(
       withSequence(
-        withTiming(1.1, { duration: 600 }),
-        withTiming(1, { duration: 600 }),
+        withTiming(1.08, { duration: 600 }),
+        withTiming(1, { duration: 600 })
       ),
-      3,
-      true,
+      3, true,
     );
 
     const timer = setTimeout(() => {
       setAnalyzing(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Expanding circle reveal
-      circleScale.value = withTiming(1, {
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-      });
-
-      // Staggered content entrance
-      const fadeIn = (delay: number) => ({
-        opacity: withDelay(delay, withTiming(1, { duration: 400 })),
-        y: withDelay(
-          delay,
-          withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) }),
-        ),
-      });
-
-      contentOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
-      const l1 = fadeIn(400);
-      line1Y.value = l1.y;
-      const l2 = fadeIn(600);
-      line2Y.value = l2.y;
-      const l3 = fadeIn(800);
-      line3Y.value = l3.y;
-      const l4 = fadeIn(1000);
-      line4Y.value = l4.y;
-      const cta = fadeIn(1200);
-      ctaY.value = cta.y;
+      fadeIn.value = withTiming(1, { duration: 500 });
+      slideUp.value = withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) });
     }, 1800);
-
     return () => clearTimeout(timer);
   }, []);
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
   }));
-
-  const circleStyle = useAnimatedStyle(() => ({
-    width: CIRCLE_MAX,
-    height: CIRCLE_MAX,
-    borderRadius: CIRCLE_MAX / 2,
-    transform: [{ scale: circleScale.value }],
-    opacity: circleScale.value > 0 ? 1 : 0,
-  }));
-
   const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
+    opacity: fadeIn.value,
+    transform: [{ translateY: slideUp.value }],
   }));
 
-  const line1Style = useAnimatedStyle(() => ({
-    opacity: line1Y.value === 20 ? 0 : 1,
-    transform: [{ translateY: line1Y.value }],
-  }));
-  const line2Style = useAnimatedStyle(() => ({
-    opacity: line2Y.value === 20 ? 0 : 1,
-    transform: [{ translateY: line2Y.value }],
-  }));
-  const line3Style = useAnimatedStyle(() => ({
-    opacity: line3Y.value === 20 ? 0 : 1,
-    transform: [{ translateY: line3Y.value }],
-  }));
-  const line4Style = useAnimatedStyle(() => ({
-    opacity: line4Y.value === 20 ? 0 : 1,
-    transform: [{ translateY: line4Y.value }],
-  }));
-  const ctaStyle = useAnimatedStyle(() => ({
-    opacity: ctaY.value === 20 ? 0 : 1,
-    transform: [{ translateY: ctaY.value }],
-  }));
+  const headlineKey = frustration ? `empathy.headline_${frustration}` : 'empathy.headlineDefault';
+  const statKey = frustration ? `empathy.stat_${frustration}` : 'empathy.statDefault';
+  const message = duration && goal
+    ? t('empathy.personalizedMessage', {
+        duration: t(`empathy.duration_${duration}`),
+        goal: t(`empathy.goal_${goal}`),
+      })
+    : t('empathy.message');
 
-  const getHeadlineKey = () => {
-    if (!frustration) return "empathy.headlineDefault";
-    return `empathy.headline_${frustration}`;
-  };
-
-  const getPersonalizedMessage = () => {
-    const durationText = duration ? t(`empathy.duration_${duration}`) : "";
-    const goalText = goal ? t(`empathy.goal_${goal}`) : "";
-
-    if (durationText && goalText) {
-      return t("empathy.personalizedMessage", {
-        duration: durationText,
-        goal: goalText,
-      });
-    }
-    return t("empathy.message");
-  };
-
-  const getStatKey = () => {
-    if (!frustration) return "empathy.statDefault";
-    return `empathy.stat_${frustration}`;
-  };
+  if (analyzing) {
+    return (
+      <View
+        style={{
+          flex: 1, backgroundColor: v2.bgBase,
+          paddingTop: insets.top, paddingBottom: insets.bottom + 16,
+          alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24,
+        }}
+      >
+        <Animated.View style={[pulseStyle, { alignItems: 'center' }]}>
+          <View style={{ position: 'relative', width: 360, height: 360 }}>
+            <BubuleHeadBubble top={30}>{t('empathy.searchSpeech')}</BubuleHeadBubble>
+            <Image
+              source={require('@/assets/images/bubule-search.png')}
+              style={{ width: 360, height: 360 }}
+              contentFit="contain"
+            />
+          </View>
+        </Animated.View>
+        <Text
+          style={{
+            marginTop: 16, fontFamily: v2.fontDisplay, fontWeight: '700',
+            fontSize: 24, color: v2.ink, letterSpacing: -0.5, textAlign: 'center',
+          }}
+        >
+          {t('empathy.analyzing')}
+        </Text>
+        <Text
+          style={{
+            marginTop: 8, fontFamily: v2.fontUI, fontSize: 13,
+            color: v2.inkMuted, textAlign: 'center',
+          }}
+        >
+          {t('empathy.analyzingSubtitle')}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
-      className="flex-1 bg-bg-base"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
-      contentContainerStyle={{ flexGrow: 1 }}
+      style={{ flex: 1, backgroundColor: v2.bgBase }}
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 24,
+      }}
     >
-      <View className="flex-1 p-6 relative">
-        <ProgressBar step={4} totalSteps={8} />
-
-        {analyzing ? (
-          <View className="flex-1 justify-center items-center gap-4">
-            <Animated.View
-              style={[pulseStyle, { position: "relative" }]}
-              className="items-center"
-            >
-              <Image
-                source={require("@/assets/images/bubule-search.png")}
-                style={{ width: 400, height: 400, alignSelf: "center" }}
-                contentFit="contain"
-              />
-              <SpeechBubble text={t("empathy.searchSpeech")} />
-            </Animated.View>
-            <RNText className="text-center text-display-lg font-display text-content-primary">
-              {t("empathy.analyzing")}
-            </RNText>
-            <RNText className="text-center text-content-secondary text-body-md">
-              {t("empathy.analyzingSubtitle")}
-            </RNText>
-          </View>
-        ) : (
-          <View className="flex-1">
-            {/* Expanding circle background */}
-            <View className="absolute inset-0 items-center justify-center overflow-hidden">
-              <Animated.View
-                style={[
-                  circleStyle,
-                  { backgroundColor: theme.colors.primary + "08" },
-                ]}
-              />
-            </View>
-
-            {/* Content */}
-            <Animated.View style={[{ flex: 1 }, contentStyle]}>
-              <View className="flex-1 justify-center gap-6">
-                <Animated.View style={line1Style}>
-                  <RNText className="text-center text-display-xl font-display text-content-primary">
-                    {t(getHeadlineKey())}
-                  </RNText>
-                </Animated.View>
-
-                <Animated.View style={line2Style}>
-                  <View
-                    className="p-5 rounded-xl bg-bg-surface"
-                    style={{ backgroundColor: theme.colors.primary + "15" }}
-                  >
-                    <RNText
-                      className="text-center text-body-lg leading-6 font-ui"
-                      style={{ color: theme.colors.primary }}
-                    >
-                      {t(getStatKey())}
-                    </RNText>
-                  </View>
-                </Animated.View>
-
-                <Animated.View
-                  style={[line3Style, { position: "relative" }]}
-                  className="items-center"
-                >
-                  <Image
-                    source={require("@/assets/images/bubule-motivation.png")}
-                    style={{ width: 400, height: 400, alignSelf: "center" }}
-                    contentFit="contain"
-                  />
-                  <SpeechBubble text={t("empathy.resultSpeech")} />
-                </Animated.View>
-
-                <Animated.View
-                  style={line4Style}
-                  className="absolute bottom-14"
-                >
-                  <RNText className="text-center text-content-secondary text-body-md leading-6">
-                    {getPersonalizedMessage()}
-                  </RNText>
-                </Animated.View>
-              </View>
-
-              <Animated.View style={ctaStyle}>
-                <PrimaryButton
-                  label={t("empathy.cta")}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push("/onboarding/solution");
-                  }}
-                />
-              </Animated.View>
-            </Animated.View>
-          </View>
-        )}
+      <View style={{ paddingHorizontal: 20 }}>
+        <ProgressDots step={5} />
       </View>
+
+      <Animated.View style={[contentStyle, { paddingHorizontal: 20, paddingTop: 16 }]}>
+        <EyebrowLabel>{t('empathy.resultSpeech')}</EyebrowLabel>
+        <Text
+          style={{
+            marginTop: 4,
+            fontFamily: v2.fontDisplay, fontWeight: '700',
+            fontSize: 30, color: v2.ink, letterSpacing: -0.7, lineHeight: 34,
+          }}
+        >
+          {t(headlineKey)}
+        </Text>
+
+        <View
+          style={{
+            marginTop: 32, padding: 22,
+            backgroundColor: v2.bgInk, borderRadius: 18,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: v2.fontDisplay, fontWeight: '700',
+              fontStyle: 'italic', fontSize: 15, color: v2.brand,
+              lineHeight: 22, letterSpacing: -0.2,
+            }}
+          >
+            {t(statKey)}
+          </Text>
+          <View
+            style={{
+              marginTop: 16, paddingTop: 14,
+              borderTopWidth: 1, borderTopColor: 'rgba(245,245,241,0.12)',
+              flexDirection: 'row', alignItems: 'center', gap: 6,
+            }}
+          >
+            <Ionicons name="information-circle-outline" size={11} color={v2.inkOnDarkM} />
+            <Text
+              style={{
+                fontFamily: v2.fontUI, fontSize: 10, color: v2.inkOnDarkM,
+                fontStyle: 'italic',
+              }}
+            >
+              Mitsitsy · 2025
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ alignItems: 'center', marginTop: 24, marginBottom: -16 }}>
+          <View style={{ position: 'relative', width: 300, height: 300 }}>
+            <BubuleHeadBubble top={20}>{t('empathy.resultSpeech')}</BubuleHeadBubble>
+            <Image
+              source={require('@/assets/images/bubule-motivation.png')}
+              style={{ width: 300, height: 300 }}
+              contentFit="contain"
+            />
+          </View>
+        </View>
+
+        <Text
+          style={{
+            textAlign: 'center', marginTop: 16, marginBottom: 32,
+            fontFamily: v2.fontUI, fontSize: 14,
+            color: v2.inkMuted, lineHeight: 21, paddingHorizontal: 12,
+          }}
+        >
+          {message}
+        </Text>
+
+        <PrimaryBtn
+          label={t('empathy.cta')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/onboarding/solution');
+          }}
+        />
+      </Animated.View>
     </ScrollView>
   );
 }

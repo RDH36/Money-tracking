@@ -16,6 +16,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useV2 } from '@/constants/designTokensV2';
 
 interface BottomSheetProps {
@@ -46,6 +47,7 @@ export function BottomSheet({
   const [mounted, setMounted] = useState(false);
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
+  const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
 
   useEffect(() => {
     if (isOpen) {
@@ -69,16 +71,33 @@ export function BottomSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const baseMaxHeight = SCREEN_HEIGHT * (maxHeightPct / 100);
+  // When keyboard is open we don't need the bottom safe-area padding nor the
+  // footer padding below the buttons — the keyboard itself replaces them. So
+  // lift the sheet by keyboardHeight + (insets.bottom + footerPad) to close
+  // the gap between buttons and keyboard top. footerPad = 24 (CTA padding).
+  const kbCompensation = insets.bottom + 24;
+
+  const sheetStyle = useAnimatedStyle(() => {
+    const ty = keyboardHeight.value < 0
+      ? keyboardHeight.value + kbCompensation
+      : 0;
+    return {
+      transform: [{ translateY: translateY.value + ty }],
+      maxHeight: baseMaxHeight + ty,
+    };
+  });
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
 
   const Body: any = scrollable ? ScrollView : View;
   const bodyProps = scrollable
-    ? { contentContainerStyle: { padding: 20, paddingTop: 8 }, showsVerticalScrollIndicator: false }
+    ? {
+        contentContainerStyle: { padding: 20, paddingTop: 8 },
+        showsVerticalScrollIndicator: false,
+        keyboardShouldPersistTaps: 'handled' as const,
+      }
     : { style: { padding: 20, paddingTop: 8 } };
 
   return (
@@ -105,7 +124,6 @@ export function BottomSheet({
               borderLeftWidth: StyleSheet.hairlineWidth,
               borderRightWidth: StyleSheet.hairlineWidth,
               borderColor: v2.hairlineStrong,
-              maxHeight: `${maxHeightPct}%`,
               paddingBottom: insets.bottom,
               shadowColor: '#000',
               shadowOpacity: 0.4,

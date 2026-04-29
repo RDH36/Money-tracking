@@ -35,6 +35,32 @@ export interface Theme {
 // Brand colors are designed, not algorithmically generated.
 // Each theme has ONE primary accent — used sparingly on CTA + active states.
 
+const roseTheme: Theme = {
+  id: 'rose',
+  name: 'Rose',
+  colors: {
+    primary: '#D9665D',
+    primaryLight: '#D9665D14',
+    secondary: '#3A8C7E',
+    secondaryLight: '#3A8C7E14',
+    accent1: '#E08A7B',
+    accent2: '#3A8C7E',
+    accent3: '#FFCBA4',
+    accent4: '#9C3D55',
+    accent5: '#F5B197',
+    accent6: '#3D7BB6',
+    success: '#22C55E',
+    error: '#EF4444',
+    textPrimary: '#14141A',
+    textSecondary: '#6B6B78',
+    textMuted: '#9C9CA8',
+    background: '#F8F8FA',
+    cardBackground: '#FFFFFF',
+    border: '#F0F0F4',
+  },
+  chartColors: getChartColors('turquoise'),
+};
+
 const turquoiseTheme: Theme = {
   id: 'turquoise',
   name: 'Turquoise',
@@ -187,18 +213,21 @@ const premiumThemes: Theme[] = [
 
 // Liste des thèmes disponibles (base + premium)
 export const THEMES: Theme[] = [
-  turquoiseTheme, blueTheme, purpleTheme, orangeTheme,
+  roseTheme, turquoiseTheme, blueTheme, purpleTheme, orangeTheme,
   ...premiumThemes,
 ];
 
 // Thème par défaut
-export const DEFAULT_THEME_ID = 'turquoise';
+export const DEFAULT_THEME_ID = 'rose';
+
+// Couleur d'accent figée pour l'onboarding (indépendante du thème utilisateur)
+export const ONBOARDING_ACCENT = '#D9665D';
 
 // Fonction pour obtenir un thème par son ID
 export function getThemeById(id: string): Theme {
-  return THEMES.find((t) => t.id === id) || turquoiseTheme;
+  return THEMES.find((t) => t.id === id) || roseTheme;
 }
 
-// Export pour compatibilité (utilise le thème turquoise par défaut)
-export const COLORS = turquoiseTheme.colors;
-export const CHART_COLORS = turquoiseTheme.chartColors;
+// Export pour compatibilité
+export const COLORS = roseTheme.colors;
+export const CHART_COLORS = roseTheme.chartColors;

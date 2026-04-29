@@ -5,14 +5,14 @@ import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { useSettingsStore, ColorMode } from '@/stores';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 
-interface ThemeContextValue {
+export interface ThemeContextValue {
   theme: Theme;
   themeId: string;
   setTheme: (id: string) => Promise<void>;
   isLoading: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -52,11 +52,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const colorMode = (colorModeResult?.value as ColorMode) || 'system';
         const tipsEnabled = tipsResult?.value !== '0';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, colorMode, tipsEnabled);
+        initialize(balanceResult?.value === '1', themeResult?.value || 'rose', frequency, currency, colorMode, tipsEnabled);
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', 'off', DEFAULT_CURRENCY, 'system', true);
+        initialize(false, 'rose', 'off', DEFAULT_CURRENCY, 'system', true);
       }
     };
 

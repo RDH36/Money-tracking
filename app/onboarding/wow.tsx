@@ -1,422 +1,208 @@
-import { useState, useCallback, useEffect } from "react";
-import { View, Pressable, Text as RNText, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import * as Haptics from "expo-haptics";
+import { useState, useCallback } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-  Easing,
-} from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { ProgressBar } from "@/components/onboarding/ProgressBar";
-import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
-import { ConfettiEffect } from "@/components/onboarding/ConfettiEffect";
-import { useTheme } from "@/contexts";
-import { CURRENCIES, DEFAULT_CURRENCY } from "@/constants/currencies";
-import { formatCurrency } from "@/lib/currency";
-import { PressableScale } from "@/components/onboarding/PressableScale";
-import { usePostHog } from "posthog-react-native";
-import { useSettings } from "@/hooks";
-import { PrimaryButton } from "@/components/premium";
-import { cn } from "@/lib/utils";
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, withDelay, Easing,
+} from 'react-native-reanimated';
+import { usePostHog } from 'posthog-react-native';
+import { useV2 } from '@/constants/designTokensV2';
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
+import { formatCurrency } from '@/lib/currency';
+import { useSettings } from '@/hooks';
+import { ConfettiEffect } from '@/components/onboarding/ConfettiEffect';
+import { ProgressDots, EyebrowLabel } from '@/components/onboarding/v2';
+import { CurrencyPicker, ExpenseTapList, ReportSheet, type TapExpense } from '@/components/onboarding/v2/wow';
 
 const AMOUNTS: Record<string, { expenses: number[]; balance: number }> = {
-  MGA: { expenses: [300000, 500000, 800000, 1500000], balance: 10000000 },
-  EUR: { expenses: [350, 1200, 1500, 2500], balance: 50000 },
-  USD: { expenses: [350, 1200, 1500, 2500], balance: 50000 },
+  MGA: { expenses: [15000, 8000, 25000, 12000], balance: 1000000 },
+  EUR: { expenses: [3.5, 12, 15, 8], balance: 500 },
+  USD: { expenses: [3.5, 12, 15, 8], balance: 500 },
 };
 
-const EXPENSE_TEMPLATES = [
-  {
-    id: "coffee",
-    labelKey: "wow.expenseCoffee",
-    icon: "cafe" as const,
-    categoryKey: "wow.catFood",
-    color: "#FF6B6B",
-  },
-  {
-    id: "taxi",
-    labelKey: "wow.expenseTaxi",
-    icon: "car" as const,
-    categoryKey: "wow.catTransport",
-    color: "#4ECDC4",
-  },
-  {
-    id: "lunch",
-    labelKey: "wow.expenseLunch",
-    icon: "restaurant" as const,
-    categoryKey: "wow.catFood",
-    color: "#FF6B6B",
-  },
-  {
-    id: "phone",
-    labelKey: "wow.expensePhone",
-    icon: "phone-portrait" as const,
-    categoryKey: "wow.catBills",
-    color: "#A78BFA",
-  },
+const TEMPLATES: Omit<TapExpense, 'amount'>[] = [
+  { id: 'coffee', label: 'wow.expenseCoffee', icon: 'cafe-outline', category: 'wow.catFood', color: '#C8442C' },
+  { id: 'taxi', label: 'wow.expenseTaxi', icon: 'car-outline', category: 'wow.catTransport', color: '#3D7BB6' },
+  { id: 'lunch', label: 'wow.expenseLunch', icon: 'restaurant-outline', category: 'wow.catFood', color: '#C8442C' },
+  { id: 'phone', label: 'wow.expensePhone', icon: 'phone-portrait-outline', category: 'wow.catBills', color: '#7B5EA8' },
 ];
-
-function AnimatedBar({
-  targetWidth,
-  color,
-  delay,
-}: {
-  targetWidth: number;
-  color: string;
-  delay: number;
-}) {
-  const width = useSharedValue(0);
-
-  useEffect(() => {
-    width.value = withDelay(
-      delay,
-      withTiming(targetWidth, {
-        duration: 800,
-        easing: Easing.out(Easing.cubic),
-      }),
-    );
-  }, [targetWidth]);
-
-  const barStyle = useAnimatedStyle(() => ({
-    width: `${width.value}%`,
-    height: "100%",
-    borderRadius: 3,
-    backgroundColor: color,
-  }));
-
-  return <Animated.View style={barStyle} />;
-}
 
 export default function WowScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const v2 = useV2();
   const { setCurrency } = useSettings();
   const posthog = usePostHog();
 
   const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
-  const [tappedExpenses, setTappedExpenses] = useState<Set<string>>(new Set());
+  const [tapped, setTapped] = useState<Set<string>>(new Set());
   const [showConfetti, setShowConfetti] = useState(false);
   const balanceAnim = useSharedValue(1);
+  const overlayOpacity = useSharedValue(0);
   const reportOpacity = useSharedValue(0);
-  const reportTranslateY = useSharedValue(600);
+  const reportTy = useSharedValue(600);
 
-  const currencyAmounts = AMOUNTS[selectedCurrency] || AMOUNTS.USD;
-  const expenses = EXPENSE_TEMPLATES.map((tpl, i) => ({
+  const amounts = AMOUNTS[selectedCurrency] || AMOUNTS.USD;
+  const expenses: TapExpense[] = TEMPLATES.map((tpl, i) => ({
     ...tpl,
-    amount: currencyAmounts.expenses[i],
+    label: t(tpl.label),
+    category: t(tpl.category),
+    amount: amounts.expenses[i],
   }));
 
-  const currentBalance =
-    currencyAmounts.balance -
-    expenses
-      .filter((e) => tappedExpenses.has(e.id))
-      .reduce((sum, e) => sum + e.amount, 0);
+  const spent = expenses.filter((e) => tapped.has(e.id)).reduce((s, e) => s + e.amount, 0);
+  const balance = amounts.balance - spent;
+  const allTapped = tapped.size === expenses.length;
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
 
-  const allTapped = tappedExpenses.size === expenses.length;
-  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-  const categoryBreakdown = expenses.reduce<
-    Record<string, { amount: number; color: string; categoryKey: string }>
-  >((acc, e) => {
-    const cat = e.categoryKey;
-    if (!acc[cat]) acc[cat] = { amount: 0, color: e.color, categoryKey: cat };
-    acc[cat].amount += e.amount;
+  const breakdown = expenses.reduce<Record<string, { amount: number; color: string; key: string }>>((acc, e) => {
+    if (!acc[e.category]) acc[e.category] = { amount: 0, color: e.color, key: e.category };
+    acc[e.category].amount += e.amount;
     return acc;
   }, {});
+  const categoriesArr = Object.values(breakdown).map((b) => ({
+    key: b.key, label: b.key, amount: b.amount, color: b.color,
+    pct: total > 0 ? (b.amount / total) * 100 : 0,
+  }));
 
-  const handleSelectCurrency = async (code: string) => {
+  const handleSelectCurrency = useCallback(async (code: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedCurrency(code);
     await setCurrency(code);
-  };
+  }, [setCurrency]);
 
-  const handleTapExpense = useCallback(
-    (expense: (typeof expenses)[0]) => {
-      if (tappedExpenses.has(expense.id)) return;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  const handleTap = useCallback((id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const next = new Set(tapped); next.add(id);
+    setTapped(next);
+    balanceAnim.value = withSpring(1.06, { damping: 6, stiffness: 220 }, () => {
+      balanceAnim.value = withSpring(1, { damping: 8, stiffness: 200 });
+    });
 
-      const newTapped = new Set(tappedExpenses);
-      newTapped.add(expense.id);
-      setTappedExpenses(newTapped);
+    if (next.size === expenses.length) {
+      posthog.capture('wow_moment_completed', { currency: selectedCurrency });
+      setTimeout(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setShowConfetti(true);
+        overlayOpacity.value = withTiming(1, { duration: 300 });
+        reportOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
+        reportTy.value = withDelay(200, withTiming(0, {
+          duration: 500, easing: Easing.out(Easing.cubic),
+        }));
+      }, 300);
+    }
+  }, [tapped, expenses.length, selectedCurrency]);
 
-      balanceAnim.value = withSpring(1, { damping: 4, stiffness: 200 });
-
-      if (newTapped.size === expenses.length) {
-        posthog.capture("wow_moment_completed", {
-          currency: selectedCurrency,
-          expenses_tapped: newTapped.size,
-        });
-        setTimeout(() => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setShowConfetti(true);
-          overlayOpacity.value = withTiming(1, { duration: 300 });
-          reportOpacity.value = withDelay(
-            200,
-            withTiming(1, { duration: 500 }),
-          );
-          reportTranslateY.value = withDelay(
-            200,
-            withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) }),
-          );
-        }, 300);
-      }
-    },
-    [tappedExpenses, expenses.length, selectedCurrency],
-  );
-
-  const balanceStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: balanceAnim.value }],
-  }));
-
-  const fmt = (amountInCents: number) =>
-    formatCurrency(amountInCents, selectedCurrency);
-
-  const overlayOpacity = useSharedValue(0);
-
+  const balanceStyle = useAnimatedStyle(() => ({ transform: [{ scale: balanceAnim.value }] }));
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
   const reportStyle = useAnimatedStyle(() => ({
     opacity: reportOpacity.value,
-    transform: [{ translateY: reportTranslateY.value }],
+    transform: [{ translateY: reportTy.value }],
   }));
 
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: overlayOpacity.value,
-  }));
+  const fmt = (n: number) => formatCurrency(n, selectedCurrency);
 
   return (
-    <View
-      className="flex-1 bg-bg-base"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
-    >
-      <View className="flex-1 p-6">
-        <ProgressBar step={6} totalSteps={8} />
-
-        <View className="gap-3 mb-4">
-          <RNText className="font-display text-display-xl text-content-primary">
-            {t("wow.title")}
-          </RNText>
-          <RNText className="font-body-regular text-body-lg text-content-secondary">
-            {t("wow.subtitle")}
-          </RNText>
-        </View>
-
-        <View className="flex-row gap-2 mb-4">
-          {CURRENCIES.map((cur) => {
-            const isActive = selectedCurrency === cur.code;
-            return (
-              <Pressable
-                key={cur.code}
-                onPress={() => handleSelectCurrency(cur.code)}
-                className="flex-1 py-3 rounded-xl items-center justify-center"
-                style={{
-                  backgroundColor: isActive ? theme.colors.primary : "#F2F2F6",
-                }}
-              >
-                <RNText
-                  className="font-ui text-ui-md"
-                  style={{ color: isActive ? "#FFFFFF" : "#6E6E7D" }}
-                >
-                  {cur.symbol} {cur.code}
-                </RNText>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View
-          className="p-5 rounded-2xl mb-4"
-          style={{ backgroundColor: theme.colors.primary + "15" }}
-        >
-          <RNText className="text-body-sm text-content-tertiary mb-1">
-            {t("wow.balance")}
-          </RNText>
-          <Animated.View style={balanceStyle}>
-            <RNText
-              className="text-4xl font-display"
-              style={{ color: theme.colors.primary }}
-            >
-              {fmt(currentBalance)}
-            </RNText>
-          </Animated.View>
-        </View>
-
-        <View className="flex-1 gap-2">
-          <RNText className="text-body-sm font-ui text-content-tertiary mb-1">
-            {t("wow.tapToAdd")}
-          </RNText>
-          {expenses.map((expense) => {
-            const isTapped = tappedExpenses.has(expense.id);
-            return (
-              <PressableScale
-                key={expense.id}
-                onPress={() => handleTapExpense(expense)}
-                disabled={isTapped}
-                haptic="none"
-                scaleValue={0.96}
-              >
-                <View
-                  className={cn("flex-row p-4 rounded-xl gap-3 items-center", {
-                    "bg-bg-surface": !isTapped,
-                  })}
-                  style={{
-                    backgroundColor: isTapped ? "#F2F2F6" : undefined,
-                    opacity: isTapped ? 0.6 : 1,
-                  }}
-                >
-                  <View
-                    className="w-10 h-10 rounded-full items-center justify-center"
-                    style={{ backgroundColor: expense.color + "20" }}
-                  >
-                    <Ionicons
-                      name={expense.icon}
-                      size={20}
-                      color={expense.color}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <RNText className="font-ui text-ui-md text-content-primary">
-                      {t(expense.labelKey)}
-                    </RNText>
-                    <RNText className="text-body-sm text-content-tertiary">
-                      {t(expense.categoryKey)}
-                    </RNText>
-                  </View>
-                  <RNText
-                    className="font-ui text-ui-md"
-                    style={{ color: isTapped ? "#6E6E7D" : "#FF3B30" }}
-                  >
-                    -{fmt(expense.amount)}
-                  </RNText>
-                  {isTapped && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={theme.colors.primary}
-                    />
-                  )}
-                </View>
-              </PressableScale>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Overlay + Report modal */}
-      {allTapped && (
-        <>
-          <Animated.View
-            style={[
-              {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0,0,0,0.5)",
-              },
-              overlayStyle,
-            ]}
-            pointerEvents="none"
-          />
-          <Animated.View
-            style={[
-              {
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-              },
-              reportStyle,
-            ]}
+    <View style={{ flex: 1, backgroundColor: v2.bgBase }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 16,
+          paddingBottom: insets.bottom + 24,
+        }}
+      >
+        <View style={{ paddingHorizontal: 20 }}>
+          <ProgressDots step={7} />
+          <EyebrowLabel>{t('wow.subtitle')}</EyebrowLabel>
+          <Text
+            style={{
+              fontFamily: v2.fontDisplay, fontWeight: '700',
+              fontSize: 26, color: v2.ink, letterSpacing: -0.5, lineHeight: 30,
+            }}
           >
-            <View
-              className="bg-bg-base rounded-t-3xl p-6"
-              style={{ paddingBottom: insets.bottom + 16 }}
+            {t('wow.title')}
+          </Text>
+        </View>
+
+        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+          <CurrencyPicker
+            options={CURRENCIES.map((c) => ({ code: c.code, symbol: c.symbol }))}
+            selected={selectedCurrency}
+            onSelect={handleSelectCurrency}
+            label={t('onboarding.currencyLabel')}
+          />
+        </View>
+
+        <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
+          <View
+            style={{
+              padding: 18, borderRadius: 18,
+              backgroundColor: v2.brandSoft,
+              borderWidth: 1, borderColor: v2.brand + '30',
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+                letterSpacing: 1.5, textTransform: 'uppercase',
+                color: v2.brand, marginBottom: 4,
+              }}
             >
-              {/* Bubule félicitation */}
+              {t('wow.balance')}
+            </Text>
+            <Animated.Text
+              style={[balanceStyle, {
+                fontFamily: v2.fontDisplay, fontWeight: '700',
+                fontSize: 36, color: v2.brandDeep, letterSpacing: -1, lineHeight: 38,
+                fontVariant: ['tabular-nums'], transformOrigin: 'left',
+              }]}
+            >
+              {fmt(balance)}
+            </Animated.Text>
+          </View>
+        </View>
 
-              {/* Report */}
-              <View className="p-5 rounded-2xl mb-4 bg-bg-raised">
-                <View className="flex-row items-center gap-2 mb-4">
-                  <Ionicons
-                    name="bar-chart"
-                    size={20}
-                    color={theme.colors.primary}
-                  />
-                  <RNText className="font-display text-display-md text-content-primary">
-                    {t("wow.reportTitle")}
-                  </RNText>
-                </View>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+          <ExpenseTapList
+            expenses={expenses}
+            tapped={tapped}
+            onTap={handleTap}
+            fmt={fmt}
+            label={t('wow.tapToAdd')}
+          />
+        </View>
 
-                <View className="gap-3">
-                  {Object.values(categoryBreakdown).map((cat, idx) => {
-                    const pct = (cat.amount / totalSpent) * 100;
-                    return (
-                      <View key={cat.categoryKey} className="gap-1.5">
-                        <View className="flex-row justify-between">
-                          <RNText className="text-body-md text-content-secondary">
-                            {t(cat.categoryKey)}
-                          </RNText>
-                          <RNText className="text-body-md font-ui text-content-primary">
-                            {fmt(cat.amount)}
-                          </RNText>
-                        </View>
-                        <View
-                          style={{
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: "#E5E5EA",
-                          }}
-                        >
-                          <AnimatedBar
-                            targetWidth={pct}
-                            color={cat.color}
-                            delay={idx * 200}
-                          />
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
+        <Text
+          style={{
+            textAlign: 'center', marginTop: 14, paddingHorizontal: 20,
+            fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle,
+            fontStyle: 'italic',
+          }}
+        >
+          {tapped.size}/{expenses.length}
+        </Text>
+      </ScrollView>
 
-                <View
-                  className="flex-row justify-between mt-4 pt-4"
-                  style={{ borderTopWidth: 1, borderTopColor: "#E5E5EA" }}
-                >
-                  <RNText className="font-display text-display-md text-content-primary">
-                    {t("wow.reportTotal")}
-                  </RNText>
-                  <RNText
-                    className="font-ui text-ui-lg"
-                    style={{ color: "#FF3B30" }}
-                  >
-                    -{fmt(totalSpent)}
-                  </RNText>
-                </View>
-              </View>
-
-              <RNText className="text-center text-content-secondary text-body-md mb-4">
-                {t("wow.successMessage")}
-              </RNText>
-
-              <PrimaryButton
-                label={t("wow.cta")}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/onboarding/balance");
-                }}
-              />
-            </View>
-          </Animated.View>
-        </>
+      {allTapped && (
+        <ReportSheet
+          categories={categoriesArr}
+          total={total}
+          fmt={fmt}
+          reportTitle={t('wow.reportTitle')}
+          totalLabel={t('wow.reportTotal')}
+          successMessage={t('wow.successMessage')}
+          ctaLabel={t('wow.cta')}
+          bubbleSpeech={t('wow.bubuleCongrats')}
+          onCta={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/onboarding/balance');
+          }}
+          insets={{ bottom: insets.bottom }}
+          overlayStyle={overlayStyle}
+          reportStyle={reportStyle}
+        />
       )}
 
       {showConfetti && <ConfettiEffect trigger={showConfetti} />}
