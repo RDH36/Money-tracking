@@ -6,9 +6,7 @@ import { FeedbackModal } from '@/components/FeedbackModal';
 import { SectionLabel, SettingsCard, SettingsRow } from '@/components/settings/v2';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.rdh36.moneytracking';
-const INSTAGRAM_URL = 'https://www.instagram.com/mitsitsy.app';
-const HELP_URL = 'https://www.mitsitsy.app/help';
-const ROADMAP_URL = 'https://www.mitsitsy.app/roadmap';
+const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61588589952468';
 
 export function FeedbackSection() {
   const v2 = useV2();
@@ -65,13 +63,6 @@ export function FeedbackSection() {
           label={t('feedbackV2.contactTeam')}
           sublabel={t('feedbackV2.contactTeamSub')}
           onPress={() => setShowModal(true)}
-        />
-        <SettingsRow
-          icon="bulb-outline"
-          iconColor="#7B5EA8"
-          label={t('feedbackV2.suggestFeature')}
-          sublabel={t('feedbackV2.suggestFeatureSub')}
-          onPress={() => setShowModal(true)}
           isLast
         />
       </SettingsCard>
@@ -79,24 +70,11 @@ export function FeedbackSection() {
       <SectionLabel>{t('feedbackV2.communitySection')}</SectionLabel>
       <SettingsCard>
         <SettingsRow
-          icon="help-circle-outline"
-          iconColor="#3B82F6"
-          label={t('feedbackV2.helpCenter')}
-          value={t('feedbackV2.helpCenterValue')}
-          onPress={() => Linking.openURL(HELP_URL)}
-        />
-        <SettingsRow
-          icon="logo-instagram"
-          iconColor="#EC4899"
-          label={t('feedbackV2.followInstagram')}
-          value={t('feedbackV2.followInstagramValue')}
-          onPress={() => Linking.openURL(INSTAGRAM_URL)}
-        />
-        <SettingsRow
-          icon="map-outline"
-          iconColor={v2.good}
-          label={t('feedbackV2.publicRoadmap')}
-          onPress={() => Linking.openURL(ROADMAP_URL)}
+          icon="logo-facebook"
+          iconColor="#1877F2"
+          label={t('feedbackV2.followFacebook')}
+          value={t('feedbackV2.followFacebookValue')}
+          onPress={() => Linking.openURL(FACEBOOK_URL)}
           isLast
         />
       </SettingsCard>

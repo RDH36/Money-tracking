@@ -91,7 +91,7 @@ export default function SettingsScreen() {
             icon="grid-outline"
             iconColor="#8B5CF6"
             label={t('settings.categoriesBudgets')}
-            value={t('settingsV2.categoriesActiveCount', { count: customCategoriesCount })}
+            value={t('settingsV2.categoriesCustomCount', { count: customCategoriesCount })}
             onPress={() => router.push('/settings/categories' as any)}
           />
           <SettingsRow

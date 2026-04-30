@@ -11,6 +11,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.0",
+    date: "2026-04-30",
+    changes: [
+      { type: "improved", key: "changelog.v2DesignPolish" },
+      { type: "added", key: "changelog.roseTheme" },
+      { type: "improved", key: "changelog.bottomSheetRefresh" },
+      { type: "improved", key: "changelog.onboardingV2Polish" },
+      { type: "improved", key: "changelog.notificationFreqLabels" },
+      { type: "improved", key: "changelog.feedbackSimplified" },
+      { type: "added", key: "changelog.facebookPage" },
+      { type: "added", key: "changelog.accountAddButton" },
+      { type: "improved", key: "changelog.customCategoryLabel" },
+      { type: "fixed", key: "changelog.xpSpamFix" },
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-03-31",
     changes: [

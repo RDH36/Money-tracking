@@ -19,9 +19,9 @@ interface NotificationsSectionProps {
 
 const FREQUENCIES: { id: ReminderFrequency; tk: string; descKey: string }[] = [
   { id: 'off', tk: 'notificationsV2.freqOff', descKey: 'notificationsV2.freqOffDesc' },
-  { id: '1h', tk: 'notificationsV2.freqDaily', descKey: 'notificationsV2.freqDailyDesc' },
-  { id: '2h', tk: 'notificationsV2.freqWeekly', descKey: 'notificationsV2.freqWeeklyDesc' },
-  { id: '4h', tk: 'notificationsV2.freqSmart', descKey: 'notificationsV2.freqSmartDesc' },
+  { id: '1h', tk: 'notificationsV2.freq1h', descKey: 'notificationsV2.freq1hDesc' },
+  { id: '2h', tk: 'notificationsV2.freq2h', descKey: 'notificationsV2.freq2hDesc' },
+  { id: '4h', tk: 'notificationsV2.freq4h', descKey: 'notificationsV2.freq4hDesc' },
 ];
 
 export function NotificationsSection({ reminderFrequency, onReminderChange }: NotificationsSectionProps) {

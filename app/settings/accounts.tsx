@@ -6,23 +6,42 @@ import { useAccounts } from '@/hooks';
 import { AccountsSection } from '@/components/settings';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AddAccountModal } from '@/components/AddAccountModal';
+import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatureModal';
 import { SettingsPageWrapper } from '@/components/settings/SettingsPageWrapper';
 
 export default function AccountsSettingsPage() {
   const { t } = useTranslation();
   const posthog = usePostHog();
-  const { accounts, formatMoney, refresh, deleteAccount } = useAccounts();
+  const {
+    accounts, formatMoney, refresh, deleteAccount, createAccount,
+    canCreateAccount, customAccountsCount, maxCustomAccounts,
+  } = useAccounts();
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [lockedFeature, setLockedFeature] = useState<LockedFeature | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
     title: string; message: string; confirmText: string; onConfirm: () => void;
   } | null>(null);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
+  const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
+    const result = await createAccount(params);
+    if (result.success) {
+      posthog.capture('account_created', { account_type: params.type });
+      setShowAddAccount(false);
+    }
+    return result;
+  };
+
   return (
     <SettingsPageWrapper title={t('settings.accounts')}>
       <AccountsSection
         accounts={accounts}
         formatMoney={formatMoney}
+        onAdd={() => {
+          if (canCreateAccount) setShowAddAccount(true);
+          else setLockedFeature('account');
+        }}
         onDelete={(account) => setConfirmAction({
           title: t('account.deleteConfirm', { name: account.name }),
           message: t('account.deleteWarning'),
@@ -33,6 +52,20 @@ export default function AccountsSettingsPage() {
             setConfirmAction(null);
           },
         })}
+      />
+
+      <AddAccountModal
+        isOpen={showAddAccount}
+        onClose={() => setShowAddAccount(false)}
+        onCreateAccount={handleCreateAccount}
+        canCreateAccount={canCreateAccount}
+        customAccountsCount={customAccountsCount}
+        maxCustomAccounts={maxCustomAccounts}
+      />
+
+      <LockedFeatureModal
+        feature={lockedFeature}
+        onClose={() => setLockedFeature(null)}
       />
 
       <ConfirmDialog

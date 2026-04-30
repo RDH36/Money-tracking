@@ -79,10 +79,19 @@ export function AccountsSection({ accounts, formatMoney, onDelete, onAdd }: Acco
       <SectionLabel
         action={
           onAdd ? (
-            <Pressable onPress={onAdd} hitSlop={6}>
-              <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.brand }}>
-                {t('accountsV2.addAccount')}
-              </Text>
+            <Pressable
+              onPress={onAdd}
+              hitSlop={6}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: v2.brandSoft,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="add" size={15} color={v2.brand} />
             </Pressable>
           ) : undefined
         }
