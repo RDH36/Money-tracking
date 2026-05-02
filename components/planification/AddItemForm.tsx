@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
@@ -6,8 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import { useCategories, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
-import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
-import { TypePill, CategoryChip } from './AddItemFields';
+import { formatAmountInput, parseAmount, getNumericValue, formatAmountDisplay } from '@/lib/amountInput';
+import { TypePill } from './AddItemFields';
+import { CategoryQuickGrid } from '@/components/add/pickers/CategoryQuickGrid';
+import { CategorySelectSheet } from '@/components/add/pickers/CategorySelectSheet';
 import type { TransactionType } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -27,8 +29,17 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
   const [itemType, setItemType] = useState<TransactionType>('expense');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const [caretOn, setCaretOn] = useState(true);
+  const amountInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const id = setInterval(() => setCaretOn((c) => !c), 500);
+    return () => clearInterval(id);
+  }, []);
 
   const isValid = amount && getNumericValue(amount) > 0;
+  const amountDisplay = formatAmountDisplay(amount);
   const handleSubmit = async () => {
     const numericAmount = getNumericValue(amount);
     if (!numericAmount || numericAmount <= 0) return;
@@ -38,6 +49,7 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
   };
 
   return (
+    <>
     <View
       style={{
         backgroundColor: v2.bgSurface,
@@ -72,7 +84,10 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
         />
       </View>
 
-      <View style={{ alignItems: 'center', paddingVertical: 4 }}>
+      <Pressable
+        onPress={() => amountInputRef.current?.focus()}
+        style={{ alignItems: 'center', paddingVertical: 4 }}
+      >
         <Text
           style={{
             fontFamily: v2.fontUI, fontSize: 10, fontWeight: '600',
@@ -82,45 +97,53 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
         >
           {t('planification.amount')} · {currency.code}
         </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          <Text
+            style={{
+              fontFamily: v2.fontDisplay, fontWeight: '700',
+              fontSize: 38, letterSpacing: -1,
+              color: v2.ink, textAlign: 'center',
+              fontVariant: ['tabular-nums'],
+            }}
+          >
+            {amountDisplay}
+          </Text>
+          <View
+            style={{
+              width: 2, height: 30, marginLeft: 3, borderRadius: 1,
+              backgroundColor: v2.brand,
+              opacity: caretOn ? 1 : 0,
+            }}
+          />
+        </View>
         <TextInput
-          placeholder="0"
-          placeholderTextColor={v2.inkSubtle}
-          keyboardType="decimal-pad"
+          ref={amountInputRef}
           value={amount}
           onChangeText={(s) => setAmount(formatAmountInput(s))}
-          style={{
-            fontFamily: v2.fontDisplay, fontWeight: '700',
-            fontSize: 38, letterSpacing: -1,
-            color: v2.ink, textAlign: 'center',
-            fontVariant: ['tabular-nums'],
-            minWidth: 200,
-          }}
-          textAlign="center"
+          keyboardType="decimal-pad"
+          style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
         />
-      </View>
+      </Pressable>
 
-      <View>
-        <Text
-          style={{
-            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
-            letterSpacing: 1.5, textTransform: 'uppercase',
-            color: v2.inkSubtle, marginBottom: 8,
-          }}
-        >
-          {t('add.category')}
-        </Text>
-        {itemType === 'expense' ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            {expenseCategories.slice(0, 8).map((c) => (
-              <CategoryChip
-                key={c.id}
-                category={c}
-                active={categoryId === c.id}
-                onPress={() => setCategoryId(categoryId === c.id ? null : c.id)}
-              />
-            ))}
-          </View>
-        ) : (
+      {itemType === 'expense' ? (
+        <CategoryQuickGrid
+          categories={expenseCategories}
+          selectedId={categoryId}
+          onSelect={(id) => setCategoryId(categoryId === id ? null : id)}
+          onMorePress={() => setShowCategorySheet(true)}
+          totalCount={expenseCategories.length}
+        />
+      ) : (
+        <View>
+          <Text
+            style={{
+              fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
+              letterSpacing: 1.5, textTransform: 'uppercase',
+              color: v2.inkSubtle, marginBottom: 8,
+            }}
+          >
+            {t('add.category')}
+          </Text>
           <View
             style={{
               backgroundColor: v2.goodSoft,
@@ -141,8 +164,8 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
               {t('add.income')}
             </Text>
           </View>
-        )}
-      </View>
+        </View>
+      )}
 
       <View>
         <Text
@@ -195,6 +218,15 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
         </Text>
       </Pressable>
     </View>
+
+    <CategorySelectSheet
+      isOpen={showCategorySheet}
+      categories={expenseCategories}
+      selectedId={categoryId}
+      onSelect={setCategoryId}
+      onClose={() => setShowCategorySheet(false)}
+    />
+    </>
   );
 }
 

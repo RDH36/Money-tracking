@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Pressable, Text } from 'react-native';
+import { View, Pressable, Text, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
@@ -41,13 +41,15 @@ export default function PlanificationDetailScreen() {
   const { validatePlanification, updateDeadline } = usePlanifications();
   const {
     planification, items, linkedTransactions, total,
-    addItem, removeItem, deleteLinkedTransaction,
+    addItem, removeItem, deleteLinkedTransaction, updateTitle,
     refresh: refreshDetail, isLoading, isFetching,
   } = usePlanificationDetail(id || null);
 
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [showValidateDialog, setShowValidateDialog] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
 
   useFocusEffect(useCallback(() => { refreshDetail(); }, [refreshDetail]));
 
@@ -76,6 +78,19 @@ export default function PlanificationDetailScreen() {
     const result = await validatePlanification(planificationId, accountId);
     if (result.success) { await refreshBalance(); await refreshAccounts(); router.back(); }
     return result;
+  };
+  const startEditTitle = () => {
+    if (!isPending || !planification) return;
+    setTitleDraft(planification.title);
+    setEditingTitle(true);
+  };
+  const saveTitle = async () => {
+    if (!editingTitle) return;
+    const trimmed = titleDraft.trim();
+    setEditingTitle(false);
+    if (!trimmed || trimmed === planification?.title) return;
+    const ok = await updateTitle(trimmed);
+    if (ok) posthog.capture('planification_renamed');
   };
   const handleDeleteTransactionConfirm = async () => {
     if (!deleteTransactionId) return;
@@ -123,15 +138,41 @@ export default function PlanificationDetailScreen() {
           >
             <Ionicons name="chevron-back" size={18} color={v2.ink} />
           </Pressable>
-          <Text
-            numberOfLines={1}
-            style={{
-              flex: 1, fontFamily: v2.fontDisplay, fontWeight: '700',
-              fontSize: 22, color: v2.ink, letterSpacing: -0.5,
-            }}
-          >
-            {planification?.title || t('common.loading')}
-          </Text>
+          {editingTitle ? (
+            <TextInput
+              value={titleDraft}
+              onChangeText={setTitleDraft}
+              onSubmitEditing={saveTitle}
+              onBlur={saveTitle}
+              autoFocus
+              maxLength={60}
+              returnKeyType="done"
+              style={{
+                flex: 1, fontFamily: v2.fontDisplay, fontWeight: '700',
+                fontSize: 22, color: v2.ink, letterSpacing: -0.5, padding: 0,
+              }}
+            />
+          ) : (
+            <Pressable
+              onPress={startEditTitle}
+              disabled={!isPending}
+              hitSlop={6}
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <Text
+                numberOfLines={1}
+                style={{
+                  flex: 1, fontFamily: v2.fontDisplay, fontWeight: '700',
+                  fontSize: 22, color: v2.ink, letterSpacing: -0.5,
+                }}
+              >
+                {planification?.title || t('common.loading')}
+              </Text>
+              {isPending ? (
+                <Ionicons name="pencil" size={14} color={v2.inkSubtle} />
+              ) : null}
+            </Pressable>
+          )}
         </View>
 
         <View style={{ paddingHorizontal: 16, gap: 14 }}>

@@ -84,7 +84,7 @@ export function BudgetByCategoryCard({
                 fontVariant: ['tabular-nums'],
               }}
             >
-              {budgets.length}
+              {t('activity.budgetCategoryCount', { count: budgets.length })}
             </Text>
           </View>
         ) : null}

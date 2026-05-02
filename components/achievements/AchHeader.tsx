@@ -12,18 +12,6 @@ interface AchHeaderProps {
   onTabChange: (t: AchTabKey) => void;
 }
 
-function getISOWeek(d: Date): number {
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = target.valueOf();
-  target.setMonth(0, 1);
-  if (target.getDay() !== 4) {
-    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
-  }
-  return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
-}
-
 function capitalize(s: string): string {
   return s.length ? s[0].toUpperCase() + s.slice(1) : s;
 }
@@ -39,7 +27,6 @@ export function AchHeader({ activeTab, onTabChange }: AchHeaderProps) {
   const { t, i18n } = useTranslation();
   const now = new Date();
   const month = capitalize(now.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }));
-  const week = getISOWeek(now);
 
   return (
     <View>
@@ -50,7 +37,7 @@ export function AchHeader({ activeTab, onTabChange }: AchHeaderProps) {
           color: v2.inkSubtle, marginBottom: 4,
         }}
       >
-        {t('achievements.titleWeekLabel', { month, week })}
+        {t('achievements.titleWeekLabel', { month })}
       </Text>
       <Text
         style={{

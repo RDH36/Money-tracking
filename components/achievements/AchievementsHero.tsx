@@ -113,7 +113,6 @@ export function AchievementsHero() {
         <View style={{ marginTop: 14, flexDirection: 'row', gap: 6 }}>
           <Chip v2={v2} icon="flame" tone="#EF4444" value={t('achievements.streakDaysShort', { count: gamification.currentStreak })} label={t('achievements.statStreakLabel')} />
           <Chip v2={v2} icon="snow" tone="#06B6D4" value={String(gamification.streakFreezeAvailable)} label={t('achievements.statFreezesLabel')} />
-          <Chip v2={v2} icon="trophy" tone="#EAB308" value={String(gamification.totalXP)} label={t('achievements.statXPLabel')} />
           <Chip v2={v2} icon="checkmark-circle" tone={v2.brand} value={`${earnedCount}/${BADGES.length}`} label={t('achievements.statBadgesLabel')} />
         </View>
 

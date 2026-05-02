@@ -87,13 +87,23 @@ export default function CalendarScreen() {
             onNext={() => navigateMonth(1)}
           />
 
-          <View style={{ flexDirection: 'row', gap: 14, justifyContent: 'center' }}>
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.bad, fontVariant: ['tabular-nums'] }}>
-              -{formatCurrency(monthExpenses, currencyCode)}
-            </Text>
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.good, fontVariant: ['tabular-nums'] }}>
-              +{formatCurrency(monthIncome, currencyCode)}
-            </Text>
+          <View style={{ flexDirection: 'row', gap: 18, justifyContent: 'center', alignItems: 'baseline' }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 9, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: v2.inkSubtle }}>
+                {t('history.monthExpenses')}
+              </Text>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: v2.bad, fontVariant: ['tabular-nums'], marginTop: 2 }}>
+                -{formatCurrency(monthExpenses, currencyCode)}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 9, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: v2.inkSubtle }}>
+                {t('history.monthIncome')}
+              </Text>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: v2.good, fontVariant: ['tabular-nums'], marginTop: 2 }}>
+                +{formatCurrency(monthIncome, currencyCode)}
+              </Text>
+            </View>
           </View>
 
           <View

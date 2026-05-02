@@ -70,3 +70,28 @@ export function getNumericValue(value: string): number {
 export function toCents(value: string): number {
   return parseAmount(value);
 }
+
+/**
+ * Formats a raw amount string for human display, always French-style:
+ * space for thousands, comma for decimal. Examples:
+ *   "1234567"   -> "1 234 567"
+ *   "1234.5"    -> "1 234,5"
+ *   "1234."     -> "1 234,"
+ *   ""          -> "0"
+ */
+export function formatAmountDisplay(raw: string): string {
+  if (!raw) return '0';
+  const intStr = (raw.includes('.') ? raw.split('.')[0] : raw) || '0';
+  const intNum = Number(intStr);
+  if (Number.isNaN(intNum)) return '0';
+
+  const formattedInt = intNum
+    .toLocaleString('fr-FR', { useGrouping: true })
+    .replace(/[\u202F\u00A0]/g, ' ');
+
+  if (raw.includes('.')) {
+    const decPart = raw.split('.')[1] ?? '';
+    return `${formattedInt},${decPart}`;
+  }
+  return formattedInt;
+}

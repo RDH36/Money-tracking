@@ -7,7 +7,7 @@ import { Progress } from '../Progress';
 interface StreakXPStripProps {
   streakDays: number;
   level: number;
-  totalXP: number;
+  xpToNext: number;
   xpProgressPct: number;
   xpDelta?: number;
   onPress?: () => void;
@@ -16,7 +16,7 @@ interface StreakXPStripProps {
 export function StreakXPStrip({
   streakDays,
   level,
-  totalXP,
+  xpToNext,
   xpProgressPct,
   xpDelta,
   onPress,
@@ -115,7 +115,7 @@ export function StreakXPStrip({
               flexShrink: 1,
             }}
           >
-            {t('dashboard.level')} {level} · {totalXP} XP
+            {t('dashboard.levelGap', { level, xp: xpToNext, next: level + 1 })}
           </Text>
           {xpDelta !== undefined ? (
             <Text

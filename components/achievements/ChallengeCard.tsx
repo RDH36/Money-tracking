@@ -82,7 +82,7 @@ export function ChallengeCard({
               color: tone, fontVariant: ['tabular-nums'],
             }}
           >
-            +{xp}
+            +{xp} XP
           </Text>
         </View>
 

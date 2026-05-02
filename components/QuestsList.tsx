@@ -84,7 +84,7 @@ export function QuestsList() {
               color: v2.warn, fontVariant: ['tabular-nums'],
             }}
           >
-            {tier1Completed} / {tier1Total}
+            {t('achievements.epicQuestsCount', { done: tier1Completed, total: tier1Total })}
           </Text>
         </LinearGradient>
       </View>

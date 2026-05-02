@@ -16,7 +16,7 @@ import {
 } from '@/hooks';
 import { useBudgets } from '@/hooks/useBudgets';
 import { useDashboardFocus } from '@/hooks/useDashboardFocus';
-import { calculateLevel, xpProgress } from '@/constants/badges';
+import { calculateLevel, xpProgress, xpToNextLevel } from '@/constants/badges';
 import { AddAccountModal } from '@/components/AddAccountModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LevelUpModal } from '@/components/LevelUpModal';
@@ -172,7 +172,7 @@ export default function DashboardScreen() {
           <StreakXPStrip
             streakDays={gamification.currentStreak}
             level={calculateLevel(gamification.totalXP)}
-            totalXP={gamification.totalXP}
+            xpToNext={xpToNextLevel(gamification.totalXP)}
             xpProgressPct={Math.round(xpProgress(gamification.totalXP) * 100)}
             onPress={() => router.push('/(tabs)/achievements')}
           />

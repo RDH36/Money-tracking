@@ -1,7 +1,8 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { formatAmountDisplay } from '@/lib/amountInput';
 
 interface AmountDisplayProps {
   value: string;
@@ -9,20 +10,6 @@ interface AmountDisplayProps {
   currencyCode?: string;
 }
 
-function formatDisplay(raw: string, locale: string): string {
-  const tag = locale.startsWith('en') ? 'en-US' : locale.startsWith('mg') ? 'mg-MG' : 'fr-FR';
-  const fmt = new Intl.NumberFormat(tag, { maximumFractionDigits: 2 });
-  if (!raw) return '0';
-  const trimmed = raw.endsWith('.') || raw.endsWith(',') ? raw.slice(0, -1) : raw;
-  const num = Number(trimmed.replace(',', '.'));
-  if (Number.isNaN(num)) return '0';
-  if (raw.includes('.') || raw.includes(',')) {
-    const [intPart, decPart] = raw.replace(',', '.').split('.');
-    const formattedInt = fmt.format(Number(intPart || '0'));
-    return decPart !== undefined ? `${formattedInt},${decPart}` : `${formattedInt},`;
-  }
-  return fmt.format(num);
-}
 
 export function AmountDisplay({
   value,
@@ -30,9 +17,15 @@ export function AmountDisplay({
   currencyCode = 'Ar',
 }: AmountDisplayProps) {
   const v2 = useV2();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
-  const display = formatDisplay(value, i18n.language);
+  const display = formatAmountDisplay(value);
+
+  const [caretOn, setCaretOn] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => setCaretOn((c) => !c), 500);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <Pressable
@@ -56,20 +49,32 @@ export function AmountDisplay({
       >
         {t('add.amount')} · {currencyCode}
       </Text>
-      <Text
-        style={{
-          fontFamily: v2.fontDisplay,
-          fontWeight: '700',
-          fontSize: 56,
-          color: v2.ink,
-          letterSpacing: -2,
-          lineHeight: 60,
-          fontVariant: ['tabular-nums'],
-          textAlign: 'center',
-        }}
-      >
-        {display}
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+        <Text
+          style={{
+            fontFamily: v2.fontDisplay,
+            fontWeight: '700',
+            fontSize: 56,
+            color: v2.ink,
+            letterSpacing: -2,
+            lineHeight: 60,
+            fontVariant: ['tabular-nums'],
+            textAlign: 'center',
+          }}
+        >
+          {display}
+        </Text>
+        <View
+          style={{
+            width: 3,
+            height: 44,
+            marginLeft: 4,
+            borderRadius: 2,
+            backgroundColor: v2.brand,
+            opacity: caretOn ? 1 : 0,
+          }}
+        />
+      </View>
       <TextInput
         ref={inputRef}
         value={value}

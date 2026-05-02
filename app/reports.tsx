@@ -22,6 +22,15 @@ import { LegendDot } from '@/components/reports/ReportPrimitives';
 import { NetSummaryCard } from '@/components/reports/NetSummaryCard';
 import { CategoryBreakdownV2 } from '@/components/reports/CategoryBreakdownV2';
 
+function formatCompactAxis(value: string): string {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return value;
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
+  if (abs >= 1_000) return `${Math.round(n / 1_000)}k`;
+  return String(Math.round(n));
+}
+
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -128,6 +137,7 @@ export default function ReportsScreen() {
                       hideRules
                       xAxisLabelTextStyle={{ fontSize: 9, color: v2.inkSubtle }}
                       yAxisTextStyle={{ fontSize: 9, color: v2.inkSubtle }}
+                      formatYLabel={formatCompactAxis}
                       backgroundColor={v2.bgSurface}
                       height={150}
                       isAnimated
