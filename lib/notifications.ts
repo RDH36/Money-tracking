@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import i18n, { LANGUAGES } from './i18n';
 
 export type ReminderFrequency = 'off' | '1h' | '2h' | '4h';
 
@@ -10,18 +11,29 @@ const CHALLENGE_REMINDER_ID = 'gamif-challenge';
 const WEEKLY_SUMMARY_ID = 'gamif-weekly';
 const QUEST_PROGRESS_ID = 'gamif-quest-progress';
 
-const REMINDER_MESSAGES = [
-  { title: "N'oublie pas !", body: 'As-tu des dépenses à enregistrer ?' },
-  { title: 'Petit rappel', body: 'Pense à noter tes dépenses récentes' },
-  { title: '💰 Mitsitsy', body: "As-tu dépensé quelque chose aujourd'hui ?" },
-  { title: 'Check rapide', body: 'Tes dépenses sont-elles à jour ?' },
-];
+const REMINDER_KEYS = ['reminder1', 'reminder2', 'reminder3', 'reminder4'] as const;
 
 const EXPENSE_REMINDER_DATA_TYPE = 'expense_reminder';
-const REMINDER_TITLES = new Set(REMINDER_MESSAGES.map((m) => m.title));
+
+// Collected across all supported languages so a language switch can still cancel
+// stale reminders that were scheduled under a previous locale.
+function getAllReminderTitles(): Set<string> {
+  const titles = new Set<string>();
+  for (const lang of LANGUAGES) {
+    for (const key of REMINDER_KEYS) {
+      const value = i18n.t(`notifications.${key}Title`, { lng: lang.code });
+      if (typeof value === 'string') titles.add(value);
+    }
+  }
+  return titles;
+}
 
 function getRandomMessage() {
-  return REMINDER_MESSAGES[Math.floor(Math.random() * REMINDER_MESSAGES.length)];
+  const key = REMINDER_KEYS[Math.floor(Math.random() * REMINDER_KEYS.length)];
+  return {
+    title: i18n.t(`notifications.${key}Title`),
+    body: i18n.t(`notifications.${key}Body`),
+  };
 }
 
 /**
@@ -37,13 +49,14 @@ function getRandomMessage() {
 async function cancelExistingExpenseReminders(): Promise<void> {
   try {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const allTitles = getAllReminderTitles();
     for (const req of scheduled) {
       const data = req.content?.data as { type?: string } | null | undefined;
       const title = req.content?.title;
       const matches =
         req.identifier === EXPENSE_REMINDER_ID ||
         data?.type === EXPENSE_REMINDER_DATA_TYPE ||
-        (typeof title === 'string' && REMINDER_TITLES.has(title));
+        (typeof title === 'string' && allTitles.has(title));
       if (matches) {
         try {
           await Notifications.cancelScheduledNotificationAsync(req.identifier);
@@ -157,8 +170,8 @@ export async function schedulePlanificationDeadlineReminders(
   if (oneDayBefore > now) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '📅 Rappel planification',
-        body: `"${title}" arrive à échéance demain !`,
+        title: `📅 ${i18n.t('notifications.planReminderTitle')}`,
+        body: `"${title}" ${i18n.t('notifications.planTomorrow')}`,
         data: { planificationId, type: 'planification_reminder' },
       },
       identifier: `planif-reminder-${planificationId}`,
@@ -172,8 +185,8 @@ export async function schedulePlanificationDeadlineReminders(
   if (deadlineDate > now) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '⏰ Échéance aujourd\'hui',
-        body: `"${title}" arrive à échéance aujourd'hui !`,
+        title: `⏰ ${i18n.t('notifications.deadlineToday')}`,
+        body: `"${title}" ${i18n.t('notifications.planToday')}`,
         data: { planificationId, type: 'planification_deadline' },
       },
       identifier: `planif-deadline-${planificationId}`,
@@ -200,8 +213,8 @@ export async function sendExpiredPlanificationNotification(
 
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '🚨 Planification expirée',
-      body: `"${title}" a dépassé sa date butoir !`,
+      title: `🚨 ${i18n.t('notifications.planExpiredTitle')}`,
+      body: `"${title}" ${i18n.t('notifications.planExpired')}`,
       data: { planificationId, type: 'planification_expired' },
     },
     identifier: `planif-expired-${planificationId}`,
