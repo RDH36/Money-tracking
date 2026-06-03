@@ -32,6 +32,20 @@ interface Form {
   fromAccountId: string | null;
   toAccountId: string | null;
   note: string;
+  /** Economic date chosen by the user (day only; never in the future). */
+  date: Date;
+}
+
+/**
+ * Build the ISO transaction_date from the user-chosen day, keeping the current
+ * time-of-day so display (HH:MM) and ordering stay meaningful. When the chosen
+ * day is today, this equals "now".
+ */
+function buildTransactionDate(day: Date): string {
+  const now = new Date();
+  const d = new Date(day);
+  d.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+  return d.toISOString();
 }
 
 interface Callbacks {
@@ -59,13 +73,13 @@ export function useAddTransactionSave(expenseCategories: Category[]) {
     if (form.mode === 'transaction' && form.type === 'expense' && form.categoryId) {
       const cat = expenseCategories.find((c) => c.id === form.categoryId);
       if (cat?.budget_limit) {
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+        const ref = form.date;
+        const monthStart = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString();
+        const monthEnd = new Date(ref.getFullYear(), ref.getMonth() + 1, 1).toISOString();
         const result = await db.getFirstAsync<{ total: number }>(
           `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
            WHERE category_id = ? AND type = 'expense' AND deleted_at IS NULL
-             AND transfer_id IS NULL AND created_at >= ? AND created_at < ?`,
+             AND transfer_id IS NULL AND transaction_date >= ? AND transaction_date < ?`,
           [form.categoryId, monthStart, monthEnd]
         );
         const currentSpent = result?.total ?? 0;
@@ -99,6 +113,7 @@ export function useAddTransactionSave(expenseCategories: Category[]) {
         categoryId: finalCategoryId,
         accountId: form.accountId,
         note: form.note.trim() || null,
+        date: buildTransactionDate(form.date),
       });
       if (!result.success) {
         if (result.error) cb.onError(result.error);

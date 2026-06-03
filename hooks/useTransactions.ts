@@ -9,6 +9,8 @@ interface CreateTransactionParams {
   categoryId: string | null;
   accountId: string | null;
   note: string | null;
+  /** ISO timestamp of the economic date. Defaults to now when omitted. */
+  date?: string;
 }
 
 export interface TransactionWithCategory extends Transaction {
@@ -54,7 +56,7 @@ export function useTransactions() {
          LEFT JOIN planifications p ON t.planification_id = p.id
          WHERE t.deleted_at IS NULL
            AND NOT (t.transfer_id IS NOT NULL AND t.type = 'income')
-         ORDER BY t.created_at DESC`
+         ORDER BY t.transaction_date DESC`
       );
       setTransactions(result);
     } catch (err) {
@@ -70,7 +72,7 @@ export function useTransactions() {
   }, [fetchTransactions, transactionsVersion]);
 
   const createTransaction = useCallback(
-    async ({ type, amount, categoryId, accountId, note }: CreateTransactionParams): Promise<{ success: boolean; id: string | null; error?: string }> => {
+    async ({ type, amount, categoryId, accountId, note, date }: CreateTransactionParams): Promise<{ success: boolean; id: string | null; error?: string }> => {
       setIsLoading(true);
       setError(null);
 
@@ -104,12 +106,13 @@ export function useTransactions() {
         }
 
         const now = new Date().toISOString();
+        const txDate = date ?? now;
         const id = generateId();
 
         await db.runAsync(
-          `INSERT INTO transactions (id, type, amount, category_id, account_id, note, created_at, updated_at, sync_status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-          [id, type, amount, categoryId, accountId, note, now, now]
+          `INSERT INTO transactions (id, type, amount, category_id, account_id, note, created_at, transaction_date, updated_at, sync_status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+          [id, type, amount, categoryId, accountId, note, now, txDate, now]
         );
 
         useDataRefreshStore.getState().bumpAll();

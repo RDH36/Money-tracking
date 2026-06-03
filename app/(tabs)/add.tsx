@@ -17,14 +17,14 @@ import { useV2 } from '@/constants/designTokensV2';
 import {
   AddTransactionHeader, ModeToggle, TypePills, AmountDisplay,
   ThresholdPreviewCard, AccountPickerV2, CategoryQuickGrid,
-  CategorySelectSheet, TransferFormV2, IncomeCategoryCard, NoteField,
+  CategorySelectSheet, TransferFormV2, IncomeCategoryCard, NoteField, DateField,
   type TxMode, type TxType,
 } from '@/components/add';
 import type { AccountWithBalance } from '@/types';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const v2 = useV2();
   const currency = useCurrency();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
@@ -40,6 +40,7 @@ export default function AddTransactionScreen() {
   const [fromAccountId, setFromAccountId] = useState<string | null>(null);
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [date, setDate] = useState<Date>(() => new Date());
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [xpToast, setXpToast] = useState<number | null>(null);
@@ -62,6 +63,7 @@ export default function AddTransactionScreen() {
     active: mode === 'transaction' && type === 'expense',
     amount, categoryId, expenseCategories,
     formatMoney: save.formatMoney,
+    date,
   });
 
   const getAccountName = (a: AccountWithBalance): string =>
@@ -72,11 +74,12 @@ export default function AddTransactionScreen() {
   const resetForm = () => {
     setAmount(''); setCategoryId(null); setAccountId(null);
     setFromAccountId(null); setToAccountId(null); setNote('');
+    setDate(new Date());
     setError(null); setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
   };
 
-  const form = { mode, type, amount, categoryId, accountId, fromAccountId, toAccountId, note };
+  const form = { mode, type, amount, categoryId, accountId, fromAccountId, toAccountId, note, date };
   const callbacks = {
     onSuccess: resetForm,
     onError: setError,
@@ -167,6 +170,14 @@ export default function AddTransactionScreen() {
                   percentage={budgetPreview.percentage}
                 />
               )}
+              <DateField
+                date={date}
+                onChange={setDate}
+                label={t('add.date')}
+                todayLabel={t('add.today')}
+                yesterdayLabel={t('add.yesterday')}
+                locale={i18n.language}
+              />
             </>
           ) : (
             <TransferFormV2

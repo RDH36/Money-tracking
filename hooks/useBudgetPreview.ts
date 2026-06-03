@@ -15,6 +15,8 @@ interface Params {
   categoryId: string | null;
   expenseCategories: Category[];
   formatMoney: (n: number) => string;
+  /** Month to preview the budget for. Defaults to the current month. */
+  date?: Date;
 }
 
 export function useBudgetPreview({
@@ -23,6 +25,7 @@ export function useBudgetPreview({
   categoryId,
   expenseCategories,
   formatMoney,
+  date,
 }: Params): BudgetPreview | null {
   const db = useSQLiteContext();
   const [preview, setPreview] = useState<BudgetPreview | null>(null);
@@ -40,13 +43,13 @@ export function useBudgetPreview({
     const amountValue = parseAmount(amount);
     let cancelled = false;
     (async () => {
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+      const ref = date ?? new Date();
+      const monthStart = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString();
+      const monthEnd = new Date(ref.getFullYear(), ref.getMonth() + 1, 1).toISOString();
       const result = await db.getFirstAsync<{ total: number }>(
         `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
          WHERE category_id = ? AND type = 'expense' AND deleted_at IS NULL
-           AND transfer_id IS NULL AND created_at >= ? AND created_at < ?`,
+           AND transfer_id IS NULL AND transaction_date >= ? AND transaction_date < ?`,
         [categoryId, monthStart, monthEnd]
       );
       if (cancelled) return;
@@ -65,7 +68,7 @@ export function useBudgetPreview({
     return () => {
       cancelled = true;
     };
-  }, [active, categoryId, amount, expenseCategories, db, formatMoney]);
+  }, [active, categoryId, amount, expenseCategories, db, formatMoney, date]);
 
   return preview;
 }

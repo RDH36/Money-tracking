@@ -19,7 +19,7 @@ function useTodayData(transactions: TransactionWithCategory[]) {
 
     transactions.forEach((tx) => {
       if (tx.transfer_id) return;
-      if (new Date(tx.created_at).toDateString() === todayStr) {
+      if (new Date(tx.transaction_date).toDateString() === todayStr) {
         if (tx.type === 'expense') todayExpenses += tx.amount;
         else if (tx.type === 'income') todayIncome += tx.amount;
       }

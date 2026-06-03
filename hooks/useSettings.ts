@@ -5,11 +5,14 @@ import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { checkInternetConnection } from '@/lib/network';
 import { fetchExchangeRate } from '@/lib/exchangeRate';
+import { isBiometricAvailable, clearPin } from '@/lib/appLock';
 
 export function useSettings() {
   const db = useSQLiteContext();
   const {
     balanceHidden,
+    appLockEnabled,
+    appLockBiometric,
     themeId,
     colorMode,
     reminderFrequency,
@@ -18,6 +21,8 @@ export function useSettings() {
     isInitialized,
     initialize,
     setBalanceHidden,
+    setAppLockEnabled: setStoreAppLockEnabled,
+    setAppLockBiometric: setStoreAppLockBiometric,
     setThemeId,
     setColorMode: setStoreColorMode,
     setReminderFrequency: setStoreReminderFrequency,
@@ -30,126 +35,144 @@ export function useSettings() {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['balance_hidden']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['theme_id']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['reminder_frequency']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['currency']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['color_mode']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['tips_enabled']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['app_lock_enabled']),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['app_lock_biometric']),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const mode = (colorModeResult?.value as ColorMode) || 'system';
         const tips = tipsResult?.value !== '0';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips);
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips, appLockResult?.value === '1', appLockBiometricResult?.value === '1');
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system', true);
+        initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system', true, false, false);
       }
     };
 
     loadSettings();
   }, [db, isInitialized, initialize]);
 
-  const toggleBalanceVisibility = useCallback(async () => {
-    try {
-      const newValue = !balanceHidden;
+  const persistSetting = useCallback(
+    async (key: string, value: string) => {
       const now = new Date().toISOString();
-
       await db.runAsync(
         `INSERT INTO settings (key, value, updated_at)
          VALUES (?, ?, ?)
          ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-        ['balance_hidden', newValue ? '1' : '0', now, newValue ? '1' : '0', now]
+        [key, value, now, value, now]
       );
+    },
+    [db]
+  );
 
+  const toggleBalanceVisibility = useCallback(async () => {
+    try {
+      const newValue = !balanceHidden;
+      await persistSetting('balance_hidden', newValue ? '1' : '0');
       setBalanceHidden(newValue);
     } catch (error) {
       console.error('Error toggling balance visibility:', error);
     }
-  }, [db, balanceHidden, setBalanceHidden]);
+  }, [persistSetting, balanceHidden, setBalanceHidden]);
+
+  // Enable/disable the app lock. The PIN itself is set via lib/appLock before
+  // enabling; disabling clears the stored PIN and the biometric option.
+  const setAppLockEnabled = useCallback(
+    async (enabled: boolean): Promise<{ success: boolean; error?: string }> => {
+      try {
+        await persistSetting('app_lock_enabled', enabled ? '1' : '0');
+        setStoreAppLockEnabled(enabled);
+        if (!enabled) {
+          await persistSetting('app_lock_biometric', '0');
+          setStoreAppLockBiometric(false);
+          await clearPin();
+        }
+        return { success: true };
+      } catch (error) {
+        console.error('Error saving app lock setting:', error);
+        return { success: false, error: 'errors.saveFailed' };
+      }
+    },
+    [persistSetting, setStoreAppLockEnabled, setStoreAppLockBiometric]
+  );
+
+  // Toggle biometric unlock as a faster alternative to the PIN. Requires an
+  // enrolled biometric on the device.
+  const setAppLockBiometric = useCallback(
+    async (enabled: boolean): Promise<{ success: boolean; error?: string }> => {
+      if (enabled) {
+        const available = await isBiometricAvailable();
+        if (!available) {
+          return { success: false, error: 'privacyV2.faceIdUnavailable' };
+        }
+      }
+      try {
+        await persistSetting('app_lock_biometric', enabled ? '1' : '0');
+        setStoreAppLockBiometric(enabled);
+        return { success: true };
+      } catch (error) {
+        console.error('Error saving biometric setting:', error);
+        return { success: false, error: 'errors.saveFailed' };
+      }
+    },
+    [persistSetting, setStoreAppLockBiometric]
+  );
 
   const setTheme = useCallback(
     async (id: string) => {
       try {
-        const now = new Date().toISOString();
-
-        await db.runAsync(
-          `INSERT INTO settings (key, value, updated_at)
-           VALUES (?, ?, ?)
-           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-          ['theme_id', id, now, id, now]
-        );
-
+        await persistSetting('theme_id', id);
         setThemeId(id);
       } catch (error) {
         console.error('Error saving theme:', error);
       }
     },
-    [db, setThemeId]
+    [persistSetting, setThemeId]
   );
 
   const setColorMode = useCallback(
     async (mode: ColorMode) => {
       try {
-        const now = new Date().toISOString();
-
-        await db.runAsync(
-          `INSERT INTO settings (key, value, updated_at)
-           VALUES (?, ?, ?)
-           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-          ['color_mode', mode, now, mode, now]
-        );
-
+        await persistSetting('color_mode', mode);
         setStoreColorMode(mode);
       } catch (error) {
         console.error('Error saving color mode:', error);
       }
     },
-    [db, setStoreColorMode]
+    [persistSetting, setStoreColorMode]
   );
 
   const setReminderFrequency = useCallback(
     async (frequency: ReminderFrequency) => {
       try {
-        const now = new Date().toISOString();
-
-        await db.runAsync(
-          `INSERT INTO settings (key, value, updated_at)
-           VALUES (?, ?, ?)
-           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-          ['reminder_frequency', frequency, now, frequency, now]
-        );
-
+        await persistSetting('reminder_frequency', frequency);
         setStoreReminderFrequency(frequency);
         await scheduleReminders(frequency);
       } catch (error) {
         console.error('Error saving reminder frequency:', error);
       }
     },
-    [db, setStoreReminderFrequency]
+    [persistSetting, setStoreReminderFrequency]
   );
 
   const setCurrency = useCallback(
     async (code: string) => {
       try {
-        const now = new Date().toISOString();
-
-        await db.runAsync(
-          `INSERT INTO settings (key, value, updated_at)
-           VALUES (?, ?, ?)
-           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-          ['currency', code, now, code, now]
-        );
-
+        await persistSetting('currency', code);
         setStoreCurrencyCode(code);
       } catch (error) {
         console.error('Error saving currency:', error);
       }
     },
-    [db, setStoreCurrencyCode]
+    [persistSetting, setStoreCurrencyCode]
   );
 
   const changeCurrencyWithConversion = useCallback(
@@ -181,31 +204,27 @@ export function useSettings() {
   const setTipsEnabled = useCallback(
     async (enabled: boolean) => {
       try {
-        const now = new Date().toISOString();
-
-        await db.runAsync(
-          `INSERT INTO settings (key, value, updated_at)
-           VALUES (?, ?, ?)
-           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = ?`,
-          ['tips_enabled', enabled ? '1' : '0', now, enabled ? '1' : '0', now]
-        );
-
+        await persistSetting('tips_enabled', enabled ? '1' : '0');
         setStoreTipsEnabled(enabled);
       } catch (error) {
         console.error('Error saving tips enabled:', error);
       }
     },
-    [db, setStoreTipsEnabled]
+    [persistSetting, setStoreTipsEnabled]
   );
 
   return {
     balanceHidden,
+    appLockEnabled,
+    appLockBiometric,
     themeId,
     colorMode,
     reminderFrequency,
     currencyCode,
     tipsEnabled,
     toggleBalanceVisibility,
+    setAppLockEnabled,
+    setAppLockBiometric,
     setTheme,
     setColorMode,
     setReminderFrequency,

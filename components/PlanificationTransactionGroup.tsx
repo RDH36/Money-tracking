@@ -55,7 +55,7 @@ export function PlanificationTransactionGroup({ group, onLongPress }: Planificat
             </RNText>
             {group.transactions.length > 0 && (
               <RNText className="text-xs" style={{ color: '#6E6E7D' }}>
-                {formatTime(group.transactions[0].created_at)}
+                {formatTime(group.transactions[0].transaction_date)}
               </RNText>
             )}
           </View>

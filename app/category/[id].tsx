@@ -79,8 +79,8 @@ export default function CategoryDetailPage() {
          LEFT JOIN categories c ON t.category_id = c.id
          LEFT JOIN accounts a ON t.account_id = a.id
          WHERE ${filter} AND t.type = 'expense' AND t.deleted_at IS NULL
-           AND t.created_at >= ? AND t.created_at < ?
-         ORDER BY t.created_at DESC`,
+           AND t.transaction_date >= ? AND t.transaction_date < ?
+         ORDER BY t.transaction_date DESC`,
         [id, start, end]
       );
       setTransactions(result);
@@ -94,13 +94,13 @@ export default function CategoryDetailPage() {
   const groups = useMemo(() => {
     const buckets: Record<string, TransactionWithCategory[]> = {};
     for (const tx of transactions) {
-      const key = new Date(tx.created_at).toDateString();
+      const key = new Date(tx.transaction_date).toDateString();
       (buckets[key] = buckets[key] ?? []).push(tx);
     }
     const today = new Date().toDateString();
     const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toDateString(); })();
     return Object.entries(buckets).map(([key, items]) => {
-      const d = new Date(items[0].created_at);
+      const d = new Date(items[0].transaction_date);
       let label = d.toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
       if (key === today) label = t('categoryDetail.today');
       else if (key === yesterday) label = t('categoryDetail.yesterday');

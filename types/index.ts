@@ -29,6 +29,7 @@ export interface Transaction {
   planification_id: string | null;
   note: string | null;
   created_at: string;
+  transaction_date: string;
   updated_at: string;
   sync_status: SyncStatus;
   deleted_at: string | null;

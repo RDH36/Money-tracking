@@ -64,12 +64,23 @@ export function useMonthlyChallenge() {
     setProgress(result.progress);
     setTarget(result.target);
 
-    if (!s.monthlyChallengeCompleted && result.progress >= result.target) {
+    const reached = result.progress >= result.target;
+
+    if (!s.monthlyChallengeCompleted && reached) {
       const reward = MONTHLY_CHALLENGE_REWARDS[s.monthlyChallengeType as MonthlyChallengeType] ?? 0;
       store.setMonthlyChallengeCompleted(true);
       await saveValue('monthly_challenge_completed', '1');
       await awardXP(reward);
       return reward;
+    }
+
+    // Revoke completion when the condition no longer holds — e.g. the
+    // "budget impeccable" challenge once a category goes over its limit.
+    // The XP already granted is kept; only the completed status resets so the
+    // challenge re-opens and reflects reality.
+    if (s.monthlyChallengeCompleted && !reached) {
+      store.setMonthlyChallengeCompleted(false);
+      await saveValue('monthly_challenge_completed', '0');
     }
     return 0;
   }, [db, getState, store, saveValue, awardXP]);

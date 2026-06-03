@@ -144,15 +144,15 @@ export function useAccounts() {
 
         await db.withTransactionAsync(async () => {
           await db.runAsync(
-            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
-             VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [expenseId, amount, SYSTEM_CATEGORY_TRANSFER_ID, fromAccountId, transferId, note || 'Transfert', now, now]
+            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, transaction_date, updated_at, sync_status)
+             VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [expenseId, amount, SYSTEM_CATEGORY_TRANSFER_ID, fromAccountId, transferId, note || 'Transfert', now, now, now]
           );
 
           await db.runAsync(
-            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
-             VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [incomeId, amount, SYSTEM_CATEGORY_TRANSFER_ID, toAccountId, transferId, note || 'Transfert', now, now]
+            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, transaction_date, updated_at, sync_status)
+             VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [incomeId, amount, SYSTEM_CATEGORY_TRANSFER_ID, toAccountId, transferId, note || 'Transfert', now, now, now]
           );
         });
 

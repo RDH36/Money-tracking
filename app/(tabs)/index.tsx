@@ -9,6 +9,7 @@ import {
   useTransactions,
   useSettings,
   useWhatsNew,
+  useAppLockBanner,
   useGamification,
   useWeeklyChallenge,
   useMonthlyChallenge,
@@ -25,6 +26,7 @@ import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatu
 import {
   DashboardHeader,
   BalanceHeroCard,
+  AppLockBanner,
   StreakXPStrip,
   AccountsCarousel,
   BudgetsCard,
@@ -59,7 +61,8 @@ export default function DashboardScreen() {
     deleteTransaction,
   } = useTransactions();
   const { topBudgets, overspentBudgets, refresh: refreshBudgets } = useBudgets();
-  const { balanceHidden, toggleBalanceVisibility } = useSettings();
+  const { balanceHidden, toggleBalanceVisibility, appLockEnabled } = useSettings();
+  const appLockBanner = useAppLockBanner();
   const { hasNew, checkNew } = useWhatsNew();
   const gamification = useGamification();
   const weekly = useWeeklyChallenge();
@@ -83,7 +86,7 @@ export default function DashboardScreen() {
     let income = 0;
     let expense = 0;
     for (const tx of transactions) {
-      const t = new Date(tx.created_at).getTime();
+      const t = new Date(tx.transaction_date).getTime();
       if (t < monthStart || tx.transfer_id) continue;
       if (tx.type === 'income') income += tx.amount;
       else if (tx.type === 'expense') expense += tx.amount;
@@ -153,10 +156,18 @@ export default function DashboardScreen() {
             hasNotification={hasNew}
             onNotificationPress={() => router.push('/whats-new' as any)}
             onAchievementsPress={() => router.push('/(tabs)/achievements')}
+            onGiftPress={() => router.push('/other-apps' as any)}
           />
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
+          {!appLockEnabled && !appLockBanner.dismissed ? (
+            <AppLockBanner
+              onPress={() => router.push('/settings/privacy' as any)}
+              onDismiss={appLockBanner.dismiss}
+            />
+          ) : null}
+
           <BalanceHeroCard
             totalBalance={totalBalance}
             accountsCount={accounts.length}

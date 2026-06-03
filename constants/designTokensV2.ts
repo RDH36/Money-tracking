@@ -6,6 +6,7 @@ export interface V2Tokens {
   bgBase: string;
   bgSurface: string;
   bgRaised: string;
+  pinKey: string;
   bgInk: string;
   bgInkSoft: string;
   brand: string;
@@ -40,6 +41,7 @@ const LIGHT: V2Tokens = {
   bgBase: '#F0EBE0',
   bgSurface: '#FFFFFF',
   bgRaised: '#E5DFD0',
+  pinKey: '#E4DCCC',
   bgInk: '#16201E',
   bgInkSoft: '#1F2A28',
 
@@ -71,6 +73,7 @@ const DARK: V2Tokens = {
   bgBase: '#0F1311',
   bgSurface: '#1A2120',
   bgRaised: '#2A3433',
+  pinKey: '#2A3433',
   bgInk: '#243130',
   bgInkSoft: '#2E3D3C',
 

@@ -7,6 +7,8 @@ export type ColorMode = 'light' | 'dark' | 'system';
 
 interface SettingsState {
   balanceHidden: boolean;
+  appLockEnabled: boolean;
+  appLockBiometric: boolean;
   themeId: string;
   colorMode: ColorMode;
   reminderFrequency: ReminderFrequency;
@@ -20,17 +22,21 @@ interface SettingsState {
 
   setBalanceHidden: (hidden: boolean) => void;
   toggleBalanceVisibility: () => void;
+  setAppLockEnabled: (enabled: boolean) => void;
+  setAppLockBiometric: (enabled: boolean) => void;
   setThemeId: (id: string) => void;
   setColorMode: (mode: ColorMode) => void;
   setReminderFrequency: (frequency: ReminderFrequency) => void;
   setCurrencyCode: (code: string) => void;
   setTipsEnabled: (enabled: boolean) => void;
-  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency, currencyCode: string, colorMode: ColorMode, tipsEnabled: boolean) => void;
+  initialize: (balanceHidden: boolean, themeId: string, reminderFrequency: ReminderFrequency, currencyCode: string, colorMode: ColorMode, tipsEnabled: boolean, appLockEnabled: boolean, appLockBiometric: boolean) => void;
   setLoading: (loading: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   balanceHidden: false,
+  appLockEnabled: false,
+  appLockBiometric: false,
   themeId: DEFAULT_THEME_ID,
   colorMode: 'system' as ColorMode,
   reminderFrequency: '1h' as ReminderFrequency,
@@ -50,6 +56,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setBalanceHidden: (hidden) => set({ balanceHidden: hidden }),
 
   toggleBalanceVisibility: () => set((state) => ({ balanceHidden: !state.balanceHidden })),
+
+  setAppLockEnabled: (enabled) => set({ appLockEnabled: enabled }),
+
+  setAppLockBiometric: (enabled) => set({ appLockBiometric: enabled }),
 
   setThemeId: (id) => {
     if (THEMES.some((t) => t.id === id)) {
@@ -73,9 +83,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setTipsEnabled: (enabled) => set({ tipsEnabled: enabled }),
 
-  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode, tipsEnabled) => {
+  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode, tipsEnabled, appLockEnabled, appLockBiometric) => {
     set({
       balanceHidden,
+      appLockEnabled,
+      appLockBiometric,
       themeId: THEMES.some((t) => t.id === themeId) ? themeId : DEFAULT_THEME_ID,
       colorMode: ['light', 'dark', 'system'].includes(colorMode) ? colorMode : 'system',
       reminderFrequency: reminderFrequency || '1h',
@@ -90,6 +102,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 }));
 
 export const useBalanceHidden = () => useSettingsStore((state) => state.balanceHidden);
+export const useAppLockEnabled = () => useSettingsStore((state) => state.appLockEnabled);
+export const useAppLockBiometric = () => useSettingsStore((state) => state.appLockBiometric);
 export const useTheme = () => useSettingsStore((state) => getThemeById(state.themeId));
 export const useThemeId = () => useSettingsStore((state) => state.themeId);
 export const useColorMode = () => useSettingsStore((state) => state.colorMode);

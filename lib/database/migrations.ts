@@ -25,7 +25,7 @@ import {
   CREATE_BUDGET_HISTORY_TABLE,
 } from './schema';
 
-const DATABASE_VERSION = 22;
+const DATABASE_VERSION = 23;
 
 interface VersionResult {
   user_version: number;
@@ -147,7 +147,33 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     currentVersion = 22;
   }
 
+  if (currentVersion < 23) {
+    await migrateToV23(db);
+    currentVersion = 23;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
+
+async function migrateToV23(db: SQLiteDatabase): Promise<void> {
+  // Add transaction_date: the economic date of the transaction (when the money
+  // actually moved), distinct from created_at (when the record was logged).
+  // Lets users back-date late entries so reports/budgets land in the right month.
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(transactions)'
+  );
+  const hasTransactionDate = tableInfo.some((col) => col.name === 'transaction_date');
+
+  if (!hasTransactionDate) {
+    await db.execAsync('ALTER TABLE transactions ADD COLUMN transaction_date TEXT');
+  }
+  // Backfill existing rows: their economic date is their creation date.
+  await db.execAsync(
+    'UPDATE transactions SET transaction_date = created_at WHERE transaction_date IS NULL'
+  );
+  await db.execAsync(
+    'CREATE INDEX IF NOT EXISTS idx_transactions_transaction_date ON transactions(transaction_date)'
+  );
 }
 
 async function migrateToV21(db: SQLiteDatabase): Promise<void> {

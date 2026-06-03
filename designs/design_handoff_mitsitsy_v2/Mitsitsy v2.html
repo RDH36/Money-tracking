@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mitsitsy — Redesign v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #E8E5DE; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  body { overflow: hidden; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="tokens.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="ui.jsx"></script>
+<script type="text/babel" src="screens-dashboard.jsx"></script>
+<script type="text/babel" src="screens-other.jsx"></script>
+<script type="text/babel" src="screens-activity.jsx"></script>
+<script type="text/babel" src="screens-categories.jsx"></script>
+<script type="text/babel" src="screens-settings.jsx"></script>
+<script type="text/babel" src="screens-achievements.jsx"></script>
+<script type="text/babel" src="screens-onboarding-1.jsx"></script>
+<script type="text/babel" src="screens-onboarding-2.jsx"></script>
+<script type="text/babel">
+const T = window.MTS_TOKENS;
+const { IOSDevice } = window;
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakToggle, TweakSelect } = window;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "teal",
+  "showThresholds": true,
+  "headerStyle": "sans",
+  "background": "paper"
+}/*EDITMODE-END*/;
+
+// Apply tweaks by mutating window.MTS_TOKENS at runtime
+function applyTweaks(tweaks) {
+  const accents = {
+    teal:    { brand: '#0E8C82', brandDeep: '#0A6B63', brandSoft: 'rgba(14,140,130,0.10)', brandTint: '#E6F2F0' },
+    indigo:  { brand: '#3F4B9C', brandDeep: '#2D3678', brandSoft: 'rgba(63,75,156,0.10)', brandTint: '#EAEBF5' },
+    olive:   { brand: '#5C6B2D', brandDeep: '#3F4B1E', brandSoft: 'rgba(92,107,45,0.10)', brandTint: '#EDEFE0' },
+    rose:    { brand: '#9C3F5B', brandDeep: '#782D45', brandSoft: 'rgba(156,63,91,0.10)', brandTint: '#F5EAEE' },
+  };
+  const bgs = {
+    warm: { bgBase: '#F4F4F1', bgRaised: '#EDEDE7' },
+    cool: { bgBase: '#F1F3F5', bgRaised: '#E7EAEC' },
+    paper:{ bgBase: '#F0EBE0', bgRaised: '#E5DFD0' },
+  };
+  Object.assign(window.MTS_TOKENS, accents[tweaks.accent] || accents.teal, bgs[tweaks.background] || bgs.warm);
+  window.MTS_TOKENS.fontDisplay = tweaks.headerStyle === 'serif'
+    ? '"Instrument Serif", Georgia, serif'
+    : '"Inter", -apple-system, sans-serif';
+  window.__SHOW_THRESHOLDS = tweaks.showThresholds;
+}
+
+const App = () => {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  applyTweaks(tweaks);
+  const [, force] = React.useState(0);
+  React.useEffect(() => { force(x => x + 1); }, [tweaks]);
+
+  return (
+    <>
+      <DesignCanvas title="Mitsitsy v2 — Redesign professionnel" defaultZoom={0.6}>
+        <DCSection id="overview" title="01 · Refonte visuelle — flow principal">
+          <DCArtboard id="dashboard" label="Tableau de bord" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_Dashboard />
+              <window.MTS_TabBar active="home" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="category" label="Détail catégorie + seuils" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_CategoryDetail />
+              <window.MTS_TabBar active="pulse" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="add" label="Nouvelle transaction" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_AddTransaction />
+              <window.MTS_TabBar active="add" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="categories-picker" label="Catégories — bottom sheet" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_CategoriesSheet />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="activity-budgets" label="Activité & budgets (page unifiée)" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_ActivityBudgets />
+              <window.MTS_TabBar active="pulse" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="reports" label="Rapports — graphiques" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_Reports />
+              <window.MTS_TabBar active="pulse" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="calendar" label="Calendrier mensuel" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_Calendar />
+              <window.MTS_TabBar active="pulse" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="achievements-challenges" label="Succès — Défis" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_AchievementsChallenges />
+              <window.MTS_TabBar active="trophy" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="achievements-quests" label="Succès — Quêtes" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_AchievementsQuests />
+              <window.MTS_TabBar active="trophy" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="achievements-badges" label="Succès — Badges" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_AchievementsBadges />
+              <window.MTS_TabBar active="trophy" />
+            </IOSDevice>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="settings" title="02 · Réglages — refonte des 8 pages">
+          <DCArtboard id="settings-hub" label="Réglages — page d'accueil" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_Settings />
+              <window.MTS_TabBar active="settings" />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-accounts" label="Comptes" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsAccounts />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-categories" label="Catégories & budgets" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsCategories />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-appearance" label="Apparence" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsAppearance />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-language" label="Langue" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsLanguage />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-notifications" label="Notifications" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsNotifications />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-privacy" label="Confidentialité" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsPrivacy />
+            </IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="settings-feedback" label="Avis & feedback" width={400} height={870}>
+            <IOSDevice>
+              <window.MTS_SettingsFeedback />
+            </IOSDevice>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="onboarding" title="03 · Onboarding — flow émotionnel + setup compte (9 écrans)">
+          <DCArtboard id="onb-welcome" label="01 · Welcome — Bubule" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbWelcome /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-quiz1" label="02 · Quiz — Frustration" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbQuiz1 /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-quiz2" label="03 · Quiz — Durée" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbQuiz2 /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-quiz3" label="04 · Quiz — Objectif" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbQuiz3 /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-empathy" label="05 · Empathy — pull quote" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbEmpathy /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-solution" label="06 · Solution — bénéfices" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbSolution /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-wow" label="07 · Wow — démo interactive" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbWow /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-wow-report" label="07b · Wow — rapport" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbWowReport /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-balance" label="08 · Configuration soldes" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbBalance /></IOSDevice>
+          </DCArtboard>
+          <DCArtboard id="onb-categories" label="09 · Catégories" width={400} height={870}>
+            <IOSDevice><window.MTS_OnbCategories /></IOSDevice>
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection title="Identité visuelle">
+          <TweakRadio
+            label="Accent"
+            value={tweaks.accent}
+            onChange={v => setTweak('accent', v)}
+            options={[
+              { value: 'teal',   label: 'Teal' },
+              { value: 'indigo', label: 'Indigo' },
+              { value: 'olive',  label: 'Olive' },
+              { value: 'rose',   label: 'Rose' },
+            ]}
+          />
+          <TweakRadio
+            label="Style des titres"
+            value={tweaks.headerStyle}
+            onChange={v => setTweak('headerStyle', v)}
+            options={[
+              { value: 'serif', label: 'Serif éditorial' },
+              { value: 'sans',  label: 'Sans, large' },
+            ]}
+          />
+          <TweakRadio
+            label="Fond"
+            value={tweaks.background}
+            onChange={v => setTweak('background', v)}
+            options={[
+              { value: 'warm',  label: 'Warm' },
+              { value: 'cool',  label: 'Cool' },
+              { value: 'paper', label: 'Paper' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection title="Fonctionnalités">
+          <TweakToggle
+            label="Marqueurs de seuils sur les barres"
+            value={tweaks.showThresholds}
+            onChange={v => setTweak('showThresholds', v)}
+          />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>

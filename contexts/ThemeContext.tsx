@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -46,17 +46,23 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'tips_enabled',
           ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'app_lock_enabled',
+          ]),
+          db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
+            'app_lock_biometric',
+          ]),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const colorMode = (colorModeResult?.value as ColorMode) || 'system';
         const tipsEnabled = tipsResult?.value !== '0';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'rose', frequency, currency, colorMode, tipsEnabled);
+        initialize(balanceResult?.value === '1', themeResult?.value || 'rose', frequency, currency, colorMode, tipsEnabled, appLockResult?.value === '1', appLockBiometricResult?.value === '1');
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);
-        initialize(false, 'rose', 'off', DEFAULT_CURRENCY, 'system', true);
+        initialize(false, 'rose', 'off', DEFAULT_CURRENCY, 'system', true, false, false);
       }
     };
 

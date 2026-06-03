@@ -1,12 +1,14 @@
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useV2 } from '@/constants/designTokensV2';
+import { GiftButton } from '@/components/other-apps';
 
 interface DashboardHeaderProps {
   dateLabel: string;
   hasNotification?: boolean;
   onNotificationPress?: () => void;
   onAchievementsPress?: () => void;
+  onGiftPress?: () => void;
 }
 
 export function DashboardHeader({
@@ -14,6 +16,7 @@ export function DashboardHeader({
   hasNotification = false,
   onNotificationPress,
   onAchievementsPress,
+  onGiftPress,
 }: DashboardHeaderProps) {
   const v2 = useV2();
   return (
@@ -53,6 +56,7 @@ export function DashboardHeader({
       </View>
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
+        {onGiftPress ? <GiftButton onPress={onGiftPress} /> : null}
         <Pressable
           onPress={onNotificationPress}
           hitSlop={6}

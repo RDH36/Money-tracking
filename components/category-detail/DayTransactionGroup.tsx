@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useV2 } from '@/constants/designTokensV2';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -70,7 +71,7 @@ export function DayTransactionGroup({
           const sign = isIncome ? '+' : isExpense ? '−' : '';
           const color = tx.category_color ?? v2.inkMuted;
           const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-          const time = formatHM(tx.created_at);
+          const time = formatHM(tx.transaction_date);
           const meta = [tx.note, time].filter(Boolean).join(' · ');
 
           return (
@@ -110,6 +111,7 @@ export function DayTransactionGroup({
                     {meta}
                   </Text>
                 ) : null}
+                <BackdatedLine tx={tx} />
               </View>
               <Text
                 style={{

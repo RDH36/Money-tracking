@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mitsitsy",
     "slug": "money-tracking",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "moneytracking",
@@ -49,7 +49,14 @@
           "color": "#14B8A6"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Mitsitsy utilise Face ID pour déverrouiller l'application et protéger vos comptes."
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

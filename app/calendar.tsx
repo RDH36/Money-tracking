@@ -36,7 +36,7 @@ export default function CalendarScreen() {
   const dayTransactions = useMemo(() => {
     if (!selectedDay) return [];
     return transactions.filter((tx) => {
-      const d = new Date(tx.created_at);
+      const d = new Date(tx.transaction_date);
       return d.getFullYear() === year && d.getMonth() === month && d.getDate() === selectedDay;
     });
   }, [transactions, selectedDay, year, month]);

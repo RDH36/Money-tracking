@@ -56,7 +56,7 @@ export default function HistoryScreen() {
     let income = 0, expense = 0, count = 0;
     for (const tx of transactions) {
       if (tx.transfer_id) continue;
-      if (!isSameDay(tx.created_at, now)) continue;
+      if (!isSameDay(tx.transaction_date, now)) continue;
       count++;
       if (tx.type === 'income') income += tx.amount;
       else if (tx.type === 'expense') expense += tx.amount;
@@ -71,7 +71,7 @@ export default function HistoryScreen() {
     const txCountByCat: Record<string, number> = {};
     for (const tx of transactions) {
       if (tx.transfer_id || tx.type !== 'expense') continue;
-      const t = new Date(tx.created_at).getTime();
+      const t = new Date(tx.transaction_date).getTime();
       if (t < monthStart || t >= monthEnd) continue;
       const key = tx.category_id ?? 'other';
       txCountByCat[key] = (txCountByCat[key] ?? 0) + 1;

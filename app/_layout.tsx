@@ -11,6 +11,7 @@ import "@/global.css";
 import { DatabaseProvider } from "@/lib/database/sqlite";
 import { getBgBaseHex } from "@/constants/designTokens";
 import { posthog } from "@/lib/posthog";
+import { LockGate } from "@/components/lock";
 
 function LoadingFallback() {
   return (
@@ -43,6 +44,7 @@ function AppContent() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="planification/[id]" />
         <Stack.Screen name="whats-new" />
+        <Stack.Screen name="other-apps" />
       </Stack>
     </>
   );
@@ -85,7 +87,9 @@ export default function RootLayout() {
               <LanguageProvider>
                 <ThemeProvider>
                   <ScreenTracker />
-                  <AppContent />
+                  <LockGate>
+                    <AppContent />
+                  </LockGate>
                 </ThemeProvider>
               </LanguageProvider>
             </DatabaseProvider>

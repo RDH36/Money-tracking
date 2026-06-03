@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.1",
+    date: "2026-06-03",
+    changes: [
+      { type: "added", key: "changelog.appLock" },
+      { type: "added", key: "changelog.otherAppsPage" },
+      { type: "added", key: "changelog.customTransactionDate" },
+      { type: "added", key: "changelog.backdatedDateDisplay" },
+      { type: "improved", key: "changelog.reportsUseTransactionDate" },
+    ],
+  },
+  {
     version: "2.0.0",
     date: "2026-04-30",
     changes: [

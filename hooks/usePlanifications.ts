@@ -221,8 +221,8 @@ export function usePlanifications() {
 
           const insertStatements = items.map((item) => {
             const transactionId = generateId();
-            return `INSERT INTO transactions (id, type, amount, category_id, account_id, note, planification_id, created_at, updated_at, sync_status)
-               VALUES (${escSql(transactionId)}, ${escSql(item.type || 'expense')}, ${item.amount}, ${escSql(item.category_id)}, ${escSql(accountId)}, ${escSql(item.note)}, ${escSql(id)}, ${escSql(now)}, ${escSql(now)}, 'pending');`;
+            return `INSERT INTO transactions (id, type, amount, category_id, account_id, note, planification_id, created_at, transaction_date, updated_at, sync_status)
+               VALUES (${escSql(transactionId)}, ${escSql(item.type || 'expense')}, ${item.amount}, ${escSql(item.category_id)}, ${escSql(accountId)}, ${escSql(item.note)}, ${escSql(id)}, ${escSql(now)}, ${escSql(now)}, ${escSql(now)}, 'pending');`;
           });
 
           insertStatements.push(
@@ -309,7 +309,7 @@ export function usePlanificationDetail(planificationId: string | null) {
            LEFT JOIN accounts a ON t.account_id = a.id
            LEFT JOIN planifications p ON t.planification_id = p.id
            WHERE t.planification_id = ? AND t.deleted_at IS NULL
-           ORDER BY t.created_at DESC`,
+           ORDER BY t.transaction_date DESC`,
           [planificationId]
         );
         setLinkedTransactions(txResult);

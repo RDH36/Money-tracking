@@ -9,6 +9,7 @@ import {
   type PlanificationGroup,
 } from '@/lib/groupTransactions';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { BackdatedLine } from './BackdatedLine';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -39,7 +40,7 @@ function TransactionRow({ tx, currencyCode, onDelete, isLast }: RowProps) {
   const cat = tx.category_name ?? t('common.noCategory');
   const catColor = tx.category_color ?? v2.inkMuted;
   const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-  const time = formatHM(tx.created_at);
+  const time = formatHM(tx.transaction_date);
   const meta = [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
 
   return (
@@ -66,6 +67,7 @@ function TransactionRow({ tx, currencyCode, onDelete, isLast }: RowProps) {
         <Text numberOfLines={1} style={{ fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1 }}>
           {meta}
         </Text>
+        <BackdatedLine tx={tx} />
       </View>
       <Text
         style={{

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
 import { groupByPlanification } from '@/lib/groupTransactions';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -194,7 +195,7 @@ export function RecentTransactionsCard({
             const cat = tx.category_name ?? t('common.noCategory');
             const catColor = tx.category_color ?? v2.inkMuted;
             const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-            const time = formatHM(tx.created_at);
+            const time = formatHM(tx.transaction_date);
             const meta = [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
 
             return (
@@ -226,6 +227,7 @@ export function RecentTransactionsCard({
                   >
                     {meta}
                   </Text>
+                  <BackdatedLine tx={tx} />
                 </View>
                 <Text
                   style={{

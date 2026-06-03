@@ -58,7 +58,7 @@ export function filterByPeriod(
 ): TransactionWithCategory[] {
   const { start, end } = getPeriodRange(period, date);
   return transactions.filter((tx) => {
-    const txDate = new Date(tx.created_at);
+    const txDate = new Date(tx.transaction_date);
     return txDate >= start && txDate <= end;
   });
 }
@@ -118,7 +118,7 @@ export function getDailyTotals(
 
   transactions.forEach((tx) => {
     if (tx.transfer_id) return;
-    const txDate = new Date(tx.created_at);
+    const txDate = new Date(tx.transaction_date);
     if (txDate.getFullYear() === year && txDate.getMonth() === month) {
       const day = txDate.getDate();
       if (totals[day]) {
@@ -144,7 +144,7 @@ export function getBarChartData(
     for (let i = 0; i < 7; i++) {
       const d = new Date(ws.getTime() + i * 86400000);
       const dayTxs = transactions.filter((tx) => {
-        const td = new Date(tx.created_at);
+        const td = new Date(tx.transaction_date);
         return td.toDateString() === d.toDateString();
       });
       let expenses = 0, income = 0;
@@ -165,7 +165,7 @@ export function getBarChartData(
       let expenses = 0, income = 0;
       transactions.forEach((tx) => {
         if (tx.transfer_id) return;
-        const td = new Date(tx.created_at);
+        const td = new Date(tx.transaction_date);
         if (td.getFullYear() === y && td.getMonth() === m && td.getDate() >= startDay && td.getDate() <= endDay) {
           if (tx.type === 'expense') expenses += tx.amount;
           else if (tx.type === 'income') income += tx.amount;
@@ -180,7 +180,7 @@ export function getBarChartData(
       let expenses = 0, income = 0;
       transactions.forEach((tx) => {
         if (tx.transfer_id) return;
-        const td = new Date(tx.created_at);
+        const td = new Date(tx.transaction_date);
         if (td.getFullYear() === y && td.getMonth() === m) {
           if (tx.type === 'expense') expenses += tx.amount;
           else if (tx.type === 'income') income += tx.amount;

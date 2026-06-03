@@ -7,6 +7,7 @@ import { useCurrencyCode } from '@/stores/settingsStore';
 import { useTheme } from '@/contexts';
 import { getCategoryDisplayName } from '@/constants/categories';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
@@ -105,8 +106,9 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
               </Text>
             )}
             <Text className="text-ui-xs font-body-regular" style={{ color: '#8E8EA0' }}>
-              {formatTime(transaction.created_at)}
+              {formatTime(transaction.transaction_date)}
             </Text>
+            <BackdatedLine tx={transaction} />
           </View>
 
           <View className="items-end justify-center">

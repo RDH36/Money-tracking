@@ -66,8 +66,8 @@ export function useBudgets() {
          WHERE type = 'expense'
            AND deleted_at IS NULL
            AND transfer_id IS NULL
-           AND created_at >= ?
-           AND created_at < ?
+           AND transaction_date >= ?
+           AND transaction_date < ?
          GROUP BY category_id`,
         [monthStart, monthEnd]
       );
@@ -174,8 +174,8 @@ export function useCategoryBudget(categoryId: string, monthOffset = 0) {
            AND type = 'expense'
            AND deleted_at IS NULL
            AND transfer_id IS NULL
-           AND created_at >= ?
-           AND created_at < ?`,
+           AND transaction_date >= ?
+           AND transaction_date < ?`,
         [categoryId, monthStart.toISOString(), monthEnd.toISOString()]
       );
       setSpent(result?.total ?? 0);

@@ -32,13 +32,13 @@ export function groupByPlanification(
           planificationId: tx.planification_id,
           title: tx.planification_title || '',
           transactions: [],
-          latestCreatedAt: tx.created_at,
+          latestCreatedAt: tx.transaction_date,
         };
         groups.set(tx.planification_id, g);
         items.push(g);
       }
       g.transactions.push(tx);
-      if (tx.created_at > g.latestCreatedAt) g.latestCreatedAt = tx.created_at;
+      if (tx.transaction_date > g.latestCreatedAt) g.latestCreatedAt = tx.transaction_date;
     } else {
       items.push({ kind: 'single', transaction: tx });
     }
