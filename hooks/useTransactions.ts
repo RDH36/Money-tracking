@@ -56,7 +56,7 @@ export function useTransactions() {
          LEFT JOIN planifications p ON t.planification_id = p.id
          WHERE t.deleted_at IS NULL
            AND NOT (t.transfer_id IS NOT NULL AND t.type = 'income')
-         ORDER BY t.transaction_date DESC`
+         ORDER BY t.created_at DESC`
       );
       setTransactions(result);
     } catch (err) {

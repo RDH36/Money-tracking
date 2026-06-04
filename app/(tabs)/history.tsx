@@ -56,7 +56,7 @@ export default function HistoryScreen() {
     let income = 0, expense = 0, count = 0;
     for (const tx of transactions) {
       if (tx.transfer_id) continue;
-      if (!isSameDay(tx.transaction_date, now)) continue;
+      if (!isSameDay(tx.created_at, now)) continue;
       count++;
       if (tx.type === 'income') income += tx.amount;
       else if (tx.type === 'expense') expense += tx.amount;
