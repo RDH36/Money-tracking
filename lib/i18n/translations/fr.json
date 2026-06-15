@@ -1089,7 +1089,14 @@
     "sync_manual_sub": "Je lance la sauvegarde quand je veux",
     "successTitle": "Merci !",
     "successSub": "Ton avis va nous aider à décider si on construit cette feature.",
-    "errorSubmit": "Échec de l'envoi. Réessaie dans un instant."
+    "errorSubmit": "Échec de l'envoi. Réessaie dans un instant.",
+    "q5": "Une dernière chose",
+    "emailLabel": "Ton email (optionnel)",
+    "emailPlaceholder": "ex : toi@email.com",
+    "commentLabel": "Une autre idée ou remarque ? (optionnel)",
+    "commentPlaceholder": "Dis-nous tout…",
+    "settingsRowLabel": "Sauvegarde cloud",
+    "settingsRowSub": "Donne ou modifie ton avis sur cette feature"
   },
   "feedbackV2": {
     "quoteHighlight": "tenir mon budget",

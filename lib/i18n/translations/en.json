@@ -1089,7 +1089,14 @@
     "sync_manual_sub": "I run the backup whenever I want",
     "successTitle": "Thank you!",
     "successSub": "Your feedback will help us decide whether to build this feature.",
-    "errorSubmit": "Failed to send. Please try again in a moment."
+    "errorSubmit": "Failed to send. Please try again in a moment.",
+    "q5": "One last thing",
+    "emailLabel": "Your email (optional)",
+    "emailPlaceholder": "e.g. you@email.com",
+    "commentLabel": "Any other idea or remark? (optional)",
+    "commentPlaceholder": "Tell us anything…",
+    "settingsRowLabel": "Cloud backup",
+    "settingsRowSub": "Give or edit your opinion on this feature"
   },
   "feedbackV2": {
     "quoteHighlight": "stay on budget",

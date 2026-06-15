@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { View, Text, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { useCloudBackupSurvey } from '@/hooks';
 import { FeedbackModal } from '@/components/FeedbackModal';
+import { CloudBackupSurveyModal } from '@/components/CloudBackupSurveyModal';
 import { SectionLabel, SettingsCard, SettingsRow } from '@/components/settings/v2';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.rdh36.moneytracking';
@@ -12,6 +14,8 @@ export function FeedbackSection() {
   const v2 = useV2();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
+  const { savedAnswers, markAnswered } = useCloudBackupSurvey();
 
   return (
     <>
@@ -63,6 +67,13 @@ export function FeedbackSection() {
           label={t('feedbackV2.contactTeam')}
           sublabel={t('feedbackV2.contactTeamSub')}
           onPress={() => setShowModal(true)}
+        />
+        <SettingsRow
+          icon="cloud-upload-outline"
+          iconColor={v2.brand}
+          label={t('cloudSurvey.settingsRowLabel')}
+          sublabel={t('cloudSurvey.settingsRowSub')}
+          onPress={() => setShowSurvey(true)}
           isLast
         />
       </SettingsCard>
@@ -106,6 +117,12 @@ export function FeedbackSection() {
       </View>
 
       <FeedbackModal isOpen={showModal} onClose={() => setShowModal(false)} />
+      <CloudBackupSurveyModal
+        isOpen={showSurvey}
+        onClose={() => setShowSurvey(false)}
+        onAnswered={markAnswered}
+        initialAnswers={savedAnswers}
+      />
     </>
   );
 }

@@ -4,19 +4,27 @@ import { usePostHog } from 'posthog-react-native';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, APP_VERSION, PROJECT_NAME } from '@/constants/app';
 import { checkInternetConnection } from '@/lib/network';
 
-export type SurveyResponse = Record<string, string | null>;
+export interface SubmitArgs {
+  /** Objet stocké dans la colonne jsonb `response` (items lisibles + commentaire). */
+  response: Record<string, unknown>;
+  /** Email du répondant → colonne dédiée (recontact / filtre). */
+  email: string | null;
+  currency: string;
+  /** Propriétés brutes pour l'event PostHog (analyse / breakdowns). */
+  tracking: Record<string, string | null>;
+}
 
 /**
- * Envoie les réponses d'un sondage de feature vers la table GÉNÉRIQUE
- * `feature_surveys` (Supabase), identifiée par `surveyKey`. Même mécanique que
- * le feedback. Réutilisable tel quel pour de futurs sondages (response jsonb).
+ * Envoie les réponses d'un sondage vers la table générique `feature_surveys`.
+ * `response` (jsonb) contient une version LISIBLE (question + réponse) pour le
+ * back-office ; les valeurs brutes partent dans l'event PostHog (`tracking`).
  */
 export function useSurveySubmit(surveyKey: string) {
   const posthog = usePostHog();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = async (response: SurveyResponse, currency: string): Promise<boolean> => {
+  const submit = async ({ response, email, currency, tracking }: SubmitArgs): Promise<boolean> => {
     if (isSubmitting) return false;
     setIsSubmitting(true);
     setError(null);
@@ -40,6 +48,7 @@ export function useSurveySubmit(surveyKey: string) {
           survey_key: surveyKey,
           response,
           currency,
+          email,
           app_version: APP_VERSION,
           device_platform: Platform.OS,
           project: PROJECT_NAME,
@@ -47,7 +56,7 @@ export function useSurveySubmit(surveyKey: string) {
       });
       if (!res.ok) throw new Error('Failed to submit survey');
       posthog.capture(`${surveyKey}_survey_submitted`, {
-        ...response, currency, app_version: APP_VERSION, project: PROJECT_NAME,
+        ...tracking, currency, app_version: APP_VERSION, project: PROJECT_NAME,
       });
       return true;
     } catch {

@@ -1,8 +1,19 @@
 import type { TFunction } from 'i18next';
-import { formatCurrency } from '@/lib/currency';
+import { getCurrencyByCode } from '@/constants/currencies';
 import {
   WANTS_OPTIONS, SYNC_MODE_OPTIONS, getPriceTiers, PRICE_NONE, PRICE_MORE,
 } from '@/constants/cloudBackupSurvey';
+
+/**
+ * Formate un montant RÉEL (ex. 5000 → « 5 000 Ar », 5 → « 5 € » / « $5 »).
+ * On n'utilise PAS formatCurrency() : elle divise par 100 (montants en centimes)
+ * et force 2 décimales — inadapté à des paliers de prix entiers.
+ */
+function formatPrice(amount: number, currencyCode: string): string {
+  const c = getCurrencyByCode(currencyCode);
+  const n = amount.toLocaleString(c.locale, { maximumFractionDigits: 0 });
+  return c.symbolPosition === 'before' ? `${c.symbol}${n}` : `${n} ${c.symbol}`;
+}
 
 export interface SurveyOption {
   value: string;
@@ -26,8 +37,8 @@ function buildPriceOptions(
   const max = tiers[tiers.length - 1];
   return [
     { value: PRICE_NONE, label: t('cloudSurvey.priceNone') },
-    ...tiers.map((a) => ({ value: String(a), label: formatCurrency(a, currencyCode) })),
-    { value: PRICE_MORE, label: t('cloudSurvey.priceMore', { amount: formatCurrency(max, currencyCode) }) },
+    ...tiers.map((a) => ({ value: String(a), label: formatPrice(a, currencyCode) })),
+    { value: PRICE_MORE, label: t('cloudSurvey.priceMore', { amount: formatPrice(max, currencyCode) }) },
   ];
 }
 

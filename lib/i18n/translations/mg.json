@@ -1045,7 +1045,14 @@
     "sync_manual_sub": "Izaho no manomboka ny tahiry rehefa tiako",
     "successTitle": "Misaotra!",
     "successSub": "Hanampy anay handray fanapahan-kevitra ny hevitrao.",
-    "errorSubmit": "Tsy lasa. Andramo indray afaka kelikely."
+    "errorSubmit": "Tsy lasa. Andramo indray afaka kelikely.",
+    "q5": "Zavatra farany iray",
+    "emailLabel": "Ny mailakao (tsy voatery)",
+    "emailPlaceholder": "oh. ianao@email.com",
+    "commentLabel": "Misy hevitra na fanamarihana hafa? (tsy voatery)",
+    "commentPlaceholder": "Lazao aminay daholo…",
+    "settingsRowLabel": "Tahiry an-tserivera",
+    "settingsRowSub": "Omeo na ovay ny hevitrao momba ity feature ity"
   },
   "feedbackV2": {
     "quoteHighlight": "manaja ny tetibola",
