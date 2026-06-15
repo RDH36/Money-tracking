@@ -34,6 +34,8 @@ interface Form {
   note: string;
   /** Economic date chosen by the user (day only; never in the future). */
   date: Date;
+  /** Origine de la saisie (ex. 'onboarding') — pour segmenter l'activation. */
+  source?: string;
 }
 
 /**
@@ -123,6 +125,7 @@ export function useAddTransactionSave(expenseCategories: Category[]) {
         transaction_type: form.type,
         has_note: !!form.note.trim(),
         currency: currency.code,
+        ...(form.source ? { source: form.source } : {}),
       });
       cb.onSuccess();
       refreshAccounts();

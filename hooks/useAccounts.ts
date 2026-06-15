@@ -166,6 +166,32 @@ export function useAccounts() {
     [db, fetchAccounts]
   );
 
+  const updateAccount = useCallback(
+    async (id: string, { name, icon }: { name?: string; icon?: string }): Promise<boolean> => {
+      const trimmed = name?.trim();
+      if (!trimmed && !icon) return false;
+      try {
+        const now = new Date().toISOString();
+        const sets: string[] = [];
+        const values: (string | number)[] = [];
+        if (trimmed) { sets.push('name = ?'); values.push(trimmed); }
+        if (icon) { sets.push('icon = ?'); values.push(icon); }
+        sets.push('updated_at = ?'); values.push(now);
+        // Default accounts (is_default = 1) are protected and cannot be renamed
+        await db.runAsync(
+          `UPDATE accounts SET ${sets.join(', ')} WHERE id = ? AND is_default = 0`,
+          [...values, id]
+        );
+        useDataRefreshStore.getState().bumpAccounts();
+        return true;
+      } catch (error) {
+        console.error('Error updating account:', error);
+        return false;
+      }
+    },
+    [db]
+  );
+
   const deleteAccount = useCallback(
     async (id: string): Promise<boolean> => {
       try {
@@ -236,6 +262,7 @@ export function useAccounts() {
     isLoading,
     refresh: fetchAccounts,
     createAccount,
+    updateAccount,
     deleteAccount,
     createTransfer,
     getTotalBalance,

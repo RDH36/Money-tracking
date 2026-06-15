@@ -49,7 +49,7 @@ export default function CategoriesScreen() {
     });
     if (ok) {
       posthog.capture('onboarding_completed', { categories_selected: selected.size });
-      router.replace('/add');
+      router.replace('/add?source=onboarding');
     }
   };
 

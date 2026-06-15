@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { usePostHog } from 'posthog-react-native';
 import { useSQLiteContext } from '@/lib/database';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import {
@@ -17,6 +18,7 @@ export function useWeeklyChallenge() {
   const store = useGamificationStore();
   const getState = useGamificationStore.getState;
   const { awardXP } = useGamification();
+  const posthog = usePostHog();
 
   const [progress, setProgress] = useState(0);
   const [target, setTarget] = useState(1);
@@ -71,6 +73,7 @@ export function useWeeklyChallenge() {
       const reward = WEEKLY_CHALLENGE_REWARDS[s.weeklyChallengeType as WeeklyChallengeType] ?? 0;
       store.setWeeklyChallengeCompleted(true);
       await saveValue('weekly_challenge_completed', '1');
+      posthog.capture('challenge_completed', { scope: 'weekly', challenge_type: s.weeklyChallengeType });
       await awardXP(reward);
       return reward;
     }

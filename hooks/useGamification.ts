@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import { usePostHog } from 'posthog-react-native';
 import { useSQLiteContext } from '@/lib/database';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import type { GamificationData } from '@/stores/gamificationStore';
@@ -49,6 +50,7 @@ export function useGamification() {
   const db = useSQLiteContext();
   const store = useGamificationStore();
   const getState = useGamificationStore.getState;
+  const posthog = usePostHog();
 
   // Load from DB on mount
   useEffect(() => {
@@ -138,6 +140,7 @@ export function useGamification() {
 
     if (last === yesterday) {
       newStreak = s.currentStreak + 1;
+      posthog.capture('streak_continued', { days: newStreak });
     } else if (last && last < yesterday) {
       if (s.streakFreezeAvailable > 0 && s.currentStreak > 0) {
         store.setStreakFreezeAvailable(s.streakFreezeAvailable - 1);
@@ -146,6 +149,8 @@ export function useGamification() {
         await saveValue('streak_freeze_used_date', today);
       } else {
         newStreak = 1;
+        // Série cassée après une vraie séquence : signal de churn clé pour la rétention.
+        if (s.currentStreak > 1) posthog.capture('streak_broken', { previous_days: s.currentStreak });
       }
     } else {
       newStreak = 1;
@@ -202,6 +207,7 @@ export function useGamification() {
 
     store.setDailyChallengeCompleted(true);
     await saveValue('daily_challenge_completed', '1');
+    posthog.capture('challenge_completed', { scope: 'daily', challenge_type: getState().dailyChallengeType });
     return awardXP(XP_VALUES.DAILY_CHALLENGE);
   }, [getState, store.setDailyChallengeCompleted, saveValue, awardXP]);
 
@@ -257,6 +263,7 @@ export function useGamification() {
 
       newBadges.push(badge.id);
       store.addBadge(badge.id);
+      posthog.capture('badge_unlocked', { badge_id: badge.id });
 
       const now = new Date().toISOString();
       await db.runAsync(

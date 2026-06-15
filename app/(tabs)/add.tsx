@@ -3,10 +3,11 @@ import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useCategories, useAccounts, useTips } from '@/hooks';
 import { useBudgetPreview } from '@/hooks/useBudgetPreview';
+import { useFirstExpenseActivation } from '@/hooks/useFirstExpenseActivation';
 import { useAddTransactionSave, type BudgetWarningPayload } from '@/hooks/useAddTransactionSave';
 import { XPToast } from '@/components/XPToast';
 import { LevelUpModal } from '@/components/LevelUpModal';
@@ -27,6 +28,8 @@ export default function AddTransactionScreen() {
   const { t, i18n } = useTranslation();
   const v2 = useV2();
   const currency = useCurrency();
+  // Source de l'écran (ex. 'onboarding') pour mesurer et segmenter l'activation.
+  const { source } = useLocalSearchParams<{ source?: string }>();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { accounts, refresh: refreshAccounts } = useAccounts();
   const { currentTip, showTip } = useTips('add');
@@ -51,6 +54,15 @@ export default function AddTransactionScreen() {
   useFocusEffect(useCallback(() => {
     refreshAccounts(); refreshCategories();
   }, [refreshAccounts, refreshCategories]));
+
+  const { trackAmountFirstEntered } = useFirstExpenseActivation({
+    source, accounts, accountId, setAccountId,
+  });
+  const handleAmountChange = (text: string) => {
+    const formatted = formatAmountInput(text);
+    setAmount(formatted); setError(null);
+    if (getNumericValue(formatted) > 0) trackAmountFirstEntered();
+  };
 
   const topExpenseCategories = useMemo(() =>
     [...expenseCategories]
@@ -79,7 +91,7 @@ export default function AddTransactionScreen() {
     setTimeout(() => setSuccess(false), 2000);
   };
 
-  const form = { mode, type, amount, categoryId, accountId, fromAccountId, toAccountId, note, date };
+  const form = { mode, type, amount, categoryId, accountId, fromAccountId, toAccountId, note, date, source };
   const callbacks = {
     onSuccess: resetForm,
     onError: setError,
@@ -126,7 +138,7 @@ export default function AddTransactionScreen() {
 
           <AmountDisplay
             value={amount}
-            onChangeText={(text) => { setAmount(formatAmountInput(text)); setError(null); }}
+            onChangeText={handleAmountChange}
             currencyCode={currency.code}
           />
 

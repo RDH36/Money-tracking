@@ -14,6 +14,7 @@ interface AccountsSectionProps {
   accounts: AccountWithBalance[];
   formatMoney: (amount: number) => string;
   onDelete: (account: AccountWithBalance) => void;
+  onEdit?: (account: AccountWithBalance) => void;
   onAdd?: () => void;
 }
 
@@ -22,7 +23,7 @@ function alpha15(hex: string): string {
   return 'rgba(15,19,17,0.06)';
 }
 
-export function AccountsSection({ accounts, formatMoney, onDelete, onAdd }: AccountsSectionProps) {
+export function AccountsSection({ accounts, formatMoney, onDelete, onEdit, onAdd }: AccountsSectionProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const balanceHidden = useBalanceHidden();
@@ -139,6 +140,11 @@ export function AccountsSection({ accounts, formatMoney, onDelete, onAdd }: Acco
                 >
                   {balanceHidden ? '••••••' : formatMoney(acc.current_balance)}
                 </Text>
+                {acc.is_default === 0 && onEdit ? (
+                  <Pressable onPress={() => onEdit(acc)} hitSlop={6}>
+                    <Ionicons name="pencil-outline" size={17} color={v2.inkSubtle} />
+                  </Pressable>
+                ) : null}
                 {acc.is_default === 0 ? (
                   <Pressable onPress={() => onDelete(acc)} hitSlop={6}>
                     <Ionicons name="trash-outline" size={18} color={v2.bad} />

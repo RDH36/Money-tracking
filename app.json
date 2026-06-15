@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mitsitsy",
     "slug": "money-tracking",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "moneytracking",

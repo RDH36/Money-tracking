@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.2",
+    date: "2026-06-15",
+    changes: [
+      { type: "added", key: "changelog.cloudBackupSurvey" },
+      { type: "improved", key: "changelog.wowMomentSmoother" },
+      { type: "improved", key: "changelog.fasterFirstExpense" },
+    ],
+  },
+  {
     version: "2.0.1",
     date: "2026-06-03",
     changes: [

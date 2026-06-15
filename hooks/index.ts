@@ -13,6 +13,7 @@ export { useTips } from './useTips';
 export type { TipCategory } from './useTips';
 export { useWhatsNew } from './useWhatsNew';
 export { useAppLockBanner } from './useAppLockBanner';
+export { useCloudBackupSurvey } from './useCloudBackupSurvey';
 export { useGamification } from './useGamification';
 export { useWeeklyChallenge } from './useWeeklyChallenge';
 export { useMonthlyChallenge } from './useMonthlyChallenge';

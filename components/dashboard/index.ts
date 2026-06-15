@@ -3,6 +3,7 @@ export { SectionHead } from './SectionHead';
 export { DashboardHeader } from './sections/DashboardHeader';
 export { BalanceHeroCard } from './sections/BalanceHeroCard';
 export { AppLockBanner } from './sections/AppLockBanner';
+export { CloudBackupSurveyBanner } from './sections/CloudBackupSurveyBanner';
 export { StreakXPStrip } from './sections/StreakXPStrip';
 export { AccountsCarousel } from './sections/AccountsCarousel';
 export { BudgetsCard } from './sections/BudgetsCard';

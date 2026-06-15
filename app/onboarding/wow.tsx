@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ import { formatCurrency } from '@/lib/currency';
 import { useSettings } from '@/hooks';
 import { ConfettiEffect } from '@/components/onboarding/ConfettiEffect';
 import { ProgressDots, EyebrowLabel } from '@/components/onboarding/v2';
-import { CurrencyPicker, ExpenseTapList, ReportSheet, type TapExpense } from '@/components/onboarding/v2/wow';
+import { CurrencyPicker, ExpenseTapList, ReportSheet, SeeReportButton, type TapExpense } from '@/components/onboarding/v2/wow';
 
 const AMOUNTS: Record<string, { expenses: number[]; balance: number }> = {
   MGA: { expenses: [15000, 8000, 25000, 12000], balance: 1000000 },
@@ -39,11 +39,27 @@ export default function WowScreen() {
 
   const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
   const [tapped, setTapped] = useState<Set<string>>(new Set());
+  const [revealed, setRevealed] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const balanceAnim = useSharedValue(1);
   const overlayOpacity = useSharedValue(0);
   const reportOpacity = useSharedValue(0);
   const reportTy = useSharedValue(600);
+
+  // Diagnostic du drop-off : on mesure l'entrée (started) et le point d'abandon
+  // (abandoned + tapped_count) pour voir où l'utilisateur quitte dans le wow moment.
+  const completedRef = useRef(false);
+  const tappedCountRef = useRef(0);
+  tappedCountRef.current = tapped.size;
+
+  useEffect(() => {
+    posthog.capture('wow_moment_started');
+    return () => {
+      if (!completedRef.current) {
+        posthog.capture('wow_moment_abandoned', { tapped_count: tappedCountRef.current });
+      }
+    };
+  }, []);
 
   const amounts = AMOUNTS[selectedCurrency] || AMOUNTS.USD;
   const expenses: TapExpense[] = TEMPLATES.map((tpl, i) => ({
@@ -55,7 +71,6 @@ export default function WowScreen() {
 
   const spent = expenses.filter((e) => tapped.has(e.id)).reduce((s, e) => s + e.amount, 0);
   const balance = amounts.balance - spent;
-  const allTapped = tapped.size === expenses.length;
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
   const breakdown = expenses.reduce<Record<string, { amount: number; color: string; key: string }>>((acc, e) => {
@@ -74,6 +89,25 @@ export default function WowScreen() {
     await setCurrency(code);
   }, [setCurrency]);
 
+  // Révèle le mini-rapport (confetti + sheet). Déclenché soit automatiquement quand
+  // les 4 dépenses sont tapées, soit dès le 1er tap via le bouton "Voir mon rapport"
+  // — pour ne plus bloquer l'utilisateur derrière une obligation de tout taper.
+  const revealReport = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    posthog.capture('wow_moment_completed', {
+      currency: selectedCurrency, tapped_count: tappedCountRef.current,
+    });
+    setRevealed(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowConfetti(true);
+    overlayOpacity.value = withTiming(1, { duration: 300 });
+    reportOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
+    reportTy.value = withDelay(200, withTiming(0, {
+      duration: 500, easing: Easing.out(Easing.cubic),
+    }));
+  }, [selectedCurrency]);
+
   const handleTap = useCallback((id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const next = new Set(tapped); next.add(id);
@@ -83,18 +117,9 @@ export default function WowScreen() {
     });
 
     if (next.size === expenses.length) {
-      posthog.capture('wow_moment_completed', { currency: selectedCurrency });
-      setTimeout(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setShowConfetti(true);
-        overlayOpacity.value = withTiming(1, { duration: 300 });
-        reportOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
-        reportTy.value = withDelay(200, withTiming(0, {
-          duration: 500, easing: Easing.out(Easing.cubic),
-        }));
-      }, 300);
+      setTimeout(() => revealReport(), 300);
     }
-  }, [tapped, expenses.length, selectedCurrency]);
+  }, [tapped, expenses.length, revealReport]);
 
   const balanceStyle = useAnimatedStyle(() => ({ transform: [{ scale: balanceAnim.value }] }));
   const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
@@ -183,9 +208,15 @@ export default function WowScreen() {
         >
           {tapped.size}/{expenses.length}
         </Text>
+
+        {tapped.size > 0 && !revealed && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
+            <SeeReportButton label={t('wow.seeReport')} onPress={revealReport} />
+          </View>
+        )}
       </ScrollView>
 
-      {allTapped && (
+      {revealed && (
         <ReportSheet
           categories={categoriesArr}
           total={total}

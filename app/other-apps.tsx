@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { ScrollView, View, Pressable, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { usePostHog } from 'posthog-react-native';
 import { useV2 } from '@/constants/designTokensV2';
 import { OTHER_APPS } from '@/constants/otherApps';
 import { OtherAppCard } from '@/components/other-apps';
@@ -12,6 +14,11 @@ export default function OtherAppsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const v2 = useV2();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    posthog.capture('other_apps_viewed');
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>

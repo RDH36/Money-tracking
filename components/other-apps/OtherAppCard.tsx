@@ -1,6 +1,7 @@
 import { View, Text, Image, Pressable, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { usePostHog } from 'posthog-react-native';
 import { useV2 } from '@/constants/designTokensV2';
 import type { OtherApp } from '@/constants/otherApps';
 
@@ -11,7 +12,13 @@ interface OtherAppCardProps {
 export function OtherAppCard({ app }: OtherAppCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
+  const posthog = usePostHog();
   const released = !!app.storeUrl;
+
+  const handleOpenStore = () => {
+    posthog.capture('other_app_clicked', { target: app.id });
+    Linking.openURL(app.storeUrl!);
+  };
 
   return (
     <View
@@ -53,7 +60,7 @@ export function OtherAppCard({ app }: OtherAppCardProps) {
 
       {released ? (
         <Pressable
-          onPress={() => Linking.openURL(app.storeUrl!)}
+          onPress={handleOpenStore}
           hitSlop={6}
           style={{
             flexDirection: 'row',

@@ -6,17 +6,20 @@ import { useAccounts } from '@/hooks';
 import { AccountsSection } from '@/components/settings';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AddAccountModal } from '@/components/AddAccountModal';
+import { EditAccountModal } from '@/components/EditAccountModal';
 import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatureModal';
 import { SettingsPageWrapper } from '@/components/settings/SettingsPageWrapper';
+import type { AccountWithBalance } from '@/types';
 
 export default function AccountsSettingsPage() {
   const { t } = useTranslation();
   const posthog = usePostHog();
   const {
-    accounts, formatMoney, refresh, deleteAccount, createAccount,
+    accounts, formatMoney, refresh, deleteAccount, createAccount, updateAccount,
     canCreateAccount, customAccountsCount, maxCustomAccounts,
   } = useAccounts();
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [editAccount, setEditAccount] = useState<AccountWithBalance | null>(null);
   const [lockedFeature, setLockedFeature] = useState<LockedFeature | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
     title: string; message: string; confirmText: string; onConfirm: () => void;
@@ -42,6 +45,7 @@ export default function AccountsSettingsPage() {
           if (canCreateAccount) setShowAddAccount(true);
           else setLockedFeature('account');
         }}
+        onEdit={(account) => setEditAccount(account)}
         onDelete={(account) => setConfirmAction({
           title: t('account.deleteConfirm', { name: account.name }),
           message: t('account.deleteWarning'),
@@ -61,6 +65,17 @@ export default function AccountsSettingsPage() {
         canCreateAccount={canCreateAccount}
         customAccountsCount={customAccountsCount}
         maxCustomAccounts={maxCustomAccounts}
+      />
+
+      <EditAccountModal
+        isOpen={!!editAccount}
+        account={editAccount}
+        onClose={() => setEditAccount(null)}
+        onSave={async (id, params) => {
+          const ok = await updateAccount(id, params);
+          if (ok) posthog.capture('account_updated');
+          return ok;
+        }}
       />
 
       <LockedFeatureModal

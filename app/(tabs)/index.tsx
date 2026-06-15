@@ -35,6 +35,7 @@ import {
   formatMonthLabelFr,
   startOfMonth,
 } from '@/components/dashboard';
+import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -167,6 +168,9 @@ export default function DashboardScreen() {
               onDismiss={appLockBanner.dismiss}
             />
           ) : null}
+
+          <CloudBackupSurveyPrompt />
+
 
           <BalanceHeroCard
             totalBalance={totalBalance}
