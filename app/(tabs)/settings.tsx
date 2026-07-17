@@ -119,6 +119,12 @@ export default function SettingsScreen() {
             onPress={() => router.push('/settings/privacy' as any)}
           />
           <SettingsRow
+            icon="cloud-upload-outline"
+            iconColor="#0EA5E9"
+            label={t('settings.dataBackup')}
+            onPress={() => router.push('/settings/data' as any)}
+          />
+          <SettingsRow
             icon="chatbubble-outline"
             iconColor="#14B8A6"
             label={t('settings.feedback')}
