@@ -384,6 +384,7 @@
     "title": "Ready to take control of your finances?",
     "subtitle": "A few quick questions to personalize your experience",
     "cta": "Let's go!",
+    "importCta": "I already have a backup · Import my data",
     "speechBubble": "Hello, I'm Bubule, your guide!"
   },
   "quiz": {

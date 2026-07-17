@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { View, Text, Dimensions, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,9 @@ import Animated, {
 import { usePostHog } from 'posthog-react-native';
 import { useV2 } from '@/constants/designTokensV2';
 import { BubuleHeadBubble, PrimaryBtn, EyebrowLabel } from '@/components/onboarding/v2';
+import { useBackup } from '@/hooks/useBackup';
+import { BackupPasswordDialog } from '@/components/backup';
+import type { BackupEnvelope } from '@/lib/backup';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const FLOATING_EMOJIS = ['💰', '📊', '🎯', '✨', '🏦', '💎'];
@@ -59,6 +62,33 @@ export default function WelcomeScreen() {
   const v2 = useV2();
   const [ready, setReady] = useState(false);
   const posthog = usePostHog();
+
+  const { importing, error, setError, pickFile, doImport } = useBackup();
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pending, setPending] = useState<BackupEnvelope | null>(null);
+
+  const runImport = async (envelope: BackupEnvelope, password?: string) => {
+    const ok = await doImport(envelope, password);
+    if (ok) {
+      posthog.capture('onboarding_import_completed');
+      setPwOpen(false);
+      // Le flag onboarding_completed vient de la sauvegarde → on entre dans l'app.
+      router.replace('/(tabs)' as any);
+    }
+  };
+
+  const handleImportPress = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setError(null);
+    const picked = await pickFile();
+    if (!picked || picked.canceled || !picked.envelope) return;
+    if (picked.protected) {
+      setPending(picked.envelope);
+      setPwOpen(true);
+    } else {
+      runImport(picked.envelope);
+    }
+  };
 
   const logoOpacity = useSharedValue(0);
   const logoScale = useSharedValue(0.8);
@@ -151,15 +181,46 @@ export default function WelcomeScreen() {
             router.push('/onboarding/quiz-1');
           }}
         />
-        <Text
-          style={{
-            textAlign: 'center', marginTop: 14,
-            fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle,
-          }}
+        <Pressable
+          onPress={handleImportPress}
+          disabled={!ready || importing}
+          hitSlop={8}
+          style={{ marginTop: 16, alignItems: 'center', minHeight: 20, justifyContent: 'center' }}
         >
-          {t('onboarding.appName')} · {t('onboarding.feature4')}
-        </Text>
+          {importing ? (
+            <ActivityIndicator size="small" color={v2.inkMuted} />
+          ) : (
+            <Text
+              style={{
+                textAlign: 'center', fontFamily: v2.fontUI, fontSize: 13,
+                fontWeight: '700', color: v2.brand, textDecorationLine: 'underline',
+              }}
+            >
+              {t('welcome.importCta')}
+            </Text>
+          )}
+        </Pressable>
+
+        {error && !pwOpen && error !== 'WRONG_PASSWORD' ? (
+          <Text
+            style={{
+              textAlign: 'center', marginTop: 8,
+              fontFamily: v2.fontUI, fontSize: 12, color: v2.bad,
+            }}
+          >
+            {t([`dataBackupV2.errors.${error}`, 'dataBackupV2.errors.generic'])}
+          </Text>
+        ) : null}
       </Animated.View>
+
+      <BackupPasswordDialog
+        isOpen={pwOpen}
+        mode="enter"
+        loading={importing}
+        errorText={error === 'WRONG_PASSWORD' ? t('dataBackupV2.errors.WRONG_PASSWORD') : null}
+        onSubmit={(pw) => pending && runImport(pending, pw)}
+        onClose={() => { setPwOpen(false); setError(null); }}
+      />
     </View>
   );
 }
