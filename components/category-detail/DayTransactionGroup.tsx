@@ -1,7 +1,9 @@
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
@@ -20,15 +22,6 @@ function alpha15(hex: string | null | undefined): string {
   return 'rgba(15,19,17,0.06)';
 }
 
-function formatHM(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  } catch {
-    return '';
-  }
-}
-
 export function DayTransactionGroup({
   dayLabel,
   transactions,
@@ -37,6 +30,7 @@ export function DayTransactionGroup({
   currencyCode = 'Ar',
 }: DayTransactionGroupProps) {
   const v2 = useV2();
+  const { i18n } = useTranslation();
 
   return (
     <View style={{ marginTop: 18 }}>
@@ -71,8 +65,8 @@ export function DayTransactionGroup({
           const sign = isIncome ? '+' : isExpense ? '−' : '';
           const color = tx.category_color ?? v2.inkMuted;
           const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-          const time = formatHM(tx.transaction_date);
-          const meta = [tx.note, time].filter(Boolean).join(' · ');
+          const dateTime = formatTransactionDateTime(tx.transaction_date, i18n.language);
+          const meta = [dateTime, tx.note].filter(Boolean).join(' · ');
 
           return (
             <View

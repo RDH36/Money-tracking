@@ -6,6 +6,11 @@
  * (rollback automatique en cas d'erreur). Les colonnes insérées sont calculées
  * dynamiquement (intersection clés-de-ligne ∩ colonnes-réelles) pour tolérer
  * les différences de version de schéma entre l'appareil source et cible.
+ *
+ * On utilise `withExclusiveTransactionAsync` (connexion dédiée) et NON
+ * `withTransactionAsync` : sur une app déjà remplie, d'autres hooks écrivent en
+ * parallèle sur la connexion principale, ce qui faisait échouer le `BEGIN`
+ * partagé avec « cannot start a transaction within a transaction ».
  */
 import type { SQLiteDatabase, SQLiteBindValue } from 'expo-sqlite';
 import {
@@ -51,15 +56,19 @@ async function insertRows(
  * (PIN/biométrie restent ceux de l'appareil).
  */
 export async function restoreDatabase(db: SQLiteDatabase, data: BackupData): Promise<void> {
-  await db.withTransactionAsync(async () => {
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    // Attendre (jusqu'à 8 s) plutôt qu'échouer si la connexion principale
+    // détient un verrou d'écriture au moment de l'import.
+    await txn.execAsync('PRAGMA busy_timeout = 8000');
+
     // 1. Vider les tables (enfants avant parents). `settings` est préservée.
     for (const table of BACKUP_WIPE_TABLES) {
-      await db.runAsync(`DELETE FROM ${table}`);
+      await txn.runAsync(`DELETE FROM ${table}`);
     }
 
     // 2. Réinsérer (parents avant enfants). `settings` = upsert clé par clé.
     for (const table of BACKUP_TABLES) {
-      await insertRows(db, table, data[table]);
+      await insertRows(txn, table, data[table]);
     }
   });
 }

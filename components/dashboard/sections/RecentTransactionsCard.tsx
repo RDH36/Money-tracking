@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
 import { groupByPlanification } from '@/lib/groupTransactions';
+import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
@@ -22,17 +23,6 @@ function alpha15(hex: string | null | undefined): string {
   return 'rgba(15,19,17,0.06)';
 }
 
-function formatHM(iso: string): string {
-  try {
-    const d = new Date(iso);
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  } catch {
-    return '';
-  }
-}
-
 export function RecentTransactionsCard({
   transactions,
   onSeeAllPress,
@@ -40,7 +30,7 @@ export function RecentTransactionsCard({
   currencyCode = 'Ar',
 }: RecentTransactionsCardProps) {
   const v2 = useV2();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const items = groupByPlanification(transactions);
 
@@ -168,7 +158,7 @@ export function RecentTransactionsCard({
                         fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1,
                       }}
                     >
-                      {t('planification.transactionCount', { count: item.transactions.length })} · {formatHM(item.latestCreatedAt)}
+                      {t('planification.transactionCount', { count: item.transactions.length })} · {formatTransactionDateTime(item.latestCreatedAt, i18n.language)}
                     </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
@@ -195,8 +185,8 @@ export function RecentTransactionsCard({
             const cat = tx.category_name ?? t('common.noCategory');
             const catColor = tx.category_color ?? v2.inkMuted;
             const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-            const time = formatHM(tx.transaction_date);
-            const meta = [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
+            const dateTime = formatTransactionDateTime(tx.transaction_date, i18n.language);
+            const meta = [dateTime, tx.account_name, tx.note].filter(Boolean).join(' · ');
 
             return (
               <Pressable

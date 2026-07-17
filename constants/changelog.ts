@@ -11,6 +11,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.3",
+    date: "2026-07-17",
+    changes: [
+      { type: "added", key: "changelog.dataBackup" },
+      { type: "added", key: "changelog.dataBackupOnboardingImport" },
+      { type: "added", key: "changelog.historyDateFilter" },
+      { type: "added", key: "changelog.historyFullDateOnCards" },
+      { type: "added", key: "changelog.historyMonthFilter" },
+      { type: "added", key: "changelog.historyDayHeaders" },
+      { type: "fixed", key: "changelog.transferDeleteBothLegsFix" },
+    ],
+  },
+  {
     version: "2.0.2",
     date: "2026-06-15",
     changes: [

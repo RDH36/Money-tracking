@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useTheme } from '@/contexts';
 import { getCategoryDisplayName } from '@/constants/categories';
+import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
@@ -56,15 +57,6 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
     return `${from} → ${to}`;
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const locale = i18n.language === 'fr' ? 'fr-FR' : 'en-US';
-    return date.toLocaleTimeString(locale, {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <View>
       <PressableCard
@@ -106,7 +98,7 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
               </Text>
             )}
             <Text className="text-ui-xs font-body-regular" style={{ color: '#8E8EA0' }}>
-              {formatTime(transaction.transaction_date)}
+              {formatTransactionDateTime(transaction.transaction_date, i18n.language)}
             </Text>
             <BackdatedLine tx={transaction} />
           </View>

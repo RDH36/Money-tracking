@@ -1,5 +1,5 @@
 // App constants
-export const APP_VERSION = "2.0.2";
+export const APP_VERSION = "2.0.3";
 export const PROJECT_NAME = "mitsitsy";
 
 // Supabase configuration

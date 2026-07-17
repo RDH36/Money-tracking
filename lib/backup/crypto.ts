@@ -7,7 +7,25 @@
  * en clair dans l'enveloppe pour permettre le déchiffrement.
  */
 import CryptoJS from 'crypto-js';
+import * as Crypto from 'expo-crypto';
 import { APP_SECRET, PBKDF2_ITERATIONS } from './constants';
+
+/**
+ * Génère un WordArray aléatoire via expo-crypto.
+ *
+ * On N'UTILISE PAS `CryptoJS.lib.WordArray.random()` : il dépend d'un global
+ * `crypto.getRandomValues` absent de React Native/Hermes et lève « Native
+ * crypto module could not be used to get secure random number » en production.
+ * expo-crypto (`getRandomBytes`) fournit un aléa sûr et natif.
+ */
+function randomWordArray(byteCount: number): CryptoJS.lib.WordArray {
+  const bytes = Crypto.getRandomBytes(byteCount);
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, '0');
+  }
+  return CryptoJS.enc.Hex.parse(hex);
+}
 
 export interface EncryptedPayload {
   /** true si un mot de passe utilisateur a été utilisé. */
@@ -37,8 +55,8 @@ export function encryptPayload(plaintext: string, password?: string): EncryptedP
   const usePassword = !!(password && password.length > 0);
   const secret = usePassword ? (password as string) : APP_SECRET;
 
-  const salt = CryptoJS.lib.WordArray.random(16);
-  const iv = CryptoJS.lib.WordArray.random(16);
+  const salt = randomWordArray(16);
+  const iv = randomWordArray(16);
   const key = deriveKey(secret, salt);
 
   const cipher = CryptoJS.AES.encrypt(plaintext, key, {

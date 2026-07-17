@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { formatCurrency } from '@/lib/currency';
+import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useTheme } from '@/contexts';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -20,17 +21,12 @@ interface PlanificationTransactionGroupProps {
 
 export function PlanificationTransactionGroup({ group, onLongPress }: PlanificationTransactionGroupProps) {
   const currencyCode = useCurrencyCode();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const router = useRouter();
 
   const expenseCount = group.transactions.filter((tx) => tx.type === 'expense').length;
   const incomeCount = group.transactions.filter((tx) => tx.type === 'income').length;
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
 
   return (
     <Pressable
@@ -55,7 +51,7 @@ export function PlanificationTransactionGroup({ group, onLongPress }: Planificat
             </RNText>
             {group.transactions.length > 0 && (
               <RNText className="text-xs" style={{ color: '#6E6E7D' }}>
-                {formatTime(group.transactions[0].transaction_date)}
+                {formatTransactionDateTime(group.transactions[0].transaction_date, i18n.language)}
               </RNText>
             )}
           </View>

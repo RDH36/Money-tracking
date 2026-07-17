@@ -8,6 +8,7 @@ import {
   groupByPlanification,
   type PlanificationGroup,
 } from '@/lib/groupTransactions';
+import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import { BackdatedLine } from './BackdatedLine';
 
@@ -16,12 +17,6 @@ type IoniconName = ComponentProps<typeof Ionicons>['name'];
 function alpha15(hex: string | null | undefined): string {
   if (hex && hex.startsWith('#') && hex.length === 7) return hex + '15';
   return 'rgba(15,19,17,0.06)';
-}
-function formatHM(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  } catch { return ''; }
 }
 
 function dayKey(iso: string): string {
@@ -51,7 +46,7 @@ interface RowProps {
 }
 function TransactionRow({ tx, currencyCode, onDelete, isLast }: RowProps) {
   const v2 = useV2();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isIncome = tx.type === 'income';
   const isExpense = tx.type === 'expense';
   const tone = isExpense ? v2.bad : isIncome ? v2.good : v2.inkMuted;
@@ -59,8 +54,10 @@ function TransactionRow({ tx, currencyCode, onDelete, isLast }: RowProps) {
   const cat = tx.category_name ?? t('common.noCategory');
   const catColor = tx.category_color ?? v2.inkMuted;
   const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
-  const time = formatHM(tx.transaction_date);
-  const meta = [tx.note, tx.account_name, time].filter(Boolean).join(' · ');
+  // Date + heure de la transaction en tête du meta pour rester visible même
+  // si la note est longue (la ligne tronque par la fin).
+  const dateTime = formatTransactionDateTime(tx.transaction_date, i18n.language);
+  const meta = [dateTime, tx.account_name, tx.note].filter(Boolean).join(' · ');
 
   return (
     <View
@@ -119,7 +116,7 @@ interface GroupCardProps {
 }
 function GroupCard({ group, currencyCode }: GroupCardProps) {
   const v2 = useV2();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const totalExpense = group.transactions.filter((tx) => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0);
   const totalIncome = group.transactions.filter((tx) => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0);
@@ -148,7 +145,7 @@ function GroupCard({ group, currencyCode }: GroupCardProps) {
           {group.title}
         </Text>
         <Text style={{ marginTop: 2, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle }}>
-          {t('planification.transactionCount', { count: group.transactions.length })} · {formatHM(group.latestCreatedAt)}
+          {t('planification.transactionCount', { count: group.transactions.length })} · {formatTransactionDateTime(group.latestCreatedAt, i18n.language)}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end', gap: 2 }}>
@@ -171,8 +168,10 @@ interface TransactionsListProps {
   transactions: TransactionWithCategory[];
   currencyCode: string;
   onDelete?: (tx: TransactionWithCategory) => void;
+  /** Masque les en-têtes de jour (utile quand un jour précis est déjà filtré). */
+  hideDayHeaders?: boolean;
 }
-export function TransactionsList({ transactions, currencyCode, onDelete }: TransactionsListProps) {
+export function TransactionsList({ transactions, currencyCode, onDelete, hideDayHeaders }: TransactionsListProps) {
   const v2 = useV2();
   const { t, i18n } = useTranslation();
   const items = groupByPlanification(transactions);
@@ -184,7 +183,7 @@ export function TransactionsList({ transactions, currencyCode, onDelete }: Trans
       {items.map((item) => {
         const dateIso = item.kind === 'group' ? item.latestCreatedAt : item.transaction.created_at;
         const key = dayKey(dateIso);
-        const showHeader = key !== lastDay;
+        const showHeader = !hideDayHeaders && key !== lastDay;
         lastDay = key;
 
         const header = showHeader ? (
