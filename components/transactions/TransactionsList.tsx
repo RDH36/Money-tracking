@@ -24,6 +24,25 @@ function formatHM(iso: string): string {
   } catch { return ''; }
 }
 
+function dayKey(iso: string): string {
+  try { return new Date(iso).toDateString(); } catch { return iso; }
+}
+
+function dayLabel(iso: string, lang: string, t: (k: string) => string): string {
+  const d = new Date(iso);
+  const key = d.toDateString();
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (key === today.toDateString()) return t('history.today');
+  if (key === yesterday.toDateString()) return t('history.yesterday');
+  try {
+    return d.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
+  } catch {
+    return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+}
+
 interface RowProps {
   tx: TransactionWithCategory;
   currencyCode: string;
@@ -155,29 +174,57 @@ interface TransactionsListProps {
 }
 export function TransactionsList({ transactions, currencyCode, onDelete }: TransactionsListProps) {
   const v2 = useV2();
+  const { t, i18n } = useTranslation();
   const items = groupByPlanification(transactions);
+
+  let lastDay: string | null = null;
 
   return (
     <View style={{ gap: 8 }}>
       {items.map((item) => {
-        if (item.kind === 'group') {
-          return <GroupCard key={`g-${item.planificationId}`} group={item} currencyCode={currencyCode} />;
-        }
-        return (
-          <View
-            key={item.transaction.id}
+        const dateIso = item.kind === 'group' ? item.latestCreatedAt : item.transaction.created_at;
+        const key = dayKey(dateIso);
+        const showHeader = key !== lastDay;
+        lastDay = key;
+
+        const header = showHeader ? (
+          <Text
+            key={`h-${key}`}
             style={{
-              backgroundColor: v2.bgSurface,
-              borderWidth: 1, borderColor: v2.hairline,
-              borderRadius: 14, padding: 4,
+              fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700',
+              color: v2.inkSubtle, letterSpacing: 0.6, textTransform: 'uppercase',
+              marginTop: 8, marginBottom: 2, paddingHorizontal: 4,
             }}
           >
-            <TransactionRow
-              tx={item.transaction}
-              currencyCode={currencyCode}
-              onDelete={onDelete ? () => onDelete(item.transaction) : undefined}
-              isLast
-            />
+            {dayLabel(dateIso, i18n.language, t)}
+          </Text>
+        ) : null;
+
+        if (item.kind === 'group') {
+          return (
+            <View key={`g-${item.planificationId}`} style={{ gap: 8 }}>
+              {header}
+              <GroupCard group={item} currencyCode={currencyCode} />
+            </View>
+          );
+        }
+        return (
+          <View key={item.transaction.id} style={{ gap: 8 }}>
+            {header}
+            <View
+              style={{
+                backgroundColor: v2.bgSurface,
+                borderWidth: 1, borderColor: v2.hairline,
+                borderRadius: 14, padding: 4,
+              }}
+            >
+              <TransactionRow
+                tx={item.transaction}
+                currencyCode={currencyCode}
+                onDelete={onDelete ? () => onDelete(item.transaction) : undefined}
+                isLast
+              />
+            </View>
           </View>
         );
       })}

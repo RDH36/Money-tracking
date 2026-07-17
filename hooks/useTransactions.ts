@@ -134,10 +134,22 @@ export function useTransactions() {
         const now = new Date().toISOString();
         const tx = transactions.find((t) => t.id === id);
         setTransactions((prev) => prev.filter((t) => t.id !== id));
-        await db.runAsync(
-          'UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?',
-          [now, now, id]
-        );
+
+        if (tx?.transfer_id) {
+          // A transfer is stored as two linked rows (expense on source,
+          // income on destination) sharing the same transfer_id. Deleting
+          // only the selected row would leave the other leg active and keep
+          // its amount counted forever — soft-delete BOTH legs.
+          await db.runAsync(
+            'UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE transfer_id = ? AND deleted_at IS NULL',
+            [now, now, tx.transfer_id]
+          );
+        } else {
+          await db.runAsync(
+            'UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?',
+            [now, now, id]
+          );
+        }
 
         // Auto-delete planification if no linked transactions remain
         if (tx?.planification_id) {

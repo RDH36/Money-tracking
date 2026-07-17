@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, ScrollView, Pressable, Text, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -10,21 +10,40 @@ import { EmptyState } from '@/components/premium';
 import { useTransactions, useAccounts } from '@/hooks';
 import { useV2 } from '@/constants/designTokensV2';
 import { TransactionsList } from '@/components/transactions/TransactionsList';
+import { MonthSelector } from '@/components/category-detail/MonthSelector';
+import { formatMonthLabelFr } from '@/components/dashboard/helpers';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const v2 = useV2();
   const currency = useCurrency();
   const { transactions, isFetching, refresh, deleteTransaction } = useTransactions();
   const { refresh: refreshAccounts } = useAccounts();
   const posthog = usePostHog();
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
+  const [monthOffset, setMonthOffset] = useState(0);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  const monthDate = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  }, [monthOffset]);
+
+  const monthLabel = formatMonthLabelFr(monthDate, i18n.language);
+
+  const monthTransactions = useMemo(
+    () =>
+      transactions.filter((tx) => {
+        const d = new Date(tx.created_at);
+        return d.getFullYear() === monthDate.getFullYear() && d.getMonth() === monthDate.getMonth();
+      }),
+    [transactions, monthDate]
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
@@ -77,6 +96,15 @@ export default function TransactionsScreen() {
           />
         }
       >
+        <View style={{ marginBottom: 12 }}>
+          <MonthSelector
+            label={monthLabel}
+            onPrev={() => setMonthOffset((p) => p - 1)}
+            onNext={() => setMonthOffset((p) => Math.min(p + 1, 0))}
+            nextDisabled={monthOffset >= 0}
+          />
+        </View>
+
         {transactions.length === 0 ? (
           <View style={{ paddingVertical: 60, alignItems: 'center' }}>
             <EmptyState
@@ -86,9 +114,18 @@ export default function TransactionsScreen() {
               image={require('@/assets/images/bubule-detente.png')}
             />
           </View>
+        ) : monthTransactions.length === 0 ? (
+          <Text
+            style={{
+              fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle,
+              textAlign: 'center', paddingVertical: 40, fontStyle: 'italic',
+            }}
+          >
+            {t('categoryDetail.noTransactionsThisMonth')}
+          </Text>
         ) : (
           <TransactionsList
-            transactions={transactions}
+            transactions={monthTransactions}
             currencyCode={currency.code}
             onDelete={(tx) => setDeleteTarget(tx)}
           />
