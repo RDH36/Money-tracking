@@ -2,6 +2,52 @@
 
 All notable changes to Mitsitsy will be documented in this file.
 
+## [2.0.3] - 2026-07-17
+
+### Added
+- Backup and transfer your data via `.mitsitsy` files (phone migration)
+- Direct import of a `.mitsitsy` backup from onboarding
+- Date filter in history and date display on transaction cards
+
+### Fixed
+- Deleting a transfer now removes both legs of the transfer
+
+## [2.0.2] - 2026-06-15
+
+### Added
+- Cloud backup survey to gauge interest
+- First-expense activation tracking with analytics events
+
+### Fixed
+- Smoother "wow moment" animation
+
+## [2.0.1] - 2026-06-03
+
+### Added
+- App lock with PIN, biometric unlock and recovery
+- Custom transaction date when logging entries
+- Dashboard lock banner and "my other apps" page
+
+### Fixed
+- Monthly challenge reset bug
+- Activity feed now orders by recording date so back-dated entries surface as recent
+- Expense reminder and planification notifications translated (FR/EN/MG)
+
+## [2.0.0] - 2026-04-30
+
+### Added
+- V2 design redesign across dashboard, activity, add, planification, reports, calendar, settings and achievements
+- Rose theme, refreshed popups and bottom sheets
+- French amount formatting
+- Manual XP recalculation button to repair inflated accounts
+
+### Changed
+- Settings polish, accurate notification labels, simplified feedback
+- Planification renamed with form parity
+
+### Fixed
+- Critical XP spam on the Achievements page (stale closure)
+
 ## [1.1.0] - 2026-03-03
 
 ### Added
