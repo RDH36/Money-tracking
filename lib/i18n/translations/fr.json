@@ -14,7 +14,9 @@
     "noCategory": "Sans catégorie",
     "characters": "{{current}}/{{max}} caractères",
     "understood": "Compris",
-    "deleteItem": "Supprimer \"{{name}}\" ?"
+    "deleteItem": "Supprimer \"{{name}}\" ?",
+    "durationDaysHours": "{{days}}j {{hours}}h",
+    "durationHoursMinutes": "{{hours}}h {{minutes}}m"
   },
   "tabs": {
     "home": "Accueil",
@@ -58,6 +60,12 @@
     "accounts": "Comptes",
     "bank": "Banque",
     "cash": "Cash"
+  },
+  "budgets": {
+    "projected": "Fin de mois estimée",
+    "onTrack": "dans le budget",
+    "willExceed": "dépassement prévu",
+    "paceMarker": "rythme du mois"
   },
   "add": {
     "newTransaction": "Nouvelle transaction",
@@ -592,6 +600,11 @@
   },
   "changelog": {
     "current": "Actuel",
+    "avgPerDayFix": "Moyenne de dépense par jour plus juste : calculée sur les jours écoulés du mois, plus sur le mois entier",
+    "budgetPaceStatus": "Statut des budgets qui tient compte du rythme : un budget en avance sur le mois reste vert, et la carte affiche la dépense estimée en fin de mois avec un repère de rythme",
+    "budgetResetLive": "Le temps restant avant la remise à zéro des budgets s'actualise désormais en direct",
+    "txNoteOwnLine": "La note d'une transaction s'affiche désormais en entier, sur sa propre ligne, au lieu d'être coupée en bout de ligne",
+    "analysisPerf": "Calculs de budgets et de rapports plus rapides sur les gros historiques",
     "dataBackup": "Sauvegarde et transfert : exporte toutes tes données dans un fichier .mitsitsy chiffré pour les retrouver sur un nouveau téléphone",
     "dataBackupOnboardingImport": "Tu changes de téléphone ? Importe ta sauvegarde dès l'écran d'accueil pour tout retrouver en un instant",
     "historyDateFilter": "Filtre par date : choisis un jour précis (icône calendrier) pour retrouver instantanément les transactions de ce jour",

@@ -186,7 +186,9 @@ export function RecentTransactionsCard({
             const catColor = tx.category_color ?? v2.inkMuted;
             const iconName: IoniconName = (tx.category_icon as IoniconName) ?? 'pricetag-outline';
             const dateTime = formatTransactionDateTime(tx.transaction_date, i18n.language);
-            const meta = [dateTime, tx.account_name, tx.note].filter(Boolean).join(' · ');
+            // La note passe sur sa propre ligne en dessous (voir plus bas) : la
+            // ligne meta ne garde que date + compte, sinon la note est tronquée.
+            const meta = [dateTime, tx.account_name].filter(Boolean).join(' · ');
 
             return (
               <Pressable
@@ -217,6 +219,17 @@ export function RecentTransactionsCard({
                   >
                     {meta}
                   </Text>
+                  {tx.note ? (
+                    <Text
+                      numberOfLines={2}
+                      style={{
+                        fontFamily: v2.fontUI, fontSize: 11.5, lineHeight: 15,
+                        color: v2.inkMuted, fontStyle: 'italic', marginTop: 2,
+                      }}
+                    >
+                      {tx.note}
+                    </Text>
+                  ) : null}
                   <BackdatedLine tx={tx} />
                 </View>
                 <Text

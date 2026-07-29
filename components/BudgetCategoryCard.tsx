@@ -13,13 +13,14 @@ const STATUS_COLORS = { green: '#22C55E', orange: '#F59E0B', red: '#EF4444' };
 interface BudgetCategoryCardProps {
   budget: BudgetData;
   onPress: () => void;
+  timeUntilReset?: string;
 }
 
-export function BudgetCategoryCard({ budget, onPress }: BudgetCategoryCardProps) {
+export function BudgetCategoryCard({ budget, onPress, timeUntilReset }: BudgetCategoryCardProps) {
   const { t } = useTranslation();
   const { formatMoney } = useAccounts();
   const { theme } = useTheme();
-  const { category, spent, budgetLimit, percentage, status, timeUntilReset } = budget;
+  const { category, spent, budgetLimit, percentage, status } = budget;
   const color = category.color || '#95A5A6';
   const barColor = status ? STATUS_COLORS[status] : theme.colors.primary;
   const barWidth = percentage ? Math.min(percentage, 100) : 0;

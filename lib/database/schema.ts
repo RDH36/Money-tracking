@@ -141,6 +141,15 @@ export const ADD_TYPE_TO_PLANIFICATION_ITEMS = `
 ALTER TABLE planification_items ADD COLUMN type TEXT DEFAULT 'expense' CHECK (type IN ('expense', 'income'));
 `;
 
+// Partial index matching the exact WHERE clause used by every analytical
+// aggregate (useBudgets + the upcoming lib/analysis/): expense/income lookups
+// filtered by transaction_date over non-deleted, non-transfer rows.
+export const CREATE_TX_ANALYSIS_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_tx_analysis
+  ON transactions(type, transaction_date)
+  WHERE deleted_at IS NULL AND transfer_id IS NULL;
+`;
+
 export const MAX_CUSTOM_CATEGORIES = 3;
 export const MAX_CUSTOM_ACCOUNTS = 2;
 

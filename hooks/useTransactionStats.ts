@@ -28,25 +28,48 @@ function getWeekStart(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), diff);
 }
 
-function getPeriodRange(period: PeriodType, date: Date): { start: Date; end: Date; days: number } {
+/**
+ * Bornes d'une période.
+ * - `days` : durée TOTALE de la période (sert aux projections).
+ * - `elapsedDays` : jours réellement écoulés, borné à `days`, jamais 0 (sert
+ *   aux moyennes). Pour une période courante, on s'arrête à aujourd'hui ;
+ *   pour une période passée, `elapsedDays === days`.
+ */
+function getPeriodRange(
+  period: PeriodType,
+  date: Date
+): { start: Date; end: Date; days: number; elapsedDays: number } {
   const d = startOfDay(date);
+  const today = startOfDay(new Date());
   switch (period) {
     case 'day':
-      return { start: d, end: new Date(d.getTime() + 86400000 - 1), days: 1 };
+      // Un jour est indivisible : la seule granularité est le jour lui-même.
+      return { start: d, end: new Date(d.getTime() + 86400000 - 1), days: 1, elapsedDays: 1 };
     case 'week': {
       const ws = getWeekStart(d);
-      return { start: ws, end: new Date(ws.getTime() + 7 * 86400000 - 1), days: 7 };
+      const we = new Date(ws.getTime() + 7 * 86400000 - 1);
+      const isCurrent = today >= ws && today <= we;
+      const elapsedDays = isCurrent
+        ? Math.min(7, Math.max(1, Math.floor((today.getTime() - ws.getTime()) / 86400000) + 1))
+        : 7;
+      return { start: ws, end: we, days: 7, elapsedDays };
     }
     case 'month': {
       const ms = new Date(d.getFullYear(), d.getMonth(), 1);
       const me = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-      return { start: ms, end: me, days: me.getDate() };
+      const days = me.getDate();
+      const isCurrent = today.getFullYear() === d.getFullYear() && today.getMonth() === d.getMonth();
+      const elapsedDays = isCurrent ? Math.min(days, Math.max(1, today.getDate())) : days;
+      return { start: ms, end: me, days, elapsedDays };
     }
     case 'year': {
       const ys = new Date(d.getFullYear(), 0, 1);
       const ye = new Date(d.getFullYear(), 11, 31, 23, 59, 59, 999);
-      const daysInYear = Math.ceil((ye.getTime() - ys.getTime()) / 86400000) + 1;
-      return { start: ys, end: ye, days: daysInYear };
+      const days = Math.ceil((ye.getTime() - ys.getTime()) / 86400000) + 1;
+      const isCurrent = today.getFullYear() === d.getFullYear();
+      const dayOfYear = Math.floor((today.getTime() - ys.getTime()) / 86400000) + 1;
+      const elapsedDays = isCurrent ? Math.min(days, Math.max(1, dayOfYear)) : days;
+      return { start: ys, end: ye, days, elapsedDays };
     }
   }
 }
@@ -63,7 +86,7 @@ export function filterByPeriod(
   });
 }
 
-export function computeStats(transactions: TransactionWithCategory[], days: number): PeriodStats {
+export function computeStats(transactions: TransactionWithCategory[], elapsedDays: number): PeriodStats {
   let totalExpenses = 0;
   let totalIncome = 0;
   const catMap = new Map<string, { name: string; amount: number; color: string }>();
@@ -96,7 +119,7 @@ export function computeStats(transactions: TransactionWithCategory[], days: numb
     totalExpenses,
     totalIncome,
     transactionCount: transactions.length,
-    avgPerDay: days > 0 ? Math.round(totalExpenses / days) : 0,
+    avgPerDay: elapsedDays > 0 ? Math.round(totalExpenses / elapsedDays) : 0,
     categoryBreakdown,
     topCategory: categoryBreakdown.length > 0
       ? { name: categoryBreakdown[0].name, amount: categoryBreakdown[0].amount }
@@ -227,8 +250,8 @@ export function useTransactionStats(
   date: Date
 ) {
   const filtered = useMemo(() => filterByPeriod(transactions, period, date), [transactions, period, date]);
-  const { days } = useMemo(() => getPeriodRange(period, date), [period, date]);
-  const stats = useMemo(() => computeStats(filtered, days), [filtered, days]);
+  const { elapsedDays } = useMemo(() => getPeriodRange(period, date), [period, date]);
+  const stats = useMemo(() => computeStats(filtered, elapsedDays), [filtered, elapsedDays]);
 
   return { filtered, stats };
 }

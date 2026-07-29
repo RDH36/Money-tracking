@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.4",
+    date: "2026-07-29",
+    changes: [
+      { type: "fixed", key: "changelog.avgPerDayFix" },
+      { type: "improved", key: "changelog.budgetPaceStatus" },
+      { type: "fixed", key: "changelog.budgetResetLive" },
+      { type: "improved", key: "changelog.txNoteOwnLine" },
+      { type: "improved", key: "changelog.analysisPerf" },
+    ],
+  },
+  {
     version: "2.0.3",
     date: "2026-07-17",
     changes: [

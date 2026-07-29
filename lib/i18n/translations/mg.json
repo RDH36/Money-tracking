@@ -14,7 +14,9 @@
     "noCategory": "Tsy misy sokajiny",
     "characters": "{{current}}/{{max}} litera",
     "understood": "Azoko",
-    "deleteItem": "Hofafana ve \"{{name}}\"?"
+    "deleteItem": "Hofafana ve \"{{name}}\"?",
+    "durationDaysHours": "{{days}} andro {{hours}} ora",
+    "durationHoursMinutes": "{{hours}} ora {{minutes}} min"
   },
   "tabs": {
     "home": "Fandraisana",
@@ -57,6 +59,12 @@
     "accounts": "Kaonty",
     "bank": "Banky",
     "cash": "Vola madinika"
+  },
+  "budgets": {
+    "projected": "Tombana amin'ny faran'ny volana",
+    "onTrack": "ao anatin'ny tetibola",
+    "willExceed": "mety hihoatra",
+    "paceMarker": "hafainganam-pandaniana"
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",
@@ -556,6 +564,11 @@
   },
   "changelog": {
     "current": "Ankehitriny",
+    "avgPerDayFix": "Salan'isa lany isan'andro marimarina kokoa: kajiana amin'ny andro efa lasa amin'ity volana ity, fa tsy amin'ny volana manontolo",
+    "budgetPaceStatus": "Mihevitra ny hafainganam-pandaniana ny sata tetibola: ny tetibola mialoha ny volana dia mijanona ho maitso, ary asehon'ny karatra ny tombana lany amin'ny faran'ny volana miaraka amin'ny mari-drefy",
+    "budgetResetLive": "Mivadika mivantana izao ny fotoana sisa alohan'ny hamerenana ny tetibola ho aotra",
+    "txNoteOwnLine": "Ny naotra amin'ny fandaniana dia miseho manontolo amin'ny andalana manokana izao, fa tsy tapaka amin'ny faran'ny andalana",
+    "analysisPerf": "Haingana kokoa ny kajy tetibola sy tatitra amin'ny tantara lehibe",
     "dataBackup": "Tahiry sy famindrana: alaivo amin'ny rakitra .mitsitsy voaaro ny angonao rehetra mba hahitanao azy amin'ny finday vaovao",
     "dataBackupOnboardingImport": "Manova finday? Ampidiro ny tahirinao mivantana avy amin'ny pejy fandraisana mba hahitana ny zavatra rehetra avy hatrany",
     "historyDateFilter": "Sivana amin'ny daty: fidio ny andro iray (kisary tetiandro) mba hahitana avy hatrany ny fifamoaham-bola tamin'io andro io",

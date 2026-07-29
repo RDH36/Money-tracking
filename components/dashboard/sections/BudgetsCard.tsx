@@ -13,6 +13,8 @@ interface BudgetsCardProps {
   monthLabel: string;
   budgets: BudgetData[];
   onSeeAllPress: () => void;
+  /** Part du mois écoulée, dans ]0,1] — position du repère de rythme. */
+  elapsedRatio: number;
 }
 
 function alpha15(hex: string): string {
@@ -20,10 +22,11 @@ function alpha15(hex: string): string {
   return 'rgba(15,19,17,0.06)';
 }
 
-export function BudgetsCard({ monthLabel, budgets, onSeeAllPress }: BudgetsCardProps) {
+export function BudgetsCard({ monthLabel, budgets, onSeeAllPress, elapsedRatio }: BudgetsCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const visible = budgets.filter((b) => b.budgetLimit && b.budgetLimit > 0).slice(0, 3);
+  const pacePct = Math.max(0, Math.min(100, elapsedRatio * 100));
 
   return (
     <View>
@@ -156,12 +159,29 @@ export function BudgetsCard({ monthLabel, budgets, onSeeAllPress }: BudgetsCardP
                   </View>
                 </View>
 
-                <Progress
-                  value={Math.min(pct, 100)}
-                  height={6}
-                  color={tone}
-                  thresholds={[50, 80]}
-                />
+                <View style={{ position: 'relative' }}>
+                  <Progress
+                    value={Math.min(pct, 100)}
+                    height={6}
+                    color={tone}
+                    thresholds={[50, 80]}
+                  />
+                  {/* Repère de rythme : où l'on devrait en être si la dépense
+                      suivait exactement l'écoulement du mois. */}
+                  <View
+                    accessibilityLabel={t('budgets.paceMarker')}
+                    style={{
+                      position: 'absolute',
+                      left: `${pacePct}%`,
+                      top: -2,
+                      bottom: -2,
+                      width: 2,
+                      borderRadius: 1,
+                      backgroundColor: v2.ink,
+                      opacity: 0.5,
+                    }}
+                  />
+                </View>
 
                 <View
                   style={{
@@ -191,6 +211,29 @@ export function BudgetsCard({ monthLabel, budgets, onSeeAllPress }: BudgetsCardP
                     {pct}%{over ? ` · ${t('dashboard.statusExceeded')}` : near ? ` · ${t('dashboard.statusAlert')}` : ''}
                   </Text>
                 </View>
+
+                {/* Fin de mois estimée : projection de la dépense au rythme actuel. */}
+                {(() => {
+                  const projected = b.projected ?? Math.round(b.spent / Math.max(elapsedRatio, 0.0001));
+                  const willExceed = projected > limit;
+                  return (
+                    <Text
+                      style={{
+                        fontFamily: v2.fontUI,
+                        fontSize: 10,
+                        color: v2.inkSubtle,
+                        fontWeight: '500',
+                        marginTop: 4,
+                      }}
+                    >
+                      {t('budgets.projected')} : {formatMoneyFr(projected)}
+                      {' · '}
+                      <Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
+                        {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
+                      </Text>
+                    </Text>
+                  );
+                })()}
               </View>
             );
           })

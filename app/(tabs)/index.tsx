@@ -61,7 +61,7 @@ export default function DashboardScreen() {
     isFetching,
     deleteTransaction,
   } = useTransactions();
-  const { topBudgets, overspentBudgets, refresh: refreshBudgets } = useBudgets();
+  const { topBudgets, overspentBudgets, refresh: refreshBudgets, elapsedRatio } = useBudgets();
   const { balanceHidden, toggleBalanceVisibility, appLockEnabled } = useSettings();
   const appLockBanner = useAppLockBanner();
   const { hasNew, checkNew } = useWhatsNew();
@@ -210,6 +210,7 @@ export default function DashboardScreen() {
               monthLabel={formatMonthLabelFr(now, i18n.language)}
               budgets={topBudgets}
               onSeeAllPress={() => router.push('/history')}
+              elapsedRatio={elapsedRatio}
             />
           </View>
 

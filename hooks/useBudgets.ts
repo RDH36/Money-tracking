@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useSQLiteContext } from '@/lib/database';
 import { ensureCurrentMonthBudgetHistory } from '@/lib/database/budgetHistory';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
@@ -10,7 +12,8 @@ export interface BudgetData {
   budgetLimit: number | null;
   percentage: number | null;
   status: 'green' | 'orange' | 'red' | null;
-  timeUntilReset: string;
+  /** Dépense projetée en fin de cycle : `spent / elapsedRatio`. */
+  projected: number | null;
 }
 
 function getLocalMonthBounds() {
@@ -20,7 +23,18 @@ function getLocalMonthBounds() {
   return { monthStart: monthStart.toISOString(), monthEnd: monthEnd.toISOString() };
 }
 
-function getTimeUntilReset(): string {
+/**
+ * Part du mois déjà écoulée, dans ]0,1]. Un mois passé (`monthOffset !== 0`)
+ * est un cycle complet → 1. Jamais 0 (plancher au 1ᵉʳ jour).
+ */
+function getElapsedRatio(monthOffset = 0): number {
+  if (monthOffset !== 0) return 1;
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return Math.min(1, Math.max(1, now.getDate()) / daysInMonth);
+}
+
+function getTimeUntilReset(t: TFunction): string {
   const now = new Date();
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const diff = nextMonth.getTime() - now.getTime();
@@ -29,20 +43,45 @@ function getTimeUntilReset(): string {
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-  if (days > 0) return `${days}j ${hours}h`;
-  return `${hours}h ${minutes}m`;
+  if (days > 0) return t('common.durationDaysHours', { days, hours });
+  return t('common.durationHoursMinutes', { hours, minutes });
 }
 
-function getBudgetStatus(percentage: number): 'green' | 'orange' | 'red' {
+/**
+ * Statut d'un budget qui tient compte du temps écoulé : on compare au plafond
+ * non pas la dépense brute mais sa PROJECTION en fin de cycle.
+ * - rouge : plafond déjà dépassé (fait avéré)
+ * - orange : au rythme actuel, le plafond sera dépassé avant la fin du cycle
+ * - vert : la projection tient dans le budget
+ *
+ * `elapsedRatio` = jourActuel / joursDuMois (1 pour un mois passé).
+ * NB : les seuils 50/80/100 des notifications (lib/notifications.ts) sont un
+ * système distinct — franchir un seuil est un événement, ceci est un état.
+ */
+export function getBudgetStatus(
+  percentage: number,
+  elapsedRatio: number
+): 'green' | 'orange' | 'red' {
   if (percentage >= 100) return 'red';
-  if (percentage >= 70) return 'orange';
+  const projected = elapsedRatio > 0 ? percentage / elapsedRatio : percentage;
+  if (projected >= 100) return 'orange';
   return 'green';
 }
 
 export function useBudgets() {
   const db = useSQLiteContext();
+  const { t } = useTranslation();
   const [budgets, setBudgets] = useState<BudgetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Compte à rebours vivant : recalculé toutes les 60 s plutôt que figé dans
+  // chaque ligne de budget au moment du fetch.
+  const [timeUntilReset, setTimeUntilReset] = useState(() => getTimeUntilReset(t));
+
+  useEffect(() => {
+    setTimeUntilReset(getTimeUntilReset(t));
+    const id = setInterval(() => setTimeUntilReset(getTimeUntilReset(t)), 60_000);
+    return () => clearInterval(id);
+  }, [t]);
 
   const fetchBudgets = useCallback(async () => {
     try {
@@ -81,16 +120,17 @@ export function useBudgets() {
           uncategorizedSpent.total += r.total;
         }
       }
-      const timeUntilReset = getTimeUntilReset();
+      const elapsedRatio = getElapsedRatio();
 
       const result: BudgetData[] = categories.map((cat) => {
         let spent = spentMap.get(cat.id) ?? 0;
         if (cat.id === 'other') spent += uncategorizedSpent.total;
         const budgetLimit = cat.budget_limit;
         const percentage = budgetLimit ? Math.round((spent / budgetLimit) * 100) : null;
-        const status = percentage !== null ? getBudgetStatus(percentage) : null;
+        const status = percentage !== null ? getBudgetStatus(percentage, elapsedRatio) : null;
+        const projected = budgetLimit ? Math.round(spent / elapsedRatio) : null;
 
-        return { category: cat, spent, budgetLimit, percentage, status, timeUntilReset };
+        return { category: cat, spent, budgetLimit, percentage, status, projected };
       });
 
       result.sort((a, b) => {
@@ -126,7 +166,8 @@ export function useBudgets() {
     topBudgets,
     isLoading,
     refresh: fetchBudgets,
-    getTimeUntilReset,
+    timeUntilReset,
+    elapsedRatio: getElapsedRatio(),
   };
 }
 
@@ -189,7 +230,7 @@ export function useCategoryBudget(categoryId: string, monthOffset = 0) {
   }, [fetchCategoryBudget]);
 
   const percentage = budgetLimit ? Math.round((spent / budgetLimit) * 100) : null;
-  const status = percentage !== null ? getBudgetStatus(percentage) : null;
+  const status = percentage !== null ? getBudgetStatus(percentage, getElapsedRatio(monthOffset)) : null;
 
   return { spent, budgetLimit, percentage, status, refresh: fetchCategoryBudget };
 }
@@ -282,7 +323,8 @@ export function useBudgetForPeriod(period: 'day' | 'week' | 'month' | 'year', da
     return {
       ...data,
       percentage: pct,
-      status: getBudgetStatus(pct),
+      // Vue cumulée (mois/année) : cycle traité comme complet, pas de projection.
+      status: getBudgetStatus(pct, 1),
     };
   }, [periodBudgets]);
 

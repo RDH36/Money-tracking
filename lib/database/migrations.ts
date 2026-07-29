@@ -23,9 +23,10 @@ import {
   SYSTEM_CATEGORY_INCOME_ID,
   ADD_BUDGET_LIMIT_TO_CATEGORIES,
   CREATE_BUDGET_HISTORY_TABLE,
+  CREATE_TX_ANALYSIS_INDEX,
 } from './schema';
 
-const DATABASE_VERSION = 23;
+const DATABASE_VERSION = 24;
 
 interface VersionResult {
   user_version: number;
@@ -152,7 +153,19 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     currentVersion = 23;
   }
 
+  if (currentVersion < 24) {
+    await migrateToV24(db);
+    currentVersion = 24;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
+
+async function migrateToV24(db: SQLiteDatabase): Promise<void> {
+  // Add a partial index on (type, transaction_date) matching the WHERE clause
+  // shared by every analytical aggregate. Non-destructive: creates an index
+  // only, no table or data changes.
+  await db.execAsync(CREATE_TX_ANALYSIS_INDEX);
 }
 
 async function migrateToV23(db: SQLiteDatabase): Promise<void> {

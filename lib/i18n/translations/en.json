@@ -14,7 +14,9 @@
     "noCategory": "No category",
     "characters": "{{current}}/{{max}} characters",
     "understood": "Got it",
-    "deleteItem": "Delete \"{{name}}\"?"
+    "deleteItem": "Delete \"{{name}}\"?",
+    "durationDaysHours": "{{days}}d {{hours}}h",
+    "durationHoursMinutes": "{{hours}}h {{minutes}}m"
   },
   "tabs": {
     "home": "Home",
@@ -58,6 +60,12 @@
     "accounts": "Accounts",
     "bank": "Bank",
     "cash": "Cash"
+  },
+  "budgets": {
+    "projected": "Projected month-end",
+    "onTrack": "within budget",
+    "willExceed": "on track to exceed",
+    "paceMarker": "month pace"
   },
   "add": {
     "newTransaction": "New Transaction",
@@ -592,6 +600,11 @@
   },
   "changelog": {
     "current": "Current",
+    "avgPerDayFix": "More accurate average daily spending: computed over the days elapsed this month, not the whole month",
+    "budgetPaceStatus": "Budget status now accounts for pace: a budget that's ahead of the month stays green, and the card shows the projected month-end spend with a pace marker",
+    "budgetResetLive": "The time left before budgets reset now updates live",
+    "txNoteOwnLine": "A transaction's note now shows in full on its own line, instead of being cut off at the end of the line",
+    "analysisPerf": "Faster budget and report calculations on large histories",
     "dataBackup": "Backup & transfer: export all your data to an encrypted .mitsitsy file to restore it on a new phone",
     "dataBackupOnboardingImport": "Switching phones? Import your backup right from the welcome screen to restore everything instantly",
     "historyDateFilter": "Filter by date: pick a specific day (calendar icon) to instantly find that day's transactions",
