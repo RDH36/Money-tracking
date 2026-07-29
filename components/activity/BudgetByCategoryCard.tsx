@@ -12,6 +12,8 @@ export interface ActivityBudgetItem {
   limit: number;
   txCount: number;
   alert?: boolean;
+  /** Dépense projetée en fin de cycle (`spent / elapsedRatio`), ou null. */
+  projected?: number | null;
 }
 
 interface BudgetByCategoryCardProps {
@@ -19,6 +21,8 @@ interface BudgetByCategoryCardProps {
   budgets: ActivityBudgetItem[];
   formatMoney: (n: number) => string;
   onCategoryPress?: (id: string) => void;
+  /** Part du mois écoulée, dans ]0,1] — position du repère de rythme. */
+  elapsedRatio: number;
 }
 
 export function BudgetByCategoryCard({
@@ -26,6 +30,7 @@ export function BudgetByCategoryCard({
   budgets,
   formatMoney,
   onCategoryPress,
+  elapsedRatio,
 }: BudgetByCategoryCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -118,6 +123,7 @@ export function BudgetByCategoryCard({
               budget={b}
               isLast={i === budgets.length - 1}
               formatMoney={formatMoney}
+              elapsedRatio={elapsedRatio}
               onPress={onCategoryPress ? () => onCategoryPress(b.id) : undefined}
             />
           ))

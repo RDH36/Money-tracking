@@ -42,7 +42,7 @@ export default function HistoryScreen() {
   const { t, i18n } = useTranslation();
   const v2 = useV2();
   const { transactions, isFetching, refresh: refreshTransactions } = useTransactions();
-  const { budgets, isLoading: budgetsLoading, refresh: refreshBudgets } = useBudgets();
+  const { budgets, isLoading: budgetsLoading, refresh: refreshBudgets, elapsedRatio } = useBudgets();
   const { formatMoney } = useAccounts();
 
   useFocusEffect(useCallback(() => {
@@ -88,6 +88,7 @@ export default function HistoryScreen() {
         limit,
         txCount: txCountByCat[b.category.id] ?? 0,
         alert: pct >= 90 && pct <= 100,
+        projected: b.projected,
       };
     });
     items.sort((a, b) => {
@@ -148,6 +149,7 @@ export default function HistoryScreen() {
                 monthLabel={formatMonthLabelFr(now, i18n.language)}
                 budgets={activityBudgets}
                 formatMoney={formatMoney}
+                elapsedRatio={elapsedRatio}
                 onCategoryPress={(id) => router.push(`/category/${id}` as any)}
               />
             </View>

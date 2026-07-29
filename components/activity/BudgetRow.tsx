@@ -12,6 +12,7 @@ interface BudgetRowProps {
   budget: ActivityBudgetItem;
   isLast: boolean;
   formatMoney: (n: number) => string;
+  elapsedRatio: number;
   onPress?: () => void;
 }
 
@@ -20,7 +21,7 @@ function alpha(hex: string | null, suffix: string): string {
   return 'rgba(15,19,17,0.06)';
 }
 
-export function BudgetRow({ budget, isLast, formatMoney, onPress }: BudgetRowProps) {
+export function BudgetRow({ budget, isLast, formatMoney, elapsedRatio, onPress }: BudgetRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const hasLimit = budget.limit > 0;
@@ -31,6 +32,9 @@ export function BudgetRow({ budget, isLast, formatMoney, onPress }: BudgetRowPro
   const color = budget.color ?? v2.brand;
   const iconName: IoniconName = (budget.icon as IoniconName) ?? 'pricetag-outline';
   const Wrapper: any = onPress ? Pressable : View;
+  const pacePct = Math.max(0, Math.min(100, elapsedRatio * 100));
+  const projected = budget.projected ?? Math.round(budget.spent / Math.max(elapsedRatio, 0.0001));
+  const willExceed = projected > budget.limit;
 
   return (
     <Wrapper
@@ -45,7 +49,24 @@ export function BudgetRow({ budget, isLast, formatMoney, onPress }: BudgetRowPro
       <RowHeader v2={v2} budget={budget} color={color} iconName={iconName} tone={tone} formatMoney={formatMoney} hasLimit={hasLimit} />
       {hasLimit ? (
         <>
-          <Progress value={Math.min(pct, 100)} height={5} color={tone} thresholds={[50, 80]} />
+          <View style={{ position: 'relative' }}>
+            <Progress value={Math.min(pct, 100)} height={5} color={tone} thresholds={[50, 80]} />
+            {/* Repère de rythme : où l'on devrait en être si la dépense suivait
+                exactement l'écoulement du mois. */}
+            <View
+              accessibilityLabel={t('budgets.paceMarker')}
+              style={{
+                position: 'absolute',
+                left: `${pacePct}%`,
+                top: -2,
+                bottom: -2,
+                width: 2,
+                borderRadius: 1,
+                backgroundColor: v2.ink,
+                opacity: 0.5,
+              }}
+            />
+          </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
             <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkSubtle, fontWeight: '500' }}>
               {t('dashboard.thresholds')}
@@ -54,6 +75,14 @@ export function BudgetRow({ budget, isLast, formatMoney, onPress }: BudgetRowPro
               {pct}%
             </Text>
           </View>
+          {/* Fin de mois estimée : projection de la dépense au rythme actuel. */}
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkSubtle, fontWeight: '500', marginTop: 4 }}>
+            {t('budgets.projected')} : {formatMoney(projected)}
+            {' · '}
+            <Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
+              {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
+            </Text>
+          </Text>
         </>
       ) : (
         <Text style={{
