@@ -36,6 +36,8 @@ import {
   startOfMonth,
 } from '@/components/dashboard';
 import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
+import { AnalysisEntryCard } from '@/components/analysis';
+import { useAnalysisEntry } from '@/hooks/useAnalysis';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -62,6 +64,7 @@ export default function DashboardScreen() {
     deleteTransaction,
   } = useTransactions();
   const { topBudgets, overspentBudgets, refresh: refreshBudgets, elapsedRatio } = useBudgets();
+  const { visible: analysisEntryVisible } = useAnalysisEntry();
   const { balanceHidden, toggleBalanceVisibility, appLockEnabled } = useSettings();
   const appLockBanner = useAppLockBanner();
   const { hasNew, checkNew } = useWhatsNew();
@@ -183,6 +186,12 @@ export default function DashboardScreen() {
             onOverspendPress={() => router.push('/history')}
             currencyCode={currency.code}
           />
+
+          {analysisEntryVisible ? (
+            <View style={{ marginTop: 16 }}>
+              <AnalysisEntryCard onPress={() => router.push('/analysis' as any)} />
+            </View>
+          ) : null}
 
           <StreakXPStrip
             streakDays={gamification.currentStreak}

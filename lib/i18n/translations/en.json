@@ -40,6 +40,8 @@
     "accountsCount_other": "{{count}} accounts",
     "monthIncome": "Income · this month",
     "monthExpense": "Expenses · this month",
+    "kept": "Kept this month",
+    "savingsRate": "Savings rate",
     "budgets": "Budgets",
     "viewAll": "View all",
     "viewAllArrow": "View all →",
@@ -91,7 +93,25 @@
     "action": {
       "transfer": "Create the automatic transfer",
       "budget": "Create the budget"
-    }
+    },
+    "title": "My review",
+    "intro": "Looking at your numbers…",
+    "skipHint": "Tap to skip",
+    "keptTitle": "This cycle, you kept",
+    "keptDetail": "out of {{income}} income · {{rate}}",
+    "bestComparison": "Your best cycle: {{best}} ({{month}})",
+    "weighSection": "What weighs",
+    "actionSection": "Do this now",
+    "dismiss": "This doesn't help me",
+    "actionDone": "Done",
+    "actionError": "Action not possible right now",
+    "insufficientTitle": "Your first review is coming",
+    "insufficient_one": "{{count}} more day of data and your first review will be ready",
+    "insufficient_other": "{{count}} more days of data and your first review will be ready",
+    "calmNote": "Nothing notable this cycle",
+    "entryTitle": "Analyze my cycle",
+    "entrySubtitle": "3 findings, 1 action in one tap",
+    "reportsCta": "What do these numbers say?"
   },
   "add": {
     "newTransaction": "New Transaction",

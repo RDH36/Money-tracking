@@ -39,6 +39,8 @@
     "accountsCount_other": "kaonty {{count}}",
     "monthIncome": "Vola miditra · amin'ity volana ity",
     "monthExpense": "Vola mivoaka · amin'ity volana ity",
+    "kept": "Voatahiry ity volana ity",
+    "savingsRate": "Tahan'ny fitsimbinana",
     "budgets": "Tetibola",
     "viewAll": "Hijery rehetra",
     "viewAllArrow": "Hijery rehetra →",
@@ -90,7 +92,25 @@
     "action": {
       "transfer": "Hamorona ny famindram-bola mandeha ho azy",
       "budget": "Hamorona ny tetibola"
-    }
+    },
+    "title": "Ny jeriko",
+    "intro": "Mijery ny isanao aho…",
+    "skipHint": "Tsindrio raha handingana",
+    "keptTitle": "Amin'ity tsingerina ity, voatahirinao",
+    "keptDetail": "amin'ny {{income}} fidiram-bola · {{rate}}",
+    "bestComparison": "Ny tsingerinao tsara indrindra : {{best}} ({{month}})",
+    "weighSection": "Izay mavesatra",
+    "actionSection": "Atao izao",
+    "dismiss": "Tsy manampy ahy ity",
+    "actionDone": "Vita",
+    "actionError": "Tsy azo atao izao ny hetsika",
+    "insufficientTitle": "Ho avy ny jery voalohany",
+    "insufficient_one": "{{count}} andro angona sisa dia ho vonona ny jery voalohanao",
+    "insufficient_other": "{{count}} andro angona sisa dia ho vonona ny jery voalohanao",
+    "calmNote": "Tsy misy manaitra amin'ity tsingerina ity",
+    "entryTitle": "Hamakafaka ny tsingerinao",
+    "entrySubtitle": "Fehin-kevitra 3, hetsika 1 amin'ny tsindrona iray",
+    "reportsCta": "Inona no lazain'ireo isa ireo ?"
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",

@@ -161,6 +161,28 @@ export default function ReportsScreen() {
               />
             </>
           )}
+
+          <Pressable
+            onPress={() => router.push('/analysis' as any)}
+            style={{
+              marginTop: 6, backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline,
+              borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16,
+              flexDirection: 'row', alignItems: 'center', gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 34, height: 34, borderRadius: 10, backgroundColor: v2.brandSoft,
+                alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="sparkles" size={16} color={v2.brand} />
+            </View>
+            <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 14, fontWeight: '600', color: v2.ink }}>
+              {t('analysis.reportsCta')}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={v2.inkSubtle} />
+          </Pressable>
         </View>
       </ScrollView>
     </View>

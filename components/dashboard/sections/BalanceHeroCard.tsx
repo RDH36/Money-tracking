@@ -115,23 +115,9 @@ export function BalanceHeroCard({
         </View>
 
         <View style={{ marginTop: 18, flexDirection: 'row', gap: 18 }}>
-          <DeltaCol
-            v2={v2}
-            label={t('dashboard.monthIncome')}
-            value={monthIncome}
-            currencyCode={currencyCode}
-            iconName="arrow-up"
-            iconColor="#7DD3A6"
-          />
+          <KeptCol v2={v2} kept={monthIncome - monthExpense} currencyCode={currencyCode} />
           <View style={{ width: 1, backgroundColor: 'rgba(245,245,241,0.1)' }} />
-          <DeltaCol
-            v2={v2}
-            label={t('dashboard.monthExpense')}
-            value={monthExpense}
-            currencyCode={currencyCode}
-            iconName="arrow-down"
-            iconColor="#E8A99B"
-          />
+          <RateCol v2={v2} income={monthIncome} expense={monthExpense} />
         </View>
 
         {overspendBudget ? (
@@ -172,37 +158,56 @@ export function BalanceHeroCard({
   );
 }
 
-interface DeltaColProps {
-  v2: V2Tokens;
-  label: string;
-  value: number;
-  currencyCode: string;
-  iconName: 'arrow-up' | 'arrow-down';
-  iconColor: string;
+function HeroColLabel({ v2, children }: { v2: V2Tokens; children: string }) {
+  return (
+    <Text
+      style={{
+        fontFamily: v2.fontUI, fontSize: 10, color: v2.inkOnDarkM,
+        letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '600',
+      }}
+    >
+      {children}
+    </Text>
+  );
 }
 
-function DeltaCol({ v2, label, value, currencyCode, iconName, iconColor }: DeltaColProps) {
+/** Gardé ce mois = revenus − dépenses. Vert si positif, rouge si négatif. */
+function KeptCol({ v2, kept, currencyCode }: { v2: V2Tokens; kept: number; currencyCode: string }) {
+  const { t } = useTranslation();
+  const positive = kept >= 0;
   return (
     <View>
-      <Text
-        style={{
-          fontFamily: v2.fontUI, fontSize: 10, color: v2.inkOnDarkM,
-          letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '600',
-        }}
-      >
-        {label}
-      </Text>
+      <HeroColLabel v2={v2}>{t('dashboard.kept')}</HeroColLabel>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-        <Ionicons name={iconName} size={12} color={iconColor} />
+        <Ionicons name={positive ? 'arrow-up' : 'arrow-down'} size={12} color={positive ? '#7DD3A6' : '#E8A99B'} />
         <Text
           style={{
             fontFamily: v2.fontUI, fontSize: 13, fontVariant: ['tabular-nums'],
             color: v2.inkOnDark, fontWeight: '600',
           }}
         >
-          {formatMoneyFr(value)} {currencyCode}
+          {positive ? '+' : '−'}{formatMoneyFr(Math.abs(kept))} {currencyCode}
         </Text>
       </View>
+    </View>
+  );
+}
+
+/** Taux d'épargne = (revenus − dépenses) / revenus. « — » si aucun revenu. */
+function RateCol({ v2, income, expense }: { v2: V2Tokens; income: number; expense: number }) {
+  const { t } = useTranslation();
+  const rate = income > 0 ? Math.round(((income - expense) / income) * 100) : null;
+  return (
+    <View>
+      <HeroColLabel v2={v2}>{t('dashboard.savingsRate')}</HeroColLabel>
+      <Text
+        style={{
+          fontFamily: v2.fontUI, fontSize: 13, fontVariant: ['tabular-nums'],
+          color: v2.inkOnDark, fontWeight: '600', marginTop: 4,
+        }}
+      >
+        {rate === null ? '—' : `${rate} %`}
+      </Text>
     </View>
   );
 }
