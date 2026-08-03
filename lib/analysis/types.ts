@@ -62,6 +62,40 @@ export interface BestCycle {
   savingsRate: number;
 }
 
+// — Moteur de règles (Phase 2) —
+
+export type InsightSeverity = 'info' | 'watch' | 'urgent';
+
+/** Action exécutable en un tap, réutilisant l'existant (voir Phase 3). */
+export interface InsightAction {
+  type: 'createBudget' | 'createPlanification' | 'createTransfer' | 'openScreen';
+  /** Clé i18n du libellé du bouton (CTA générique, sans param). */
+  labelKey: string;
+  /** Données d'exécution (montants en centimes, ids…). */
+  payload: Record<string, unknown>;
+}
+
+/**
+ * Un constat produit par une règle. `titleKey` + `params` = message i18n ;
+ * `evidence` = le calcul en clair (chiffres/symboles, non traduit) pour que
+ * l'utilisateur puisse le vérifier.
+ */
+export interface Insight {
+  /** Identifiant stable (pour le rejet via analysis_dismissed). */
+  id: string;
+  severity: InsightSeverity;
+  /** Poids 0–100, calculé par la règle ; sert au tri du scoring. */
+  weight: number;
+  titleKey: string;
+  params: Record<string, number | string>;
+  /** Le calcul, affiché tel quel. Obligatoire. */
+  evidence: string;
+  action?: InsightAction;
+}
+
+/** Une règle : fonction pure, sans DB ni hook. */
+export type Rule = (i: Indicators, cycle: Cycle) => Insight | null;
+
 /**
  * Les 12 indicateurs + contexte de calibrage. Un seul appel `getIndicators`
  * les produit tous, sans jamais boucler sur du SQL.

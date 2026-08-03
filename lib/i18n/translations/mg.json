@@ -66,6 +66,32 @@
     "willExceed": "mety hihoatra",
     "paceMarker": "hafainganam-pandaniana"
   },
+  "analysis": {
+    "savingsRate": { "title": "{{kept}} voatahiry amin'ity tsingerina ity · {{rate}} amin'ny fidiram-bola" },
+    "projection": { "title": "Amin'ity hafainganam-pandaniana ity, tombanana ho {{projected}} ny faran'ny volana" },
+    "burnSpeed": { "title": "{{rate}} amin'ny fidiram-bola lany tao anatin'ny 7 andro voalohany" },
+    "fixedCosts": {
+      "title_one": "{{count}} fandaniana raikitra · {{share}} amin'ny fidiram-bola",
+      "title_other": "{{count}} fandaniana raikitra · {{share}} amin'ny fidiram-bola"
+    },
+    "categoryDrift": { "title": "{{category}} · +{{pct}} % ambonin'ny fahazarany" },
+    "bestCycle": {
+      "record": "Tahan'ny fitsimbinana ambony indrindra amin'ny tsingerina 6 farany · {{rate}}",
+      "reference": "Ny tsingerinao tsara indrindra · {{best}} ({{month}})"
+    },
+    "microSpending": {
+      "title_one": "{{count}} fandaniana kely · {{total}}",
+      "title_other": "{{count}} fandaniana kely · {{total}}"
+    },
+    "noSpendStreak": {
+      "title_one": "{{days}} andro tsy nandaniana tamin'ny {{total}}",
+      "title_other": "{{days}} andro tsy nandaniana tamin'ny {{total}}"
+    },
+    "action": {
+      "transfer": "Hamorona ny famindram-bola mandeha ho azy",
+      "budget": "Hamorona ny tetibola"
+    }
+  },
   "add": {
     "newTransaction": "Tateram-bola vaovao",
     "transfer": "Famindram-bola",

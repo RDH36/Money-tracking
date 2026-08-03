@@ -67,6 +67,32 @@
     "willExceed": "dépassement prévu",
     "paceMarker": "rythme du mois"
   },
+  "analysis": {
+    "savingsRate": { "title": "{{kept}} gardés ce cycle · {{rate}} du revenu" },
+    "projection": { "title": "Au rythme actuel, fin de mois estimée à {{projected}}" },
+    "burnSpeed": { "title": "{{rate}} du revenu dépensé dans les 7 premiers jours" },
+    "fixedCosts": {
+      "title_one": "{{count}} dépense fixe · {{share}} du revenu",
+      "title_other": "{{count}} dépenses fixes · {{share}} du revenu"
+    },
+    "categoryDrift": { "title": "{{category}} · +{{pct}} % au-dessus de son habitude" },
+    "bestCycle": {
+      "record": "Meilleur taux d'épargne de tes 6 derniers cycles · {{rate}}",
+      "reference": "Ton meilleur cycle récent · {{best}} ({{month}})"
+    },
+    "microSpending": {
+      "title_one": "{{count}} petite dépense · {{total}}",
+      "title_other": "{{count}} petites dépenses · {{total}}"
+    },
+    "noSpendStreak": {
+      "title_one": "{{days}} jour sans dépense sur {{total}}",
+      "title_other": "{{days}} jours sans dépense sur {{total}}"
+    },
+    "action": {
+      "transfer": "Créer le virement automatique",
+      "budget": "Créer le budget"
+    }
+  },
   "add": {
     "newTransaction": "Nouvelle transaction",
     "transfer": "Transfert",

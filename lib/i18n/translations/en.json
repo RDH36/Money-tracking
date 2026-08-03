@@ -67,6 +67,32 @@
     "willExceed": "on track to exceed",
     "paceMarker": "month pace"
   },
+  "analysis": {
+    "savingsRate": { "title": "{{kept}} kept this cycle · {{rate}} of income" },
+    "projection": { "title": "At the current pace, month-end estimated at {{projected}}" },
+    "burnSpeed": { "title": "{{rate}} of income spent in the first 7 days" },
+    "fixedCosts": {
+      "title_one": "{{count}} fixed expense · {{share}} of income",
+      "title_other": "{{count}} fixed expenses · {{share}} of income"
+    },
+    "categoryDrift": { "title": "{{category}} · +{{pct}} % above its usual" },
+    "bestCycle": {
+      "record": "Best savings rate of your last 6 cycles · {{rate}}",
+      "reference": "Your best recent cycle · {{best}} ({{month}})"
+    },
+    "microSpending": {
+      "title_one": "{{count}} small expense · {{total}}",
+      "title_other": "{{count}} small expenses · {{total}}"
+    },
+    "noSpendStreak": {
+      "title_one": "{{days}} day without spending out of {{total}}",
+      "title_other": "{{days}} days without spending out of {{total}}"
+    },
+    "action": {
+      "transfer": "Create the automatic transfer",
+      "budget": "Create the budget"
+    }
+  },
   "add": {
     "newTransaction": "New Transaction",
     "transfer": "Transfer",
