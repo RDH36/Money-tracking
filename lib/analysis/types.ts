@@ -69,8 +69,13 @@ export type InsightSeverity = 'info' | 'watch' | 'urgent';
 /** Action exécutable en un tap, réutilisant l'existant (voir Phase 3). */
 export interface InsightAction {
   type: 'createBudget' | 'createPlanification' | 'createTransfer' | 'openScreen';
-  /** Clé i18n du libellé du bouton (CTA générique, sans param). */
+  /** Clé i18n du libellé du bouton. */
   labelKey: string;
+  /**
+   * Params injectés dans le libellé (catégorie, montant formaté…) : le bouton
+   * doit dire CE qu'il va faire, pas juste « créer le budget ».
+   */
+  labelParams?: Record<string, number | string>;
   /** Données d'exécution (montants en centimes, ids…). */
   payload: Record<string, unknown>;
 }

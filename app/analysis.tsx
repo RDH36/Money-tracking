@@ -202,7 +202,7 @@ export default function AnalysisScreen() {
                       <InsightCard key={insight.id} insight={insight} index={index} onDismiss={dismiss} />
                     ))}
                   </View>
-                  {result.action ? <ActionBlock action={result.action} onExecute={executeAction} /> : null}
+                  {result.action ? <ActionBlock action={result.action} currency={currency} onExecute={executeAction} /> : null}
                 </>
               ) : null}
             </>
@@ -224,7 +224,7 @@ export default function AnalysisScreen() {
                   {result.action ? (
                     <View style={{ gap: 8, marginTop: 6 }}>
                       <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle }}>{t('analysis.actionSection')}</Text>
-                      <ActionBlock action={result.action} onExecute={executeAction} />
+                      <ActionBlock action={result.action} currency={currency} onExecute={executeAction} />
                     </View>
                   ) : null}
                 </>

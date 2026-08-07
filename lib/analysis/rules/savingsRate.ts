@@ -21,7 +21,8 @@ export const savingsRateRule: Rule = (i) => {
   if (i.income > 0 && gap > 0) {
     action = {
       type: 'createTransfer' as const,
-      labelKey: 'analysis.action.transfer',
+      labelKey: 'analysis.action.transferAmount',
+      labelParams: { amount: formatAr(gap) },
       payload: { amount: gap },
     };
   }

@@ -92,7 +92,9 @@
     },
     "action": {
       "transfer": "Créer le virement automatique",
-      "budget": "Créer le budget"
+      "budget": "Créer le budget",
+      "budgetFor": "Créer un budget {{category}} à {{amount}} {{currency}}",
+      "transferAmount": "Mettre {{amount}} {{currency}} de côté"
     },
     "title": "Mon bilan",
     "intro": "Je regarde tes chiffres…",

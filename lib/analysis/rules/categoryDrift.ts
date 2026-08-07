@@ -22,7 +22,10 @@ const MIN_ABS_SHARE = 0.01;
  */
 export const categoryDriftRule: Rule = (i) => {
   const minBase = i.microThreshold * MIN_BASE_MULTIPLE;
-  const minAbsGap = i.income > 0 ? i.income * MIN_ABS_SHARE : 0;
+  // Sans revenu saisi, le garde absolu se rabat sur les dépenses du cycle —
+  // sinon il disparaît et n'importe quelle miette passe.
+  const gapBase = i.income > 0 ? i.income : i.expenses;
+  const minAbsGap = gapBase * MIN_ABS_SHARE;
   const candidates = i.categoryDrift.filter(
     (d) =>
       d.drift !== null &&
@@ -49,7 +52,11 @@ export const categoryDriftRule: Rule = (i) => {
     evidence: `${formatAr(top.cycleSpend)} ÷ ${formatAr(top.avgPrevious as number)} = ${Math.round(drift * 100)} %`,
     action: {
       type: 'createBudget',
-      labelKey: 'analysis.action.budget',
+      labelKey: 'analysis.action.budgetFor',
+      labelParams: {
+        category: top.categoryName as string,
+        amount: formatAr(Math.round(top.avgPrevious as number)),
+      },
       payload: { categoryId: top.categoryId, limit: Math.round(top.avgPrevious as number) },
     },
   };

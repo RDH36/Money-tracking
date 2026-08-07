@@ -8,6 +8,8 @@ import type { InsightAction } from '@/lib/analysis/types';
 
 interface ActionBlockProps {
   action: InsightAction;
+  /** Code devise injecté dans le libellé (ex. « MGA »). */
+  currency?: string;
   /** Exécute l'action (retourne le succès). La navigation est interdite. */
   onExecute: (action: InsightAction) => Promise<boolean>;
 }
@@ -16,7 +18,7 @@ interface ActionBlockProps {
  * Le bloc « à faire maintenant » : seul élément accentué de l'écran. L'action
  * s'exécute en un tap, sans quitter l'écran ; le feedback reste inline.
  */
-export function ActionBlock({ action, onExecute }: ActionBlockProps) {
+export function ActionBlock({ action, currency, onExecute }: ActionBlockProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
@@ -56,7 +58,7 @@ export function ActionBlock({ action, onExecute }: ActionBlockProps) {
             color: done ? v2.good : v2.inkOnDark, letterSpacing: 0.2,
           }}
         >
-          {done ? t('analysis.actionDone') : t(action.labelKey)}
+          {done ? t('analysis.actionDone') : t(action.labelKey, { ...action.labelParams, currency })}
         </Text>
       </Pressable>
       {state === 'error' ? (

@@ -91,7 +91,9 @@
     },
     "action": {
       "transfer": "Hamorona ny famindram-bola mandeha ho azy",
-      "budget": "Hamorona ny tetibola"
+      "budget": "Hamorona ny tetibola",
+      "budgetFor": "Hamorona tetibola {{category}} amin'ny {{amount}} {{currency}}",
+      "transferAmount": "Atokàny {{amount}} {{currency}}"
     },
     "title": "Ny jeriko",
     "intro": "Mijery ny isanao aho…",

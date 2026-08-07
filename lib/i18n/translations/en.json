@@ -92,7 +92,9 @@
     },
     "action": {
       "transfer": "Create the automatic transfer",
-      "budget": "Create the budget"
+      "budget": "Create the budget",
+      "budgetFor": "Create a {{category}} budget at {{amount}} {{currency}}",
+      "transferAmount": "Set {{amount}} {{currency}} aside"
     },
     "title": "My review",
     "intro": "Looking at your numbers…",
