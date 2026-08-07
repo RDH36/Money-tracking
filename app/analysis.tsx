@@ -6,10 +6,11 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useV2, formatMoneyFr, type V2Tokens } from '@/constants/designTokensV2';
 import { useCurrencyCode } from '@/stores/settingsStore';
-import { useAccounts, useCategories } from '@/hooks';
+import { useAccounts, useCategories, useGamification } from '@/hooks';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
-import { BubuleIntro, InsightCard, ActionBlock } from '@/components/analysis';
+import { XP_VALUES } from '@/constants/badges';
+import { BubuleIntro, InsightCard, ActionBlock, SinceLastCard } from '@/components/analysis';
 import type { Indicators, InsightAction } from '@/lib/analysis/types';
 
 function formatMonth(label: string, lang: string): string {
@@ -66,12 +67,22 @@ export default function AnalysisScreen() {
   const currency = useCurrencyCode();
   const { accounts, createTransfer } = useAccounts();
   const { updateCategory } = useCategories();
-  const { loading, state, daysUntilReady, cycleTxCount, indicators, result, dismiss, markAnalyzed } = useAnalysis();
+  const { awardXP } = useGamification();
+  const {
+    loading, state, daysUntilReady, cycleTxCount, indicators, result,
+    sinceLast, dismiss, markAnalyzed, recordActionApplied,
+  } = useAnalysis();
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    if (!loading && state !== 'insufficientData') markAnalyzed();
-  }, [loading, state, markAnalyzed]);
+    // Un cycle vide n'est pas une analyse : on ne persiste rien et la carte
+    // d'entrée continue d'inviter. XP seulement quand une NOUVELLE ligne est
+    // écrite (saveAnalysis dédoublonne sur 7 jours).
+    if (loading || state === 'insufficientData' || state === 'emptyCycle') return;
+    markAnalyzed().then((newId) => {
+      if (newId) awardXP(XP_VALUES.ANALYSIS);
+    });
+  }, [loading, state, markAnalyzed, awardXP]);
 
   const goAdd = useCallback(() => router.push('/(tabs)/add' as any), [router]);
 
@@ -80,7 +91,10 @@ export default function AnalysisScreen() {
       if (action.type === 'createBudget') {
         const { categoryId, limit } = action.payload as { categoryId: string; limit: number };
         const ok = await updateCategory(categoryId, { budget_limit: limit });
-        if (ok) useDataRefreshStore.getState().bumpAll();
+        if (ok) {
+          useDataRefreshStore.getState().bumpAll();
+          recordActionApplied();
+        }
         return ok;
       }
       if (action.type === 'createTransfer') {
@@ -88,12 +102,15 @@ export default function AnalysisScreen() {
         const usable = [...accounts].sort((a, b) => b.current_balance - a.current_balance);
         if (usable.length < 2 || usable[0].current_balance < amount) return false;
         const res = await createTransfer({ fromAccountId: usable[0].id, toAccountId: usable[1].id, amount });
-        if (res.success) useDataRefreshStore.getState().bumpAll();
+        if (res.success) {
+          useDataRefreshStore.getState().bumpAll();
+          recordActionApplied();
+        }
         return res.success;
       }
       return false;
     },
-    [accounts, createTransfer, updateCategory]
+    [accounts, createTransfer, updateCategory, recordActionApplied]
   );
 
   const header = (
@@ -147,7 +164,11 @@ export default function AnalysisScreen() {
             </View>
           </View>
         ) : indicators && result ? (
-          state === 'noIncome' ? (
+          <>
+          {sinceLast ? (
+            <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} />
+          ) : null}
+          {state === 'noIncome' ? (
             <>
               {/* Fait neutre, pas de « gardé 0 » : une absence de revenu n'est pas un zéro. */}
               <View style={{ gap: 6, paddingTop: 4 }}>
@@ -196,7 +217,8 @@ export default function AnalysisScreen() {
                 </>
               )}
             </>
-          )
+          )}
+          </>
         ) : null}
       </ScrollView>
     </View>

@@ -68,6 +68,7 @@ export const BADGES: BadgeDefinition[] = [
   { id: 'budget_master', nameKey: 'gamification.badgeBudgetMaster', descriptionKey: 'gamification.badgeBudgetMasterDesc', icon: 'shield-checkmark', color: '#059669' },
   { id: 'budget_legend', nameKey: 'gamification.badgeBudgetLegend', descriptionKey: 'gamification.badgeBudgetLegendDesc', icon: 'ribbon', color: '#047857' },
   { id: 'saver', nameKey: 'gamification.badgeSaver', descriptionKey: 'gamification.badgeSaverDesc', icon: 'wallet-outline', color: '#14B8A6' },
+  { id: 'analyst_6', nameKey: 'gamification.badgeAnalyst6', descriptionKey: 'gamification.badgeAnalyst6Desc', icon: 'analytics-outline', color: '#0E8C82' },
   { id: 'planner', nameKey: 'gamification.badgePlanner', descriptionKey: 'gamification.badgePlannerDesc', icon: 'clipboard-outline', color: '#8B5CF6' },
   { id: 'master_planner', nameKey: 'gamification.badgeMasterPlanner', descriptionKey: 'gamification.badgeMasterPlannerDesc', icon: 'clipboard', color: '#6D28D9' },
   // --- Exploration ---
@@ -163,6 +164,8 @@ export const XP_VALUES = {
   DAILY_CHALLENGE: 50,
   STREAK_7: 100,
   STREAK_30: 300,
+  // Bilan généré (au plus 1/semaine — saveAnalysis dédoublonne).
+  ANALYSIS: 40,
 } as const;
 
 export function calculateLevel(xp: number): number {

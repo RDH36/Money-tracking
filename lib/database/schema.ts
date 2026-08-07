@@ -194,6 +194,32 @@ CREATE TABLE IF NOT EXISTS quests (
 );
 `;
 
+// Historique des bilans (Phase 4). `analyses` garde une trace de chaque analyse
+// générée (pour la comparaison « depuis la dernière fois ») ; `analysis_dismissed`
+// mémorise les constats rejetés (« ne m'aide pas ») sur une fenêtre glissante.
+export const CREATE_ANALYSES_TABLE = `
+CREATE TABLE IF NOT EXISTS analyses (
+  id TEXT PRIMARY KEY,
+  cycle_label TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  indicators_json TEXT NOT NULL,
+  insight_ids TEXT NOT NULL,
+  action_type TEXT,
+  action_applied_at TEXT
+);
+`;
+
+export const CREATE_ANALYSIS_DISMISSED_TABLE = `
+CREATE TABLE IF NOT EXISTS analysis_dismissed (
+  insight_id TEXT PRIMARY KEY,
+  dismissed_at TEXT NOT NULL
+);
+`;
+
+export const CREATE_ANALYSES_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_analyses_created ON analyses(created_at DESC);
+`;
+
 export const SYSTEM_CATEGORY_TRANSFER_ID = 'system-transfer';
 export const SYSTEM_CATEGORY_INCOME_ID = 'system-income';
 

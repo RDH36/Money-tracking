@@ -10,6 +10,7 @@ const STREAK_REMINDER_ID = 'gamif-streak';
 const CHALLENGE_REMINDER_ID = 'gamif-challenge';
 const WEEKLY_SUMMARY_ID = 'gamif-weekly';
 const QUEST_PROGRESS_ID = 'gamif-quest-progress';
+const ANALYSIS_READY_ID = 'analysis-ready';
 
 const REMINDER_KEYS = ['reminder1', 'reminder2', 'reminder3', 'reminder4'] as const;
 
@@ -243,6 +244,29 @@ export async function scheduleStreakReminder(title: string, body: string): Promi
 
 export async function cancelStreakReminder(): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(STREAK_REMINDER_ID); } catch {}
+}
+
+/**
+ * Rappel de fin de cycle (Phase 4) : « ton bilan est prêt », programmé pour le
+ * 1er du mois suivant à 09:00. Un seul — cancel-then-schedule, idempotent.
+ */
+export async function scheduleAnalysisReadyReminder(): Promise<void> {
+  try { await Notifications.cancelScheduledNotificationAsync(ANALYSIS_READY_ID); } catch {}
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0);
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: ANALYSIS_READY_ID,
+    content: {
+      title: i18n.t('notifications.analysisReadyTitle'),
+      body: i18n.t('notifications.analysisReadyBody'),
+      data: { type: 'analysis_ready' },
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: target },
+  });
 }
 
 export async function scheduleDailyChallengeReminder(title: string, body: string): Promise<void> {

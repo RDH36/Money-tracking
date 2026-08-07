@@ -1,51 +1,42 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import { getCurrentCycle } from '@/lib/analysis/cycle';
 import { getIndicators } from '@/lib/analysis/indicators';
 import { scoreInsights, type ScoreResult } from '@/lib/analysis/score';
+import {
+  saveAnalysis,
+  getLastAnalysis,
+  getDismissedIds,
+  dismissInsight,
+  markActionApplied,
+} from '@/lib/analysis/persistence';
+import { DAY_MS, LAST_ANALYSIS_KEY, assess, fetchDataStat } from '@/lib/analysis/sufficiency';
 import type { Cycle, Indicators } from '@/lib/analysis/types';
 
-const DAY_MS = 86_400_000;
-/** Données requises : au moins un cycle complet OU 30 transactions. */
-const MIN_TX = 30;
 /** En dessous : le cycle est trop vide pour un constat. */
 const EMPTY_CYCLE_TX = 5;
 /** Au-dessus (avec revenu) : un « mois calme » devient une info crédible. */
 const CALM_MIN_TX = 15;
-/** Fenêtre au-delà de laquelle la carte d'entrée réapparaît. */
-const ENTRY_STALE_DAYS = 25;
-const LAST_ANALYSIS_KEY = 'analysis_last_at';
 
 /**
  * État explicite de l'analyse. `calmMonth` exige des conditions POSITIVES
  * (revenu présent, activité réelle) : il ne peut plus jamais être atteint par
- * absence de données — féliciter un cycle vide décrédibiliserait tous les
- * verdicts.
+ * absence de données.
  */
 export type AnalysisState =
-  | 'insufficientData' // < 1 cycle complet ou < 30 transactions au total
-  | 'emptyCycle' // < 5 transactions sur le cycle analysé
-  | 'noIncome' // transactions présentes mais revenu du cycle = 0
-  | 'calmMonth' // revenu présent ET >= 15 transactions ET < 2 constats
+  | 'insufficientData'
+  | 'emptyCycle'
+  | 'noIncome'
+  | 'calmMonth'
   | 'normal';
 
-function startOfMonthISO(): string {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-}
-
-interface DataStat {
-  count: number;
-  first: string | null;
-}
-
-async function fetchDataStat(db: ReturnType<typeof useSQLiteContext>): Promise<DataStat> {
-  const row = await db.getFirstAsync<{ cnt: number; first: string | null }>(
-    `SELECT COUNT(*) AS cnt, MIN(transaction_date) AS first
-     FROM transactions WHERE deleted_at IS NULL AND transfer_id IS NULL`
-  );
-  return { count: row?.cnt ?? 0, first: row?.first ?? null };
+/** Comparaison avec la dernière analyse persistée (bloc « depuis la dernière fois »). */
+export interface SinceLast {
+  daysSince: number;
+  prevKept: number;
+  prevMicroTotal: number;
+  prevMicroCount: number;
+  prevSavingsRate: number | null;
 }
 
 async function fetchCycleTxCount(
@@ -61,37 +52,27 @@ async function fetchCycleTxCount(
   return row?.cnt ?? 0;
 }
 
-/** Assez de données pour une analyse fiable ? + jours restants sinon. */
-function assess(stat: DataStat): { enough: boolean; daysUntilReady: number } {
-  const hasCompleteCycle = stat.first !== null && stat.first < startOfMonthISO();
-  const enough = hasCompleteCycle || stat.count >= MIN_TX;
-  const daysSinceFirst = stat.first
-    ? Math.floor((Date.now() - new Date(stat.first).getTime()) / DAY_MS)
-    : 0;
-  return { enough, daysUntilReady: Math.max(1, 30 - daysSinceFirst) };
-}
-
 export interface UseAnalysisResult {
   loading: boolean;
   state: AnalysisState;
   daysUntilReady: number;
-  /** Nombre de transactions du cycle analysé (constats vides / mois calme). */
   cycleTxCount: number;
   cycle: Cycle | null;
   indicators: Indicators | null;
   result: ScoreResult | null;
-  dismissedIds: string[];
-  /** Marque un constat comme « ne m'aide pas » (persistance en Phase 4). */
+  /** Delta depuis la dernière analyse persistée, ou null (première analyse). */
+  sinceLast: SinceLast | null;
+  /** Rejette un constat — persisté en base (fenêtre 60 j). */
   dismiss: (id: string) => void;
-  /** Enregistre l'horodatage de l'analyse (pilote la carte d'entrée). */
-  markAnalyzed: () => void;
+  /**
+   * Persiste l'analyse (max 1/semaine) + horodatage carte d'entrée.
+   * Résout avec l'id créé, ou null si rien n'a été écrit (déjà persistée).
+   */
+  markAnalyzed: () => Promise<string | null>;
+  /** Marque l'action de l'analyse courante comme appliquée. */
+  recordActionApplied: () => Promise<void>;
 }
 
-/**
- * Orchestre cycle → indicateurs → scoring pour l'écran d'analyse. Dérive un
- * état explicite qui distingue absence de données, cycle vide, revenu non
- * saisi, mois réellement calme, et cas normal.
- */
 export function useAnalysis(): UseAnalysisResult {
   const db = useSQLiteContext();
   const [loading, setLoading] = useState(true);
@@ -101,6 +82,9 @@ export function useAnalysis(): UseAnalysisResult {
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const [sinceLast, setSinceLast] = useState<SinceLast | null>(null);
+  // Id de la ligne `analyses` couvrant cette session d'écran (créée ou reprise).
+  const analysisIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -116,11 +100,37 @@ export function useAnalysis(): UseAnalysisResult {
         return;
       }
       const c = getCurrentCycle();
-      const [ind, count] = await Promise.all([getIndicators(db, c), fetchCycleTxCount(db, c)]);
+      const [ind, count, dismissed, last] = await Promise.all([
+        getIndicators(db, c),
+        fetchCycleTxCount(db, c),
+        getDismissedIds(db),
+        getLastAnalysis(db),
+      ]);
       if (!alive) return;
+      // Comparaison avec la dernière analyse persistée — seulement si elle
+      // existe et ne date pas de la minute (rechargements d'écran).
+      if (last) {
+        analysisIdRef.current = last.id;
+        const daysSince = Math.floor((Date.now() - new Date(last.created_at).getTime()) / DAY_MS);
+        if (daysSince >= 1) {
+          try {
+            const prev = JSON.parse(last.indicators_json) as Partial<Indicators>;
+            setSinceLast({
+              daysSince,
+              prevKept: prev.keptAmount ?? 0,
+              prevMicroTotal: prev.microTotal ?? 0,
+              prevMicroCount: prev.microCount ?? 0,
+              prevSavingsRate: prev.savingsRate ?? null,
+            });
+          } catch {
+            setSinceLast(null);
+          }
+        }
+      }
       setCycle(c);
       setIndicators(ind);
       setCycleTxCount(count);
+      setDismissedIds(dismissed);
       setLoading(false);
     })();
     return () => {
@@ -128,7 +138,6 @@ export function useAnalysis(): UseAnalysisResult {
     };
   }, [db]);
 
-  // Le scoring se recalcule quand un constat est rejeté — sans requête.
   const result = useMemo<ScoreResult | null>(
     () => (indicators && cycle ? scoreInsights(indicators, cycle, dismissedIds) : null),
     [indicators, cycle, dismissedIds]
@@ -142,17 +151,37 @@ export function useAnalysis(): UseAnalysisResult {
     return 'normal';
   }, [enough, cycleTxCount, indicators, result]);
 
-  const dismiss = useCallback((id: string) => {
-    setDismissedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  }, []);
+  const dismiss = useCallback(
+    (id: string) => {
+      setDismissedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+      dismissInsight(db, id).catch(() => {});
+    },
+    [db]
+  );
 
-  const markAnalyzed = useCallback(() => {
+  const markAnalyzed = useCallback(async (): Promise<string | null> => {
     const now = new Date().toISOString();
-    db.runAsync(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)`, [
-      LAST_ANALYSIS_KEY,
-      now,
-      now,
-    ]).catch(() => {});
+    await db
+      .runAsync(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)`, [
+        LAST_ANALYSIS_KEY,
+        now,
+        now,
+      ])
+      .catch(() => {});
+    if (!cycle || !indicators || !result) return null;
+    const id = await saveAnalysis(
+      db,
+      cycle,
+      indicators,
+      result.insights,
+      result.action?.type ?? null
+    ).catch(() => null);
+    if (id) analysisIdRef.current = id;
+    return id;
+  }, [db, cycle, indicators, result]);
+
+  const recordActionApplied = useCallback(async () => {
+    if (analysisIdRef.current) await markActionApplied(db, analysisIdRef.current).catch(() => {});
   }, [db]);
 
   return {
@@ -163,39 +192,9 @@ export function useAnalysis(): UseAnalysisResult {
     cycle,
     indicators,
     result,
-    dismissedIds,
+    sinceLast,
     dismiss,
     markAnalyzed,
+    recordActionApplied,
   };
-}
-
-/**
- * Décision légère (sans lancer le calcul complet) : faut-il afficher la carte
- * d'entrée sous le hero ? Visible si les données suffisent ET qu'aucune analyse
- * récente (< 25 jours) n'a déjà été faite.
- */
-export function useAnalysisEntry(): { visible: boolean } {
-  const db = useSQLiteContext();
-  const [visible, setVisible] = useState(false);
-  const transactionsVersion = useDataRefreshStore((s) => s.transactionsVersion);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      const stat = await fetchDataStat(db);
-      const { enough: ok } = assess(stat);
-      const row = await db.getFirstAsync<{ value: string }>(
-        `SELECT value FROM settings WHERE key = ?`,
-        [LAST_ANALYSIS_KEY]
-      );
-      const lastAt = row?.value ?? null;
-      const daysSince = lastAt ? (Date.now() - new Date(lastAt).getTime()) / DAY_MS : Infinity;
-      if (alive) setVisible(ok && daysSince >= ENTRY_STALE_DAYS);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [db, transactionsVersion]);
-
-  return { visible };
 }

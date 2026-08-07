@@ -37,7 +37,7 @@ import {
 } from '@/components/dashboard';
 import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
 import { AnalysisEntryCard } from '@/components/analysis';
-import { useAnalysisEntry } from '@/hooks/useAnalysis';
+import { useAnalysisEntry } from '@/hooks/useAnalysisEntry';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';

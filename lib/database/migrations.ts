@@ -24,9 +24,12 @@ import {
   ADD_BUDGET_LIMIT_TO_CATEGORIES,
   CREATE_BUDGET_HISTORY_TABLE,
   CREATE_TX_ANALYSIS_INDEX,
+  CREATE_ANALYSES_TABLE,
+  CREATE_ANALYSIS_DISMISSED_TABLE,
+  CREATE_ANALYSES_INDEX,
 } from './schema';
 
-const DATABASE_VERSION = 24;
+const DATABASE_VERSION = 25;
 
 interface VersionResult {
   user_version: number;
@@ -158,7 +161,20 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     currentVersion = 24;
   }
 
+  if (currentVersion < 25) {
+    await migrateToV25(db);
+    currentVersion = 25;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
+
+async function migrateToV25(db: SQLiteDatabase): Promise<void> {
+  // Historique des bilans (Phase 4) : deux nouvelles tables + un index.
+  // Non destructif — aucune table existante modifiée.
+  await db.execAsync(CREATE_ANALYSES_TABLE);
+  await db.execAsync(CREATE_ANALYSIS_DISMISSED_TABLE);
+  await db.execAsync(CREATE_ANALYSES_INDEX);
 }
 
 async function migrateToV24(db: SQLiteDatabase): Promise<void> {

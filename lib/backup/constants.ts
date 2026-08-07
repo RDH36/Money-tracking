@@ -16,8 +16,13 @@ export const BACKUP_MIME = 'application/octet-stream';
 /** Identifiant de format présent dans l'enveloppe — garde-fou à l'import. */
 export const BACKUP_FORMAT = 'mitsitsy-backup';
 
-/** Version du format d'enveloppe. À incrémenter si la structure change. */
-export const BACKUP_FILE_VERSION = 1;
+/**
+ * Version du format d'enveloppe. À incrémenter si la structure change.
+ * v2 : ajout des tables `analyses` et `analysis_dismissed` (Phase 4).
+ * Rétro-compatible : un fichier v1 s'importe tel quel (tables absentes →
+ * simplement vidées côté cible, sémantique « clone fidèle » conservée).
+ */
+export const BACKUP_FILE_VERSION = 2;
 
 /**
  * Clé embarquée servant à chiffrer/déchiffrer les fichiers non protégés par
@@ -48,6 +53,9 @@ export const BACKUP_TABLES = [
   'badges',
   'unlocks',
   'quests',
+  // Phase 4 — historique des bilans (aucune FK, ordre indifférent).
+  'analyses',
+  'analysis_dismissed',
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];
@@ -58,6 +66,9 @@ export type BackupTable = (typeof BACKUP_TABLES)[number];
  * réglages, on les upsert clé par clé (voir EXCLUDED_SETTING_KEYS).
  */
 export const BACKUP_WIPE_TABLES = [
+  // Phase 4 — sans FK, vidées en premier.
+  'analysis_dismissed',
+  'analyses',
   'quests',
   'unlocks',
   'badges',

@@ -90,6 +90,13 @@ export async function evaluateBadgeConditions(
   // Budget respect history (last N complete months) — see helper below
   const budgetCleanMonths = await countCleanBudgetMonths(db, 6);
 
+  // Monthly reviews generated (Phase 4) — distinct cycles, table may predate
+  // migration 25 on some code paths, hence the defensive catch.
+  const analysisCycles = await count(
+    db,
+    'SELECT COUNT(DISTINCT cycle_label) as count FROM analyses'
+  ).catch(() => 0);
+
   return {
     // Existing
     first_expense: transactionCount >= 1,
@@ -111,6 +118,7 @@ export async function evaluateBadgeConditions(
     budget_master: budgetCleanMonths >= 3,
     budget_legend: budgetCleanMonths >= 6,
     saver: await hasPositiveCurrentMonth(db),
+    analyst_6: analysisCycles >= 6,
     planner: validatedPlans >= 5,
     master_planner: validatedPlans >= 20,
     // New — exploration

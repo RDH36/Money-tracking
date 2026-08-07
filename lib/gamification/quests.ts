@@ -8,7 +8,8 @@ export type QuestMetric =
   | 'completed_plans'
   | 'distinct_categories'
   | 'current_level'
-  | 'total_xp';
+  | 'total_xp'
+  | 'applied_actions';
 
 export type QuestTier = 1 | 2;
 
@@ -144,6 +145,20 @@ export const QUESTS: QuestDefinition[] = [
       { target: 200, xp: 10000 },
     ],
   },
+  // Tier 2 (et non 1) à dessein : ajouter une quête tier 1 durcirait
+  // rétroactivement quest_master pour les utilisateurs existants.
+  {
+    id: 'advisor', tier: 2,
+    titleKey: 'gamification.questAdvisor',
+    descriptionKey: 'gamification.questAdvisorDesc',
+    icon: 'sparkles', color: '#0E8C82',
+    metric: 'applied_actions',
+    steps: [
+      { target: 1, xp: 150 },
+      { target: 3, xp: 400 },
+      { target: 10, xp: 1000 },
+    ],
+  },
   {
     id: 'explorer_epic', tier: 2,
     titleKey: 'gamification.questExplorerEpic',
@@ -187,9 +202,17 @@ export async function computeQuestMetrics(
      WHERE status = 'completed' AND deleted_at IS NULL`
   );
   const cleanMonths = await countCleanBudgetMonths(db, 12);
+  // Actions de bilan appliquées (Phase 4). Défensif : la table date de la
+  // migration 25.
+  const appliedActionsRow = await db
+    .getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM analyses WHERE action_applied_at IS NOT NULL`
+    )
+    .catch(() => null);
 
   const completedPlans = completedPlansRow?.count ?? 0;
   const distinctCategories = distinctCategoriesRow?.count ?? 0;
+  const appliedActions = appliedActionsRow?.count ?? 0;
 
   return {
     // Tier 1
@@ -199,6 +222,7 @@ export async function computeQuestMetrics(
     architect: completedPlans,
     explorer: distinctCategories,
     // Tier 2 (reuse same underlying metrics)
+    advisor: appliedActions,
     marathon_epic: state.longestStreak,
     collector_epic: state.badgesCount,
     discipline_epic: cleanMonths,
