@@ -30,7 +30,7 @@ Cette feature ajoute une **couche d'interprétation locale** : un bouton « Anal
 ### Ce qui n'est pas dans ce PRD
 
 - Pas de score global sur 100 (arbitraire, démoralisant sur revenus faibles)
-- Pas de cycle de paie personnalisé (v2 — voir §8)
+- Pas de cycle de paie personnalisé (v2 — voir §10)
 - Pas de nouvelle entrée dans la tab bar (les 4 slots sont pris)
 
 ---
@@ -585,7 +585,86 @@ Release 2.2.0 : suis la checklist du PRD, section « Releases ».
 
 ---
 
-## 7. Récapitulatif
+## 7. Phase 5 — Analyse multi-cycles
+
+### Constat de départ
+
+Le PRD actuel analyse **un seul cycle** ; les précédents ne servent que de contexte (`bestCycle`, `categoryDrift`). Un mois isolé ne dit rien : un dépassement en juillet peut être un accident, une saison ou une habitude — et les trois appellent des réponses opposées. Ce qui porte une valeur de conseil, c'est ce qui **se répète**. La Phase 5 fait passer le moteur de « ce mois » à « ton comportement ».
+
+### Nouveau contrat
+
+Une règle historique lit plusieurs cycles à la fois :
+
+```ts
+type HistoryRule = (h: HistoryIndicators, cycles: Cycle[]) => Insight | null
+```
+
+`getHistoryIndicators(db, cycles)` agrège **N cycles en une seule passe**.
+
+> **Piège à éviter, explicitement.** Ne JAMAIS appeler `getIndicators` en boucle sur 6 cycles : chaque appel fait ~7 requêtes, soit **42 requêtes** pour un seul écran. On agrège les N cycles dans **un seul `GROUP BY strftime('%Y-%m', transaction_date)`** (ou des sommes conditionnelles par bornes locales, comme `fetchMonthlyTotals` en Phase 1). Le même index partiel `idx_tx_analysis` reste exploité : filtre `deleted_at IS NULL AND transfer_id IS NULL`, `type IN (...)` pour garder le seek d'index.
+
+### Trois règles historiques
+
+| Règle | Déclenche quand | Message (exemple) |
+|---|---|---|
+| `recurringOverrun` | un même budget dépassé sur ≥ 60 % des cycles, min. 4 cycles | « Sur 6 cycles, tu dépasses Nourriture 5 fois, dépassement moyen 78 000. » |
+| `savingsTrend` | pente du taux d'épargne **significative**, min. 4 cycles | « Ton taux d'épargne baisse depuis 4 cycles : 18 % → 9 %. » |
+| `seasonality` | un cycle historiquement plus dépensier approche, min. 12 cycles | « Décembre est ton cycle le plus dépensier depuis 2 ans (+34 % vs ta moyenne). Il commence dans 12 jours. » |
+
+**1. `recurringOverrun` — dépassements répétés d'un même budget.**
+Action : **ajuster le budget à la dépense réelle médiane**. Point non négociable : l'action est d'**augmenter** le budget, pas de gronder. Un budget systématiquement dépassé n'est pas un problème de discipline, c'est un **budget faux** — la donnée dit que le plafond ne correspond pas à la vie de l'utilisateur. Seuil : dépassé sur **≥ 60 % des cycles**, minimum **4 cycles** d'historique. En dessous, se taire.
+
+**2. `savingsTrend` — régression linéaire du taux d'épargne.**
+Calcule la pente sur N cycles et affiche **la série, la moyenne et la pente**. N'affiche une direction (hausse / baisse) **que si la pente est significative**, au-dessus du bruit du nuage. Si le nuage est plat ou dispersé, dire « **pas de tendance nette** » plutôt que d'inventer une direction : une fausse tendance est pire que pas de tendance. Minimum **4 cycles**.
+
+**3. `seasonality` — cycle dépensier récurrent qui approche.**
+Compare chaque mois calendaire à la moyenne personnelle sur ≥ 2 ans, et ne se déclenche qu'à **l'approche** (quelques semaines) d'un mois historiquement au-dessus. Minimum **12 cycles** — donc réservé aux utilisateurs anciens. Se taire pour tous les autres : mieux vaut ne rien dire que d'extrapoler une saisonnalité sur 3 mois de données.
+
+### Scoring
+
+Le scoring **mélange** règles de cycle (Phase 2) et règles d'historique (Phase 5). À poids égal, **priorité aux constats historiques** : « tu dépasses ce budget 5 mois sur 6 » pèse plus qu'une dérive ponctuelle, parce qu'un fait répété est plus solide qu'un fait isolé. Le reste ne bouge pas : toujours **3 constats maximum et 1 action**.
+
+### Séquencement
+
+La Phase 5 vient **après la 2.2.0 livrée et observée**, en **release 2.3.0**. Deux raisons :
+
+- La Phase 4 apporte déjà `sinceLastAnalysis`, une **première forme de comparaison temporelle**. Il faut voir comment elle est accueillie avant d'empiler une couche multi-cycles par-dessus.
+- Il ne sert à rien de construire une troisième couche d'analyse sur une feature **dont le bouton n'a pas encore été appuyé par un utilisateur réel**. On livre, on observe l'usage, on décide ensuite.
+
+### Prérequis technique (bénéfice secondaire)
+
+Le **calibrage personnel des seuils**, noté en fin de Phase 2, devient possible ici. `HistoryIndicators` expose l'historique **par cycle** : `burnSpeed` et `categoryDrift` peuvent enfin se comparer à la **moyenne personnelle** de l'utilisateur plutôt qu'à un seuil universel. Ce qui était un « seuil par défaut documenté » en Phase 2 devient un repère calibré sur le comportement réel — sans requête supplémentaire, puisque l'agrégat multi-cycles est déjà calculé.
+
+### Prompt Claude Code — Phase 5
+
+```
+Lis PRD_ANALYSE.md, section « Phase 5 ».
+Phases 0 à 4 validées, livrées (2.2.0) et observées.
+
+Crée lib/analysis/history/ :
+- historyIndicators.ts → getHistoryIndicators(db, cycles) EN UNE PASSE
+  (un seul GROUP BY strftime, jamais getIndicators en boucle sur les cycles)
+- rules/ → recurringOverrun, savingsTrend, seasonality
+- intègre les règles d'historique au scoring existant (score.ts), avec
+  priorité aux constats historiques à poids égal.
+
+- Une règle historique = (HistoryIndicators, Cycle[]) => Insight | null
+- savingsTrend n'affiche une direction que si la pente est significative,
+  sinon « pas de tendance nette »
+- seasonality se tait sous 12 cycles ; recurringOverrun/savingsTrend sous 4
+- recurringOverrun propose d'AUGMENTER le budget à la médiane réelle
+- Câble le calibrage personnel de burnSpeed/categoryDrift sur l'historique
+- i18n analysis.* (fr/en/mg), params injectés, ton factuel
+
+Release 2.3.0 : suis la checklist de la section « Releases ».
+
+Quand tu as fini : montre-moi getHistoryIndicators et le SQL de son agrégat,
+puis la règle recurringOverrun.
+```
+
+---
+
+## 8. Récapitulatif
 
 | Phase | Contenu | Fichiers | Release |
 |---|---|---|---|
@@ -594,20 +673,22 @@ Release 2.2.0 : suis la checklist du PRD, section « Releases ».
 | **2** | Règles + scoring + i18n | 10 créés, 3 modifiés | — |
 | **3** | Écran, carte d'entrée, hero | 5–7 | **2.1.0** |
 | **4** | Historique, backup, gamification, notif | 8 | **2.2.0** |
+| **5** | Analyse multi-cycles — règles d'historique + calibrage perso | ~5 créés | **2.3.0** |
 
 Phase 0 en premier, sans exception : les trois bugs corrigés faussent les calculs sur lesquels tout le reste repose.
 
 ---
 
-## 8. Releases
+## 9. Releases
 
-### Trois livraisons, pas une
+### Quatre livraisons, pas une
 
 | Version | Type | Contenu |
 |---|---|---|
 | **2.0.4** | patch | Phase 0 seule |
 | **2.1.0** | minor | Phases 1–3 — l'analyse fonctionne, sans persistance |
 | **2.2.0** | minor | Phase 4 — historique, boucle, gamification |
+| **2.3.0** | minor | Phase 5 — analyse multi-cycles, calibrage personnel |
 
 **La Phase 0 part seule et vite.** Une cinquantaine de lignes, aucune nouvelle surface UI, et elle corrige un signal actuellement faux pour tous les utilisateurs dans la seconde moitié de chaque mois. Aucune raison de la retenir derrière une feature de plusieurs semaines. Bénéfice secondaire : si la logique de rythme a un cas limite, il se trouve sur une release de 6 fichiers plutôt que noyé dans une de trente.
 
@@ -639,7 +720,7 @@ Trancher : le régénérer depuis `constants/changelog.ts`, ou le supprimer. Un 
 
 ---
 
-## 9. Hors périmètre — pistes v2
+## 10. Hors périmètre — pistes v2
 
 - **Cycle de paie détecté** — repérer un revenu récurrent (montant ±10 %, ~30 j, 3 occurrences) et faire commencer le cycle au jour de paie. Quelqu'un payé le 28 vit du 28 au 27 ; aujourd'hui tous les calculs coupent son cycle en deux. C'est la plus grosse amélioration de justesse possible, mais elle touche budgets, rapports et calendrier — un chantier à part entière.
 - **Reste à vivre du jour** — un seul chiffre en haut du dashboard : ce qu'on peut dépenser aujourd'hui sans casser le mois, avec report du non-dépensé sur le lendemain.
@@ -647,7 +728,7 @@ Trancher : le régénérer depuis `constants/changelog.ts`, ou le supprimer. Un 
 
 ---
 
-## 10. Points de vigilance
+## 11. Points de vigilance
 
 **Vérifier la complétude des données avant de se fier aux constats.** Sur le device de test, le compte Cash est à 0 et Mvola à 434 Ar — tout passe par Bank. Si les utilisateurs réels font pareil, les dépenses en espèces ne sont pas saisies et l'analyse portera sur une image partielle. Regarder dans PostHog la répartition des transactions par type de compte avant de construire dessus, et envisager un constat dédié : « aucune dépense en espèces enregistrée ce cycle ».
 
