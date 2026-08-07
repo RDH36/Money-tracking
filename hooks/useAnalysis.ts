@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { getCurrentCycle } from '@/lib/analysis/cycle';
+import { getCurrentCycle, getPreviousCycles } from '@/lib/analysis/cycle';
 import { getIndicators } from '@/lib/analysis/indicators';
 import { scoreInsights, type ScoreResult } from '@/lib/analysis/score';
 import {
@@ -10,13 +10,20 @@ import {
   dismissInsight,
   markActionApplied,
 } from '@/lib/analysis/persistence';
-import { DAY_MS, LAST_ANALYSIS_KEY, assess, fetchDataStat } from '@/lib/analysis/sufficiency';
+import {
+  DAY_MS,
+  EMPTY_CYCLE_TX,
+  LAST_ANALYSIS_KEY,
+  assess,
+  fetchCycleTxCount,
+  fetchDataStat,
+} from '@/lib/analysis/sufficiency';
 import type { Cycle, Indicators } from '@/lib/analysis/types';
 
-/** En dessous : le cycle est trop vide pour un constat. */
-const EMPTY_CYCLE_TX = 5;
 /** Au-dessus (avec revenu) : un « mois calme » devient une info crédible. */
 const CALM_MIN_TX = 15;
+/** Profondeur du repli : cycles complets scannés pour trouver de la matière. */
+const FALLBACK_CYCLES = 6;
 
 /**
  * État explicite de l'analyse. `calmMonth` exige des conditions POSITIVES
@@ -39,17 +46,22 @@ export interface SinceLast {
   prevSavingsRate: number | null;
 }
 
-async function fetchCycleTxCount(
-  db: ReturnType<typeof useSQLiteContext>,
-  cycle: Cycle
-): Promise<number> {
-  const row = await db.getFirstAsync<{ cnt: number }>(
-    `SELECT COUNT(*) AS cnt FROM transactions
-     WHERE deleted_at IS NULL AND transfer_id IS NULL
-       AND transaction_date >= ? AND transaction_date < ?`,
-    [cycle.start, cycle.end]
-  );
-  return row?.cnt ?? 0;
+/**
+ * Choisit le cycle à analyser. Le cycle courant s'il a de la matière ; sinon,
+ * repli sur le cycle complet le plus récent qui en a — 5 mois d'historique ne
+ * doivent jamais donner « rien à analyser » le 7 du mois.
+ */
+async function pickCycleToAnalyze(
+  db: ReturnType<typeof useSQLiteContext>
+): Promise<{ cycle: Cycle; txCount: number }> {
+  const current = getCurrentCycle();
+  const currentCount = await fetchCycleTxCount(db, current);
+  if (currentCount >= EMPTY_CYCLE_TX) return { cycle: current, txCount: currentCount };
+  for (const prev of getPreviousCycles(FALLBACK_CYCLES)) {
+    const n = await fetchCycleTxCount(db, prev);
+    if (n >= EMPTY_CYCLE_TX) return { cycle: prev, txCount: n };
+  }
+  return { cycle: current, txCount: currentCount };
 }
 
 export interface UseAnalysisResult {
@@ -99,10 +111,9 @@ export function useAnalysis(): UseAnalysisResult {
         setLoading(false);
         return;
       }
-      const c = getCurrentCycle();
-      const [ind, count, dismissed, last] = await Promise.all([
+      const { cycle: c, txCount: count } = await pickCycleToAnalyze(db);
+      const [ind, dismissed, last] = await Promise.all([
         getIndicators(db, c),
-        fetchCycleTxCount(db, c),
         getDismissedIds(db),
         getLastAnalysis(db),
       ]);

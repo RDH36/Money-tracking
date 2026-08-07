@@ -87,8 +87,8 @@
       "title_other": "{{count}} small expenses · {{total}}"
     },
     "noSpendStreak": {
-      "title_one": "{{days}} day without spending out of {{total}}",
-      "title_other": "{{days}} days without spending out of {{total}}"
+      "title_one": "{{count}} day without spending out of {{total}}",
+      "title_other": "{{count}} days without spending out of {{total}}"
     },
     "action": {
       "transfer": "Create the automatic transfer",
@@ -123,7 +123,8 @@
     "sinceLastMicro": "Small expenses: {{prev}} → {{now}} {{currency}}",
     "sinceLastKeptMore": "You kept {{amount}} {{currency}} more this cycle",
     "sinceLastKeptLess": "You kept {{amount}} {{currency}} less this cycle",
-    "sinceLastNoChange": "Indicators steady since last time"
+    "sinceLastNoChange": "Indicators steady since last time",
+    "cycleOf": "Review of {{month}}"
   },
   "add": {
     "newTransaction": "New Transaction",

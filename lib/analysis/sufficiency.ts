@@ -11,10 +11,26 @@ export const MIN_TX = 30;
 export const ENTRY_STALE_DAYS = 25;
 /** Clé `settings` portant l'horodatage de la dernière analyse vue. */
 export const LAST_ANALYSIS_KEY = 'analysis_last_at';
+/** En dessous : un cycle est trop vide pour un constat. */
+export const EMPTY_CYCLE_TX = 5;
 
 export interface DataStat {
   count: number;
   first: string | null;
+}
+
+/** Nombre de transactions (hors virements/supprimées) sur les bornes d'un cycle. */
+export async function fetchCycleTxCount(
+  db: SQLiteDatabase,
+  cycle: { start: string; end: string }
+): Promise<number> {
+  const row = await db.getFirstAsync<{ cnt: number }>(
+    `SELECT COUNT(*) AS cnt FROM transactions
+     WHERE deleted_at IS NULL AND transfer_id IS NULL
+       AND transaction_date >= ? AND transaction_date < ?`,
+    [cycle.start, cycle.end]
+  );
+  return row?.cnt ?? 0;
 }
 
 export async function fetchDataStat(db: SQLiteDatabase): Promise<DataStat> {

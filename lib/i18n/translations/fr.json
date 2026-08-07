@@ -87,8 +87,8 @@
       "title_other": "{{count}} petites dépenses · {{total}}"
     },
     "noSpendStreak": {
-      "title_one": "{{days}} jour sans dépense sur {{total}}",
-      "title_other": "{{days}} jours sans dépense sur {{total}}"
+      "title_one": "{{count}} jour sans dépense sur {{total}}",
+      "title_other": "{{count}} jours sans dépense sur {{total}}"
     },
     "action": {
       "transfer": "Créer le virement automatique",
@@ -123,7 +123,8 @@
     "sinceLastMicro": "Petites dépenses : {{prev}} → {{now}} {{currency}}",
     "sinceLastKeptMore": "Tu as gardé {{amount}} {{currency}} de plus ce cycle",
     "sinceLastKeptLess": "Tu as gardé {{amount}} {{currency}} de moins ce cycle",
-    "sinceLastNoChange": "Indicateurs stables depuis la dernière fois"
+    "sinceLastNoChange": "Indicateurs stables depuis la dernière fois",
+    "cycleOf": "Bilan de {{month}}"
   },
   "add": {
     "newTransaction": "Nouvelle transaction",

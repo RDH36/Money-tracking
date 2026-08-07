@@ -19,7 +19,8 @@ export const noSpendStreakRule: Rule = (i, cycle) => {
     severity: 'info',
     weight,
     titleKey: 'analysis.noSpendStreak.title',
-    params: { days: i.noSpendDays, total: cycle.elapsedDays },
+    // `count` (et pas `days`) : i18next ne pluralise que sur ce param.
+    params: { count: i.noSpendDays, total: cycle.elapsedDays },
     evidence: `${i.noSpendDays} / ${cycle.elapsedDays}`,
   };
 };

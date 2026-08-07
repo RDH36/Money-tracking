@@ -86,8 +86,8 @@
       "title_other": "{{count}} fandaniana kely · {{total}}"
     },
     "noSpendStreak": {
-      "title_one": "{{days}} andro tsy nandaniana tamin'ny {{total}}",
-      "title_other": "{{days}} andro tsy nandaniana tamin'ny {{total}}"
+      "title_one": "{{count}} andro tsy nandaniana tamin'ny {{total}}",
+      "title_other": "{{count}} andro tsy nandaniana tamin'ny {{total}}"
     },
     "action": {
       "transfer": "Hamorona ny famindram-bola mandeha ho azy",
@@ -122,7 +122,8 @@
     "sinceLastMicro": "Fandaniana kely : {{prev}} → {{now}} {{currency}}",
     "sinceLastKeptMore": "Voatahirinao {{amount}} {{currency}} fanampiny tamin'ity tsingerina ity",
     "sinceLastKeptLess": "Voatahirinao {{amount}} {{currency}} latsaka tamin'ity tsingerina ity",
-    "sinceLastNoChange": "Milamina ny isa hatramin'ny farany"
+    "sinceLastNoChange": "Milamina ny isa hatramin'ny farany",
+    "cycleOf": "Jerin'ny {{month}}"
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",

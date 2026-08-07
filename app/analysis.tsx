@@ -18,6 +18,11 @@ function formatMonth(label: string, lang: string): string {
   return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long' });
 }
 
+function formatMonthYear(label: string, lang: string): string {
+  const [y, m] = label.split('-').map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
+}
+
 /** CTA de navigation (openScreen) — pour les états sans revenu / cycle vide. */
 function NavCta({ v2, label, icon, onPress }: { v2: V2Tokens; label: string; icon: any; onPress: () => void }) {
   return (
@@ -69,7 +74,7 @@ export default function AnalysisScreen() {
   const { updateCategory } = useCategories();
   const { awardXP } = useGamification();
   const {
-    loading, state, daysUntilReady, cycleTxCount, indicators, result,
+    loading, state, daysUntilReady, cycleTxCount, cycle, indicators, result,
     sinceLast, dismiss, markAnalyzed, recordActionApplied,
   } = useAnalysis();
   const [showIntro, setShowIntro] = useState(true);
@@ -165,6 +170,14 @@ export default function AnalysisScreen() {
           </View>
         ) : indicators && result ? (
           <>
+          {cycle && !cycle.isCurrent ? (
+            // Repli sur un cycle passé : dire clairement lequel est analysé.
+            <View style={{ alignSelf: 'flex-start', backgroundColor: v2.bgRaised, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12 }}>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.ink }}>
+                {t('analysis.cycleOf', { month: formatMonthYear(cycle.label, i18n.language) })}
+              </Text>
+            </View>
+          ) : null}
           {sinceLast ? (
             <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} />
           ) : null}
