@@ -111,7 +111,13 @@
     "calmNote": "Rien de notable ce cycle",
     "entryTitle": "Analyser mon cycle",
     "entrySubtitle": "3 constats, 1 action en un tap",
-    "reportsCta": "Que disent ces chiffres ?"
+    "reportsCta": "Que disent ces chiffres ?",
+    "emptyCycleMessage_one": "{{count}} transaction enregistrée ce cycle — trop peu pour un bilan",
+    "emptyCycleMessage_other": "{{count}} transactions enregistrées ce cycle — trop peu pour un bilan",
+    "emptyCycleCta": "Saisir une transaction",
+    "spentTitle": "Dépensé ce cycle",
+    "noIncomeBanner": "Aucun revenu enregistré ce cycle — le taux d'épargne, la vitesse de dépense et les coûts fixes restent indisponibles.",
+    "noIncomeCta": "Enregistrer un revenu"
   },
   "add": {
     "newTransaction": "Nouvelle transaction",

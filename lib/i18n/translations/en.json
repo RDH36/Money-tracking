@@ -111,7 +111,13 @@
     "calmNote": "Nothing notable this cycle",
     "entryTitle": "Analyze my cycle",
     "entrySubtitle": "3 findings, 1 action in one tap",
-    "reportsCta": "What do these numbers say?"
+    "reportsCta": "What do these numbers say?",
+    "emptyCycleMessage_one": "{{count}} transaction recorded this cycle — too few for a review",
+    "emptyCycleMessage_other": "{{count}} transactions recorded this cycle — too few for a review",
+    "emptyCycleCta": "Add a transaction",
+    "spentTitle": "Spent this cycle",
+    "noIncomeBanner": "No income recorded this cycle — savings rate, spending speed and fixed costs stay unavailable.",
+    "noIncomeCta": "Record income"
   },
   "add": {
     "newTransaction": "New Transaction",

@@ -110,7 +110,13 @@
     "calmNote": "Tsy misy manaitra amin'ity tsingerina ity",
     "entryTitle": "Hamakafaka ny tsingerinao",
     "entrySubtitle": "Fehin-kevitra 3, hetsika 1 amin'ny tsindrona iray",
-    "reportsCta": "Inona no lazain'ireo isa ireo ?"
+    "reportsCta": "Inona no lazain'ireo isa ireo ?",
+    "emptyCycleMessage_one": "{{count}} raki-bola voarakitra amin'ity tsingerina ity — vitsy loatra ho an'ny jery",
+    "emptyCycleMessage_other": "{{count}} raki-bola voarakitra amin'ity tsingerina ity — vitsy loatra ho an'ny jery",
+    "emptyCycleCta": "Manoratra raki-bola",
+    "spentTitle": "Lany amin'ity tsingerina ity",
+    "noIncomeBanner": "Tsy misy fidiram-bola voarakitra amin'ity tsingerina ity — mijanona tsy azo jerena ny tahan'ny fitsimbinana, ny hafainganam-pandaniana ary ny sarany raikitra.",
+    "noIncomeCta": "Manoratra fidiram-bola"
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",
