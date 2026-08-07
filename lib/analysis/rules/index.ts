@@ -12,6 +12,8 @@ import { categoryDriftRule } from './categoryDrift';
 import { bestCycleRule } from './bestCycle';
 import { microSpendingRule } from './microSpending';
 import { noSpendStreakRule } from './noSpendStreak';
+import { budgetOverrunRule } from './budgetOverrun';
+import { budgetUnusedRule } from './budgetUnused';
 
 export const RULES: Rule[] = [
   savingsRateRule,
@@ -22,6 +24,8 @@ export const RULES: Rule[] = [
   bestCycleRule,
   microSpendingRule,
   noSpendStreakRule,
+  budgetOverrunRule,
+  budgetUnusedRule,
 ];
 
 export {
@@ -33,4 +37,7 @@ export {
   bestCycleRule,
   microSpendingRule,
   noSpendStreakRule,
+  budgetOverrunRule,
+  budgetUnusedRule,
 };
+export { makeGoalGapRule } from './goalGap';

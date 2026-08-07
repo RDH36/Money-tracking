@@ -4,64 +4,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useV2, formatMoneyFr, type V2Tokens } from '@/constants/designTokensV2';
+import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useAccounts, useCategories, useGamification } from '@/hooks';
 import { useAnalysis } from '@/hooks/useAnalysis';
+import { useAnalysisGoal } from '@/hooks/useAnalysisGoal';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import { XP_VALUES } from '@/constants/badges';
-import { BubuleIntro, InsightCard, ActionBlock, SinceLastCard } from '@/components/analysis';
-import type { Indicators, InsightAction } from '@/lib/analysis/types';
-
-function formatMonth(label: string, lang: string): string {
-  const [y, m] = label.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long' });
-}
+import type { AnalysisIntent } from '@/lib/analysis/score';
+import {
+  BubuleIntro, InsightCard, ActionBlock, SinceLastCard,
+  IntentChips, GoalCard, DismissedLine, NavCta, KeptSummary,
+} from '@/components/analysis';
+import type { InsightAction } from '@/lib/analysis/types';
 
 function formatMonthYear(label: string, lang: string): string {
   const [y, m] = label.split('-').map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
-}
-
-/** CTA de navigation (openScreen) — pour les états sans revenu / cycle vide. */
-function NavCta({ v2, label, icon, onPress }: { v2: V2Tokens; label: string; icon: any; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        backgroundColor: v2.brand, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 18,
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-      }}
-    >
-      <Ionicons name={icon} size={18} color={v2.inkOnDark} />
-      <Text style={{ fontFamily: v2.fontUI, fontSize: 15, fontWeight: '700', color: v2.inkOnDark }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-/** Résumé « gardé + meilleur cycle » — seulement quand un revenu existe. */
-function KeptSummary({ v2, indicators, currency, lang }: { v2: V2Tokens; indicators: Indicators; currency: string; lang: string }) {
-  const { t } = useTranslation();
-  return (
-    <View style={{ gap: 6, paddingTop: 4 }}>
-      <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, letterSpacing: 0.3 }}>
-        {t('analysis.keptTitle')}
-      </Text>
-      <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 30, letterSpacing: -1, color: indicators.keptAmount >= 0 ? v2.good : v2.bad }}>
-        {formatMoneyFr(indicators.keptAmount)} {currency}
-      </Text>
-      {indicators.savingsRate !== null ? (
-        <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkMuted }}>
-          {t('analysis.keptDetail', { income: formatMoneyFr(indicators.income), rate: `${Math.round(indicators.savingsRate * 100)} %` })}
-        </Text>
-      ) : null}
-      {indicators.bestCycle ? (
-        <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkSubtle, marginTop: 2 }}>
-          {t('analysis.bestComparison', { best: `${Math.round(indicators.bestCycle.savingsRate * 100)} %`, month: formatMonth(indicators.bestCycle.label, lang) })}
-        </Text>
-      ) : null}
-    </View>
-  );
 }
 
 export default function AnalysisScreen() {
@@ -73,16 +32,17 @@ export default function AnalysisScreen() {
   const { accounts, createTransfer } = useAccounts();
   const { updateCategory } = useCategories();
   const { awardXP } = useGamification();
+  const { goal, goalAmount, setGoal } = useAnalysisGoal();
+  const [intent, setIntent] = useState<AnalysisIntent>('overview');
   const {
     loading, state, daysUntilReady, cycleTxCount, cycle, indicators, result,
-    sinceLast, dismiss, markAnalyzed, recordActionApplied,
-  } = useAnalysis();
+    sinceLast, sessionDismissed, dismiss, undismiss, markAnalyzed, recordActionApplied,
+  } = useAnalysis({ intent, goal, goalAmount });
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    // Un cycle vide n'est pas une analyse : on ne persiste rien et la carte
-    // d'entrée continue d'inviter. XP seulement quand une NOUVELLE ligne est
-    // écrite (saveAnalysis dédoublonne sur 7 jours).
+    // Un cycle vide n'est pas une analyse. XP seulement quand une NOUVELLE
+    // ligne est écrite (saveAnalysis dédoublonne sur 7 jours).
     if (loading || state === 'insufficientData' || state === 'emptyCycle') return;
     markAnalyzed().then((newId) => {
       if (newId) awardXP(XP_VALUES.ANALYSIS);
@@ -131,8 +91,7 @@ export default function AnalysisScreen() {
     </View>
   );
 
-  // Intro Bubule (jamais bloquante : max 2 s, skippable). Pas d'intro sur un
-  // blocage « données insuffisantes ».
+  // Intro Bubule (jamais bloquante : max 2 s, skippable).
   if (showIntro && !loading && state !== 'insufficientData') {
     return (
       <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
@@ -141,6 +100,36 @@ export default function AnalysisScreen() {
       </View>
     );
   }
+
+  const sectionLabel = (key: string) => (
+    <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle, marginTop: 6 }}>
+      {t(key)}
+    </Text>
+  );
+
+  const insightsBlock = result ? (
+    <>
+      {result.insights.length > 0 ? (
+        <>
+          {sectionLabel('analysis.weighSection')}
+          <View style={{ gap: 10 }}>
+            {result.insights.map((insight, index) => (
+              <InsightCard key={insight.id} insight={insight} index={index} onDismiss={dismiss} />
+            ))}
+          </View>
+        </>
+      ) : null}
+      {sessionDismissed.map((id) => (
+        <DismissedLine key={id} onUndo={() => undismiss(id)} />
+      ))}
+      {result.action ? (
+        <View style={{ gap: 8, marginTop: 6 }}>
+          {sectionLabel('analysis.actionSection')}
+          <ActionBlock action={result.action} currency={currency} onExecute={executeAction} />
+        </View>
+      ) : null}
+    </>
+  ) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
@@ -170,67 +159,42 @@ export default function AnalysisScreen() {
           </View>
         ) : indicators && result ? (
           <>
-          {cycle && !cycle.isCurrent ? (
-            // Repli sur un cycle passé : dire clairement lequel est analysé.
-            <View style={{ alignSelf: 'flex-start', backgroundColor: v2.bgRaised, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12 }}>
-              <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.ink }}>
-                {t('analysis.cycleOf', { month: formatMonthYear(cycle.label, i18n.language) })}
-              </Text>
-            </View>
-          ) : null}
-          {sinceLast ? (
-            <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} />
-          ) : null}
-          {state === 'noIncome' ? (
-            <>
-              {/* Fait neutre, pas de « gardé 0 » : une absence de revenu n'est pas un zéro. */}
-              <View style={{ gap: 6, paddingTop: 4 }}>
-                <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, letterSpacing: 0.3 }}>{t('analysis.spentTitle')}</Text>
-                <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 30, letterSpacing: -1, color: v2.ink }}>
-                  {formatMoneyFr(indicators.expenses)} {currency}
+            <IntentChips intent={intent} onChange={setIntent} />
+            <GoalCard goal={goal} goalAmount={goalAmount} currency={currency} onSelect={setGoal} />
+            {cycle && !cycle.isCurrent ? (
+              <View style={{ alignSelf: 'flex-start', backgroundColor: v2.bgRaised, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12 }}>
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.ink }}>
+                  {t('analysis.cycleOf', { month: formatMonthYear(cycle.label, i18n.language) })}
                 </Text>
               </View>
-              <View style={{ backgroundColor: v2.warnSoft, borderWidth: 1, borderColor: `${v2.warn}44`, borderRadius: 14, padding: 14, gap: 10 }}>
-                <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.ink, lineHeight: 18 }}>{t('analysis.noIncomeBanner')}</Text>
-                <NavCta v2={v2} label={t('analysis.noIncomeCta')} icon="trending-up-outline" onPress={goAdd} />
-              </View>
-              {result.insights.length > 0 ? (
-                <>
-                  <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle, marginTop: 6 }}>{t('analysis.weighSection')}</Text>
-                  <View style={{ gap: 10 }}>
-                    {result.insights.map((insight, index) => (
-                      <InsightCard key={insight.id} insight={insight} index={index} onDismiss={dismiss} />
-                    ))}
-                  </View>
-                  {result.action ? <ActionBlock action={result.action} currency={currency} onExecute={executeAction} /> : null}
-                </>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <KeptSummary v2={v2} indicators={indicators} currency={currency} lang={i18n.language} />
-              {state === 'calmMonth' ? (
-                <View style={{ backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, borderRadius: 16, padding: 16 }}>
-                  <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkMuted, textAlign: 'center' }}>{t('analysis.calmNote')}</Text>
+            ) : null}
+            {sinceLast ? <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} /> : null}
+            {state === 'noIncome' ? (
+              <>
+                <View style={{ gap: 6, paddingTop: 4 }}>
+                  <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, letterSpacing: 0.3 }}>{t('analysis.spentTitle')}</Text>
+                  <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 30, letterSpacing: -1, color: v2.ink }}>
+                    {formatMoneyFr(indicators.expenses)} {currency}
+                  </Text>
                 </View>
-              ) : (
-                <>
-                  <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle, marginTop: 6 }}>{t('analysis.weighSection')}</Text>
-                  <View style={{ gap: 10 }}>
-                    {result.insights.map((insight, index) => (
-                      <InsightCard key={insight.id} insight={insight} index={index} onDismiss={dismiss} />
-                    ))}
+                <View style={{ backgroundColor: v2.warnSoft, borderWidth: 1, borderColor: `${v2.warn}44`, borderRadius: 14, padding: 14, gap: 10 }}>
+                  <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.ink, lineHeight: 18 }}>{t('analysis.noIncomeBanner')}</Text>
+                  <NavCta v2={v2} label={t('analysis.noIncomeCta')} icon="trending-up-outline" onPress={goAdd} />
+                </View>
+                {insightsBlock}
+              </>
+            ) : (
+              <>
+                <KeptSummary v2={v2} indicators={indicators} currency={currency} lang={i18n.language} />
+                {state === 'calmMonth' && result.insights.length === 0 ? (
+                  <View style={{ backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, borderRadius: 16, padding: 16 }}>
+                    <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkMuted, textAlign: 'center' }}>{t('analysis.calmNote')}</Text>
                   </View>
-                  {result.action ? (
-                    <View style={{ gap: 8, marginTop: 6 }}>
-                      <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle }}>{t('analysis.actionSection')}</Text>
-                      <ActionBlock action={result.action} currency={currency} onExecute={executeAction} />
-                    </View>
-                  ) : null}
-                </>
-              )}
-            </>
-          )}
+                ) : (
+                  insightsBlock
+                )}
+              </>
+            )}
           </>
         ) : null}
       </ScrollView>

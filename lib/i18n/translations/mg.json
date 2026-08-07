@@ -93,7 +93,9 @@
       "transfer": "Hamorona ny famindram-bola mandeha ho azy",
       "budget": "Hamorona ny tetibola",
       "budgetFor": "Hamorona tetibola {{category}} amin'ny {{amount}} {{currency}}",
-      "transferAmount": "Atokàny {{amount}} {{currency}}"
+      "transferAmount": "Atokàny {{amount}} {{currency}}",
+      "raiseBudget": "Akaro ho {{amount}} {{currency}} ny tetibola {{category}}",
+      "lowerBudget": "Ahenao ho {{amount}} {{currency}} ny tetibola {{category}}"
     },
     "title": "Ny jeriko",
     "intro": "Mijery ny isanao aho…",
@@ -125,7 +127,34 @@
     "sinceLastKeptMore": "Voatahirinao {{amount}} {{currency}} fanampiny tamin'ity tsingerina ity",
     "sinceLastKeptLess": "Voatahirinao {{amount}} {{currency}} latsaka tamin'ity tsingerina ity",
     "sinceLastNoChange": "Milamina ny isa hatramin'ny farany",
-    "cycleOf": "Jerin'ny {{month}}"
+    "cycleOf": "Jerin'ny {{month}}",
+    "hidden": "Nafenina ny fehin-kevitra",
+    "undo": "Averina",
+    "intent": {
+      "overview": "Topi-maso",
+      "overspend": "Mandany be ve aho ?",
+      "budgets": "Ny tetibolako ?",
+      "savings": "Hitahiry bebe kokoa"
+    },
+    "goal": {
+      "title": "Inona ny tanjonao izao ?",
+      "saveAmount": "Mitahiry isam-bolana",
+      "keepBudgets": "Mitana ny tetibolako",
+      "understand": "Mahafantatra izay alehan'ny volako",
+      "amountPlaceholder": "Vola isam-bolana (Ar)",
+      "confirm": "Ekena",
+      "current": "Tanjona : {{label}}",
+      "edit": "Ovaina"
+    },
+    "budgetOverrun": {
+      "exceeded": "{{category}} · nihoatra ny tetibola {{amount}}",
+      "pace": "{{category}} · mizotra ho {{projected}} amin'ny tetibola {{limit}}"
+    },
+    "budgetUnused": { "title": "Tetibola {{category}} nampiasaina {{pct}} %" },
+    "goalGap": {
+      "reached": "Tratra ny tanjona · {{kept}} voatahiry tamin'ny {{goal}} nokendrena",
+      "behind": "Tanjona {{goal}} · voatahiry tamin'ity tsingerina ity : {{kept}} ({{pct}})"
+    }
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",

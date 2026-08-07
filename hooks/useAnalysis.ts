@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { getCurrentCycle, getPreviousCycles } from '@/lib/analysis/cycle';
 import { getIndicators } from '@/lib/analysis/indicators';
-import { scoreInsights, type ScoreResult } from '@/lib/analysis/score';
+import { scoreInsights, type ScoreOptions, type ScoreResult } from '@/lib/analysis/score';
 import {
   saveAnalysis,
   getLastAnalysis,
   getDismissedIds,
   dismissInsight,
+  undismissInsight,
   markActionApplied,
 } from '@/lib/analysis/persistence';
 import {
@@ -74,8 +75,12 @@ export interface UseAnalysisResult {
   result: ScoreResult | null;
   /** Delta depuis la dernière analyse persistée, ou null (première analyse). */
   sinceLast: SinceLast | null;
+  /** Constats rejetés pendant cette session (affichés « masqué · Annuler »). */
+  sessionDismissed: string[];
   /** Rejette un constat — persisté en base (fenêtre 60 j). */
   dismiss: (id: string) => void;
+  /** Annule un rejet de la session. */
+  undismiss: (id: string) => void;
   /**
    * Persiste l'analyse (max 1/semaine) + horodatage carte d'entrée.
    * Résout avec l'id créé, ou null si rien n'a été écrit (déjà persistée).
@@ -85,7 +90,7 @@ export interface UseAnalysisResult {
   recordActionApplied: () => Promise<void>;
 }
 
-export function useAnalysis(): UseAnalysisResult {
+export function useAnalysis(opts: ScoreOptions = {}): UseAnalysisResult {
   const db = useSQLiteContext();
   const [loading, setLoading] = useState(true);
   const [enough, setEnough] = useState(false);
@@ -94,6 +99,7 @@ export function useAnalysis(): UseAnalysisResult {
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
   const [sinceLast, setSinceLast] = useState<SinceLast | null>(null);
   // Id de la ligne `analyses` couvrant cette session d'écran (créée ou reprise).
   const analysisIdRef = useRef<string | null>(null);
@@ -150,8 +156,15 @@ export function useAnalysis(): UseAnalysisResult {
   }, [db]);
 
   const result = useMemo<ScoreResult | null>(
-    () => (indicators && cycle ? scoreInsights(indicators, cycle, dismissedIds) : null),
-    [indicators, cycle, dismissedIds]
+    () =>
+      indicators && cycle
+        ? scoreInsights(indicators, cycle, dismissedIds, {
+            intent: opts.intent,
+            goal: opts.goal,
+            goalAmount: opts.goalAmount,
+          })
+        : null,
+    [indicators, cycle, dismissedIds, opts.intent, opts.goal, opts.goalAmount]
   );
 
   const state = useMemo<AnalysisState>(() => {
@@ -165,7 +178,17 @@ export function useAnalysis(): UseAnalysisResult {
   const dismiss = useCallback(
     (id: string) => {
       setDismissedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+      setSessionDismissed((prev) => (prev.includes(id) ? prev : [...prev, id]));
       dismissInsight(db, id).catch(() => {});
+    },
+    [db]
+  );
+
+  const undismiss = useCallback(
+    (id: string) => {
+      setDismissedIds((prev) => prev.filter((x) => x !== id));
+      setSessionDismissed((prev) => prev.filter((x) => x !== id));
+      undismissInsight(db, id).catch(() => {});
     },
     [db]
   );
@@ -204,7 +227,9 @@ export function useAnalysis(): UseAnalysisResult {
     indicators,
     result,
     sinceLast,
+    sessionDismissed,
     dismiss,
+    undismiss,
     markAnalyzed,
     recordActionApplied,
   };

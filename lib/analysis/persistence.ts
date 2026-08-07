@@ -84,6 +84,11 @@ export async function dismissInsight(db: SQLiteDatabase, insightId: string): Pro
   );
 }
 
+/** Annule un rejet (« Constat masqué · Annuler »). */
+export async function undismissInsight(db: SQLiteDatabase, insightId: string): Promise<void> {
+  await db.runAsync(`DELETE FROM analysis_dismissed WHERE insight_id = ?`, [insightId]);
+}
+
 /** Ids des constats rejetés dans la fenêtre glissante (60 j par défaut). */
 export async function getDismissedIds(
   db: SQLiteDatabase,

@@ -7,9 +7,10 @@
  * est gardée → jamais `NaN`, jamais `Infinity`, `null` à la place.
  */
 import type { SQLiteDatabase } from 'expo-sqlite';
-import type { BestCycle, CategoryDrift, Cycle, Indicators, RecurringExpense } from './types';
+import type { BestCycle, BudgetStatus, CategoryDrift, Cycle, Indicators, RecurringExpense } from './types';
 import { getPreviousCycles } from './cycle';
 import {
+  fetchBudgetLimits,
   fetchCategoryNames,
   fetchCategorySpend,
   fetchCurrentTotals,
@@ -106,13 +107,14 @@ export async function getIndicators(db: SQLiteDatabase, cycle: Cycle): Promise<I
   const microThreshold = computeMicroThreshold(income);
 
   // Le reste est indépendant → en parallèle.
-  const [catSpend, monthly, micro, expenseRows, catNames, liquid] = await Promise.all([
+  const [catSpend, monthly, micro, expenseRows, catNames, liquid, budgetLimits] = await Promise.all([
     fetchCategorySpend(db, cycle.start, cycle.end, prev3Start),
     fetchMonthlyTotals(db, prev), // 6 cycles précédents
     fetchMicro(db, cycle.start, cycle.end, microThreshold),
     fetchExpenseRows(db, prev3Start, cycle.end), // fenêtre 4 cycles (récurrences)
     fetchCategoryNames(db),
     fetchLiquidBalance(db),
+    fetchBudgetLimits(db, cycle),
   ]);
 
   const cyclesAvailable = monthly.filter((m) => m.income > 0 || m.expense > 0).length;
@@ -146,6 +148,20 @@ export async function getIndicators(db: SQLiteDatabase, cycle: Cycle): Promise<I
     })
     .sort((a, b) => b.cycleSpend - a.cycleSpend);
 
+  // Budgets du cycle (Phase 6) : croisement plafonds × dépenses déjà agrégées.
+  const spentByCat = new Map<string, number>();
+  for (const r of catSpend) if (r.category_id) spentByCat.set(r.category_id, r.cycle_spend);
+  const budgets: BudgetStatus[] = budgetLimits.map((b) => {
+    const spent = spentByCat.get(b.category_id) ?? 0;
+    return {
+      categoryId: b.category_id,
+      categoryName: b.category_name,
+      limit: b.budget_limit,
+      spent,
+      projected: Math.round(spent / cycle.elapsedRatio),
+    };
+  });
+
   // Meilleur des 6 cycles précédents (taux d'épargne).
   let bestCycle: BestCycle | null = null;
   for (const m of monthly) {
@@ -173,6 +189,7 @@ export async function getIndicators(db: SQLiteDatabase, cycle: Cycle): Promise<I
     noSpendDays: computeNoSpendDays(expenseRows, cycle),
     concentration: expenses > 0 ? topSpend / expenses : null,
 
+    budgets,
     categoryDrift,
     projectedEnd: Math.round(expenses / cycle.elapsedRatio),
     bestCycle,

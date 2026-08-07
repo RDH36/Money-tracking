@@ -184,6 +184,37 @@ export async function fetchExpenseRows(
   );
 }
 
+export interface BudgetLimitRow {
+  category_id: string;
+  category_name: string;
+  budget_limit: number;
+}
+
+/**
+ * Plafonds de budget du cycle. Cycle courant → `categories.budget_limit`
+ * (source de vérité affichée par useBudgets) ; cycle passé → `budget_history`
+ * du mois. Une requête dans les deux cas.
+ */
+export async function fetchBudgetLimits(
+  db: SQLiteDatabase,
+  cycle: Cycle
+): Promise<BudgetLimitRow[]> {
+  if (cycle.isCurrent) {
+    return db.getAllAsync<BudgetLimitRow>(
+      `SELECT id AS category_id, name AS category_name, budget_limit
+       FROM categories
+       WHERE deleted_at IS NULL AND budget_limit IS NOT NULL AND budget_limit > 0`
+    );
+  }
+  return db.getAllAsync<BudgetLimitRow>(
+    `SELECT bh.category_id, c.name AS category_name, bh.budget_limit
+     FROM budget_history bh
+     JOIN categories c ON c.id = bh.category_id AND c.deleted_at IS NULL
+     WHERE bh.year_month = ? AND bh.budget_limit > 0`,
+    [cycle.label]
+  );
+}
+
 /** Table id → nom des catégories vivantes (pour nommer les dérives). */
 export async function fetchCategoryNames(db: SQLiteDatabase): Promise<Map<string, string>> {
   const rows = await db.getAllAsync<{ id: string; name: string }>(

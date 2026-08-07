@@ -62,6 +62,18 @@ export interface BestCycle {
   savingsRate: number;
 }
 
+/** État d'un budget de catégorie sur le cycle (Phase 6). */
+export interface BudgetStatus {
+  categoryId: string;
+  categoryName: string | null;
+  /** Plafond du cycle, en centimes. */
+  limit: number;
+  /** Dépensé sur le cycle, en centimes. */
+  spent: number;
+  /** Projection fin de cycle (`spent / elapsedRatio`), en centimes. */
+  projected: number;
+}
+
 // — Moteur de règles (Phase 2) —
 
 export type InsightSeverity = 'info' | 'watch' | 'urgent';
@@ -141,6 +153,10 @@ export interface Indicators {
   noSpendDays: number;
   /** Part de la 1ʳᵉ catégorie dans les dépenses, ou `null` si aucune dépense. */
   concentration: number | null;
+
+  // — Budgets (Phase 6) —
+  /** Budgets de catégorie du cycle : plafond, dépensé, projeté. */
+  budgets: BudgetStatus[];
 
   // — Trajectoire —
   categoryDrift: CategoryDrift[];

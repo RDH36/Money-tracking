@@ -24,3 +24,8 @@ export function formatPct(ratio: number): string {
 export function clampWeight(n: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, Math.round(n)));
 }
+
+/** Arrondit un montant en centimes au millier d'Ariary supérieur. */
+export function ceilToThousandAr(centimes: number): number {
+  return Math.ceil(centimes / 100 / 1000) * 1000 * 100;
+}

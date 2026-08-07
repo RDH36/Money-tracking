@@ -94,7 +94,9 @@
       "transfer": "Create the automatic transfer",
       "budget": "Create the budget",
       "budgetFor": "Create a {{category}} budget at {{amount}} {{currency}}",
-      "transferAmount": "Set {{amount}} {{currency}} aside"
+      "transferAmount": "Set {{amount}} {{currency}} aside",
+      "raiseBudget": "Raise the {{category}} budget to {{amount}} {{currency}}",
+      "lowerBudget": "Lower the {{category}} budget to {{amount}} {{currency}}"
     },
     "title": "My review",
     "intro": "Looking at your numbers…",
@@ -126,7 +128,34 @@
     "sinceLastKeptMore": "You kept {{amount}} {{currency}} more this cycle",
     "sinceLastKeptLess": "You kept {{amount}} {{currency}} less this cycle",
     "sinceLastNoChange": "Indicators steady since last time",
-    "cycleOf": "Review of {{month}}"
+    "cycleOf": "Review of {{month}}",
+    "hidden": "Finding hidden",
+    "undo": "Undo",
+    "intent": {
+      "overview": "Overview",
+      "overspend": "Spending too much?",
+      "budgets": "My budgets?",
+      "savings": "Save more"
+    },
+    "goal": {
+      "title": "Your goal right now?",
+      "saveAmount": "Set aside every month",
+      "keepBudgets": "Stick to my budgets",
+      "understand": "Understand where my money goes",
+      "amountPlaceholder": "Amount per month (Ar)",
+      "confirm": "Confirm",
+      "current": "Goal: {{label}}",
+      "edit": "Edit"
+    },
+    "budgetOverrun": {
+      "exceeded": "{{category}} · budget exceeded by {{amount}}",
+      "pace": "{{category}} · heading to {{projected}} on a {{limit}} budget"
+    },
+    "budgetUnused": { "title": "{{category}} budget used at {{pct}} %" },
+    "goalGap": {
+      "reached": "Goal met · {{kept}} kept out of {{goal}} targeted",
+      "behind": "Goal {{goal}} · kept this cycle: {{kept}} ({{pct}})"
+    }
   },
   "add": {
     "newTransaction": "New Transaction",

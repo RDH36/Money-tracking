@@ -94,7 +94,9 @@
       "transfer": "Créer le virement automatique",
       "budget": "Créer le budget",
       "budgetFor": "Créer un budget {{category}} à {{amount}} {{currency}}",
-      "transferAmount": "Mettre {{amount}} {{currency}} de côté"
+      "transferAmount": "Mettre {{amount}} {{currency}} de côté",
+      "raiseBudget": "Relever le budget {{category}} à {{amount}} {{currency}}",
+      "lowerBudget": "Abaisser le budget {{category}} à {{amount}} {{currency}}"
     },
     "title": "Mon bilan",
     "intro": "Je regarde tes chiffres…",
@@ -126,7 +128,34 @@
     "sinceLastKeptMore": "Tu as gardé {{amount}} {{currency}} de plus ce cycle",
     "sinceLastKeptLess": "Tu as gardé {{amount}} {{currency}} de moins ce cycle",
     "sinceLastNoChange": "Indicateurs stables depuis la dernière fois",
-    "cycleOf": "Bilan de {{month}}"
+    "cycleOf": "Bilan de {{month}}",
+    "hidden": "Constat masqué",
+    "undo": "Annuler",
+    "intent": {
+      "overview": "Vue d'ensemble",
+      "overspend": "Je dépense trop ?",
+      "budgets": "Mes budgets ?",
+      "savings": "Épargner plus"
+    },
+    "goal": {
+      "title": "Ton objectif en ce moment ?",
+      "saveAmount": "Mettre de côté chaque mois",
+      "keepBudgets": "Tenir mes budgets",
+      "understand": "Comprendre où va mon argent",
+      "amountPlaceholder": "Montant par mois (Ar)",
+      "confirm": "Valider",
+      "current": "Objectif : {{label}}",
+      "edit": "Modifier"
+    },
+    "budgetOverrun": {
+      "exceeded": "{{category}} · budget dépassé de {{amount}}",
+      "pace": "{{category}} · vers {{projected}} pour un budget de {{limit}}"
+    },
+    "budgetUnused": { "title": "Budget {{category}} utilisé à {{pct}} %" },
+    "goalGap": {
+      "reached": "Objectif tenu · {{kept}} gardés sur {{goal}} visés",
+      "behind": "Objectif {{goal}} · gardés ce cycle : {{kept}} ({{pct}})"
+    }
   },
   "add": {
     "newTransaction": "Nouvelle transaction",
