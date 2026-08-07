@@ -664,7 +664,112 @@ puis la règle recurringOverrun.
 
 ---
 
-## 8. Récapitulatif
+## 8. Phase 6 — Objectif, intentions et budgets (analyse à la demande)
+
+> **Priorité : avant la Phase 5.** Retour propriétaire (août 2026) : l'analyse
+> doit couvrir dépenses + revenus + **budgets**, se lancer **à volonté avec une
+> raison**, et connaître le **but** de l'utilisateur pour donner des conseils
+> utiles. La Phase 5 (multi-cycles) passe après — un moteur qui ne répond pas à
+> la question que l'utilisateur se pose aujourd'hui n'a pas besoin de plus
+> d'historique, il a besoin de contexte.
+
+### Constat de départ
+
+Le moteur actuel énonce des faits justes mais génériques. Trois manques :
+
+1. **Les budgets sont invisibles.** Aucune règle ne lit `budget_limit` ni
+   `budget_history` — alors que c'est la seule donnée où l'utilisateur a déjà
+   exprimé une intention (« je ne veux pas dépasser X en nourriture »).
+2. **Le but de l'utilisateur est inconnu.** « 17 % d'épargne » n'est ni bien ni
+   mal dans l'absolu ; c'est bien si l'objectif est 10 %, insuffisant s'il est
+   30 %. Sans but, pas de conseil — seulement des observations.
+3. **L'analyse est un événement, pas un outil.** On la subit une fois par cycle
+   au lieu de la consulter quand une question se pose.
+
+### L'objectif utilisateur (le « but »)
+
+Demandé à la **première ouverture** de « Mon bilan » (3 choix + montant le cas
+échéant), modifiable depuis l'écran ensuite. Stocké dans `settings`
+(`analysis_goal`, `analysis_goal_param`) — donc exporté dans le backup sans
+travail supplémentaire.
+
+| Goal | Question | Param |
+|---|---|---|
+| `saveAmount` | « Mettre de côté chaque mois » | montant cible (centimes) |
+| `keepBudgets` | « Tenir mes budgets » | — |
+| `understand` | « Comprendre où va mon argent » | — |
+
+Effet : le but ajoute une **règle dédiée** et repondère le scoring.
+`saveAmount` active `goalGap` : « Objectif 200 000/mois · ce cycle : 120 000
+(60 %) » → action : virement du reliquat. `keepBudgets` monte le poids des
+règles budget. `understand` laisse le scoring neutre.
+
+### Les intentions (la « raison » du lancement)
+
+En tête de l'écran, une rangée de chips — « Tu regardes pourquoi ? » :
+
+| Intention | Libellé | Règles favorisées (+30 poids) |
+|---|---|---|
+| `overview` (défaut) | Vue d'ensemble | — (scoring neutre) |
+| `overspend` | « Je dépense trop ? » | burnSpeed, microSpending, categoryDrift, projection |
+| `budgets` | « Où en sont mes budgets ? » | budgetOverrun, budgetUnused |
+| `savings` | « Épargner plus » | savingsRate, goalGap, fixedCosts |
+
+Changer d'intention **re-score sans requête** (les indicateurs sont déjà en
+mémoire) : l'utilisateur peut relancer l'analyse autant qu'il veut, chaque
+raison donne un angle différent. La limite « 1/semaine » ne concerne QUE la
+persistance et l'XP — jamais la consultation.
+
+### Deux règles budget (le manquant)
+
+1. **`budgetOverrun`** — budgets dépassés ou en trajectoire de dépassement
+   (réutilise `projected` / `elapsedRatio` de la Phase 0). « Nourriture :
+   420 000 dépensés sur 400 000 » ou « à ce rythme, dépassé le 24 ». Action :
+   voir la catégorie, ou relever le budget à la projection.
+2. **`budgetUnused`** — budget très sous-utilisé en fin de cycle (« Loisirs
+   utilisé à 12 % — un plafond jamais approché ne protège rien »). Action :
+   abaisser le budget au réalisé + marge.
+
+Les indicateurs gagnent un bloc `budgets[]` (limite, dépensé, projeté, statut
+par catégorie) calculé en une requête (jointure `categories`/`budget_history`
+déjà écrite dans useBudgets — la reprendre côté `lib/analysis/queries.ts`).
+
+### Rejet réversible
+
+« Ce constat ne m'aide pas » masque 60 jours — sans annulation possible,
+l'utilisateur qui explore vide son bilan sans comprendre (vécu en test).
+Ajouter : après rejet, la carte se réduit en une ligne « Constat masqué ·
+Annuler » pendant la session.
+
+### Ce qui ne change pas
+
+Fonctions pures, evidence obligatoire, 3 constats max, 1 action, ton factuel,
+i18n ×3, aucune requête en boucle. Le moteur reste déterministe — le but et
+l'intention ne font que **pondérer** des règles existantes et en ajouter trois.
+
+### Prompt Claude Code — Phase 6
+
+```
+Lis PRD_ANALYSE.md, section « Phase 6 ».
+Phases 0 à 4 livrées (2.2.0). La Phase 5 attendra la 2.4.0.
+
+1. lib/analysis/queries.ts : bloc budgets[] (une requête).
+2. Règles budgetOverrun + budgetUnused + goalGap (goal saveAmount).
+3. score.ts : scoreInsights(indicators, cycle, dismissedIds, opts) avec
+   opts = { intent, goal } — bonus de poids +30 aux règles favorisées.
+4. app/analysis.tsx : chips d'intention (re-score local, pas de requête),
+   question du but à la première ouverture (modifiable ensuite),
+   rejet réversible (« Annuler » en session).
+5. settings : analysis_goal / analysis_goal_param.
+6. i18n fr/en/mg. Release 2.3.0.
+
+Quand tu as fini : montre-moi la règle budgetOverrun, la signature de
+scoreInsights, et une capture des chips d'intention.
+```
+
+---
+
+## 9. Récapitulatif
 
 | Phase | Contenu | Fichiers | Release |
 |---|---|---|---|
@@ -673,13 +778,14 @@ puis la règle recurringOverrun.
 | **2** | Règles + scoring + i18n | 10 créés, 3 modifiés | — |
 | **3** | Écran, carte d'entrée, hero | 5–7 | **2.1.0** |
 | **4** | Historique, backup, gamification, notif | 8 | **2.2.0** |
-| **5** | Analyse multi-cycles — règles d'historique + calibrage perso | ~5 créés | **2.3.0** |
+| **6** | Objectif, intentions, règles budget — analyse à la demande | ~6 | **2.3.0** |
+| **5** | Analyse multi-cycles — règles d'historique + calibrage perso | ~5 créés | **2.4.0** |
 
 Phase 0 en premier, sans exception : les trois bugs corrigés faussent les calculs sur lesquels tout le reste repose.
 
 ---
 
-## 9. Releases
+## 10. Releases
 
 ### Quatre livraisons, pas une
 
@@ -688,7 +794,8 @@ Phase 0 en premier, sans exception : les trois bugs corrigés faussent les calcu
 | **2.0.4** | patch | Phase 0 seule |
 | **2.1.0** | minor | Phases 1–3 — l'analyse fonctionne, sans persistance |
 | **2.2.0** | minor | Phase 4 — historique, boucle, gamification |
-| **2.3.0** | minor | Phase 5 — analyse multi-cycles, calibrage personnel |
+| **2.3.0** | minor | Phase 6 — objectif, intentions, règles budget |
+| **2.4.0** | minor | Phase 5 — analyse multi-cycles, calibrage personnel |
 
 **La Phase 0 part seule et vite.** Une cinquantaine de lignes, aucune nouvelle surface UI, et elle corrige un signal actuellement faux pour tous les utilisateurs dans la seconde moitié de chaque mois. Aucune raison de la retenir derrière une feature de plusieurs semaines. Bénéfice secondaire : si la logique de rythme a un cas limite, il se trouve sur une release de 6 fichiers plutôt que noyé dans une de trente.
 
@@ -720,7 +827,7 @@ Trancher : le régénérer depuis `constants/changelog.ts`, ou le supprimer. Un 
 
 ---
 
-## 10. Hors périmètre — pistes v2
+## 11. Hors périmètre — pistes v2
 
 - **Cycle de paie détecté** — repérer un revenu récurrent (montant ±10 %, ~30 j, 3 occurrences) et faire commencer le cycle au jour de paie. Quelqu'un payé le 28 vit du 28 au 27 ; aujourd'hui tous les calculs coupent son cycle en deux. C'est la plus grosse amélioration de justesse possible, mais elle touche budgets, rapports et calendrier — un chantier à part entière.
 - **Reste à vivre du jour** — un seul chiffre en haut du dashboard : ce qu'on peut dépenser aujourd'hui sans casser le mois, avec report du non-dépensé sur le lendemain.
@@ -728,7 +835,7 @@ Trancher : le régénérer depuis `constants/changelog.ts`, ou le supprimer. Un 
 
 ---
 
-## 11. Points de vigilance
+## 12. Points de vigilance
 
 **Vérifier la complétude des données avant de se fier aux constats.** Sur le device de test, le compte Cash est à 0 et Mvola à 434 Ar — tout passe par Bank. Si les utilisateurs réels font pareil, les dépenses en espèces ne sont pas saisies et l'analyse portera sur une image partielle. Regarder dans PostHog la répartition des transactions par type de compte avant de construire dessus, et envisager un constat dédié : « aucune dépense en espèces enregistrée ce cycle ».
 
