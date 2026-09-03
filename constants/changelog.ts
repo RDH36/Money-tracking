@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.4.0",
+    date: "2026-09-03",
+    changes: [
+      { type: "added", key: "changelog.tonMois" },
+      { type: "added", key: "changelog.payCycle" },
+      { type: "added", key: "changelog.tonMoisIntro" },
+      { type: "improved", key: "changelog.tonMoisGoal" },
+      { type: "improved", key: "changelog.settingsKeyboard" },
+    ],
+  },
+  {
     version: "2.2.0",
     date: "2026-08-03",
     changes: [

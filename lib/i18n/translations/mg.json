@@ -867,7 +867,12 @@
     "questProgressNotif": "Fampahatsiahivana rehefa akaiky vita ny iraka iray",
     "tabBarRefonte": "Tab bar vaovao: bouton + eo afovoany sy tab Fahombiazana vaovao",
     "achievementsRefonte": "Pejy Fahombiazana vaovao miaraka amin'ny tab Fanamby / Iraka / Baikiboky sy sivana",
-    "settingsInHeader": "Paramètre azo amin'ny ⚙ eo amin'ny dashboard, ny Vaovao dia nafindra any amin'ny paramètre"
+    "settingsInHeader": "Paramètre azo amin'ny ⚙ eo amin'ny dashboard, ny Vaovao dia nafindra any amin'ny paramètre",
+    "tonMois": "Ny volanao : lasa valiny hita avy hatrany ny « Tombana » — ao anatin'ny maitso sa tsia, izay nanavesatra amin'ny fehezanteny telo, ary hetsika iray hatao",
+    "payCycle": "Manomboka amin'ny andro andraisanao karama ny volanao, fa tsy amin'ny voalohan'ny volana : hitan'i Mitsitsy ao amin'ny fampidiranao ny karamanao, hamarininao, azo ovaina ao amin'ny Fikirana → Ny tsingerinako",
+    "tonMoisIntro": "Fampidirana fohy manazava ny vaovao, azo vakiana indray foana amin'ny « ? » eo amin'ny pejy Ny volanao",
+    "tonMoisGoal": "Ny tanjonao (manokana vola, mitana ny tetibola, mahatakatra) dia fidiana eo ambanin'ny didim-pitsarana ary mitarika ny fanamarihana",
+    "settingsKeyboard": "Tsy afenin'ny fitendry intsony ny pejin'ny fikirana"
   },
   "gamification": {
     "streak": "Fitohy",

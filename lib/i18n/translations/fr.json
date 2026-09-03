@@ -911,7 +911,12 @@
     "facebookPage": "Suivre Mitsitsy sur Facebook directement depuis l'app",
     "accountAddButton": "Bouton + rapide pour ajouter un compte depuis les paramètres",
     "customCategoryLabel": "Compteur de catégories personnalisées plus clair dans les paramètres",
-    "xpSpamFix": "Correctif du spam d'XP sur la page Succès"
+    "xpSpamFix": "Correctif du spam d'XP sur la page Succès",
+    "tonMois": "Ton mois : « Mon bilan » devient une réponse en un coup d'œil — dans le vert ou pas, ce qui a pesé en trois phrases, et un geste à faire",
+    "payCycle": "Ton mois commence le jour où tu es payé, plus le 1er : Mitsitsy repère ta paye dans tes saisies, tu confirmes, réglable dans Paramètres → Mon cycle",
+    "tonMoisIntro": "Une courte introduction explique la nouveauté et se relit à tout moment via le « ? » de l'écran Ton mois",
+    "tonMoisGoal": "Ton objectif (mettre de côté, tenir tes budgets, comprendre) se choisit sous le verdict et oriente les constats",
+    "settingsKeyboard": "Les pages de réglages ne sont plus cachées par le clavier"
   },
   "gamification": {
     "streak": "Série",

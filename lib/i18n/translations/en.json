@@ -911,7 +911,12 @@
     "facebookPage": "Follow Mitsitsy on Facebook directly from the app",
     "accountAddButton": "Quick + button to add an account from the accounts settings page",
     "customCategoryLabel": "Clearer custom category count in the settings home",
-    "xpSpamFix": "Fixed XP spam on the Achievements page"
+    "xpSpamFix": "Fixed XP spam on the Achievements page",
+    "tonMois": "Your month: “My review” becomes an answer at a glance — in the green or not, what weighed in three sentences, and one thing to do",
+    "payCycle": "Your month starts the day you get paid, not on the 1st: Mitsitsy spots your pay in your entries, you confirm, adjustable in Settings → My cycle",
+    "tonMoisIntro": "A short introduction explains what's new and can be reread anytime via the “?” on the Your month screen",
+    "tonMoisGoal": "Your goal (set aside, keep budgets, understand) is chosen under the verdict and shapes the findings",
+    "settingsKeyboard": "Settings pages are no longer hidden by the keyboard"
   },
   "gamification": {
     "streak": "Streak",
