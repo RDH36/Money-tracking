@@ -1,10 +1,12 @@
-# PRD — Écran d'analyse « Mon bilan »
+# PRD — Mitsitsy : « Mon bilan » (Partie I) et « Pilote » (Partie II)
 
 > **Mitsitsy** v2.0.3 · `com.rdh36.moneytracking`
 > Document de référence pour Claude Code. Une phase à la fois, validation entre chaque.
 > Rédigé après lecture du repo `RDH36/Money-tracking` @ `1d31a70`.
 
 ---
+
+# Partie I — Écran d'analyse « Mon bilan »
 
 ## 1. Contexte
 
@@ -30,7 +32,7 @@ Cette feature ajoute une **couche d'interprétation locale** : un bouton « Anal
 ### Ce qui n'est pas dans ce PRD
 
 - Pas de score global sur 100 (arbitraire, démoralisant sur revenus faibles)
-- Pas de cycle de paie personnalisé (v2 — voir §10)
+- Pas de cycle de paie personnalisé **en Partie I** — c'est la Phase 7 de la Partie II (§9)
 - Pas de nouvelle entrée dans la tab bar (les 4 slots sont pris)
 
 ---
@@ -769,7 +771,305 @@ scoreInsights, et une capture des chips d'intention.
 
 ---
 
-## 9. Récapitulatif
+# Partie II — Mitsitsy Pilote : finir le cycle dans le vert
+
+> Pivot d'août 2026, après test des phases 0–6 sur données réelles. Le but de
+> l'app n'a jamais été « un écran de bilan » : c'est **un petit agent qui aide à
+> garder le contrôle de son argent, quel que soit le revenu, pour ne pas finir
+> rouge** — adossé à la saisie rapide (Mitsitsy = mettre de côté). Le bilan est
+> un miroir : il parle après. Il faut un GPS : il parle pendant, au moment où
+> l'argent sort.
+
+### Le diagnostic qui impose ce pivot
+
+| Constat (données réelles, 5 mois) | Conséquence |
+|---|---|
+| L'app découpe tout au **mois calendaire** alors que la paye tombe le 28 | Un cycle de vie réel (28 → 27) est coupé en deux ; budgets, rapports, « gardé ce mois » sont faux pour la moitié des utilisateurs |
+| Le revenu n'est pas saisi certains mois (juillet : 0) | Le moteur devient aveugle alors qu'il « sait » que le revenu est ~2,1 M depuis 4 mois |
+| Rien ne dit **avant** la fin du cycle qu'on va finir rouge | Le seul retour arrive quand l'argent est déjà parti |
+| Aucune notion de **charge fixe** | L'argent du loyer et des factures est compté comme disponible |
+
+### Principes (inchangés + deux nouveaux)
+
+- 100 % hors-ligne, déterministe, non moralisateur, i18n fr/en/mg — comme la Partie I.
+- **Calculer d'abord, demander ensuite.** Tout ce que l'historique permet de déduire (jour de paye, revenu, charges fixes) est proposé pré-rempli et confirmé d'un tap. On ne demande que ce qu'on ne peut pas calculer.
+- **Les utilisateurs existants passent en premier.** Les phases 7 à 9 se construisent sur l'historique ; l'onboarding des nouveaux (Phase 10) vient en dernier, une fois le modèle stabilisé.
+
+### Indicateur de succès
+
+Un seul : **la part d'utilisateurs qui finissent leur cycle en positif** (`cycle_end_state` dans PostHog). Tout le reste est un moyen.
+
+---
+
+## 9. Phase 7 — Cycle personnel et revenu attendu
+
+### Notion de cycle
+
+Le cycle = **d'une paye à la suivante**. Trois modes, stockés dans `settings` :
+
+| `cycle_mode` | Cas | Bornes du cycle |
+|---|---|---|
+| `payday` | Salaire à jour fixe (ex. le 28) | du jour de paye au jour précédent la paye suivante (28 → 27) |
+| `irregular` | Freelance, commerce, revenus par à-coups | mois calendaire pour les rapports ; le pilotage passe par le **runway** (Phase 9) |
+| `calendar` (défaut) | Rien de connu | 1ᵉʳ → fin de mois, comportement actuel |
+
+Clés : `cycle_mode`, `cycle_pay_day` (1–31 ; si le mois est plus court, `min(jour, joursDuMois)`), `expected_income` (centimes), `expected_income_source` (`detected` \| `manual`).
+
+`getCurrentCycle()` / `getPreviousCycles()` (Phase 1) sont **déjà** le seul point qui décide des bornes — c'est pour ça qu'on les avait isolées. En mode `payday`, `start` = dernier jour de paye ≤ aujourd'hui, `end` = jour de paye suivant, `label` = date ISO de `start` (`'2026-07-28'`) ; `totalDays`, `elapsedDays`, `elapsedRatio` inchangés dans leur sens. Tout ce qui consomme un `Cycle` (bilan, hero, notification) suit sans modification.
+
+### Détection depuis l'historique (existants d'abord)
+
+Sur les revenus des 6 derniers mois (`type = 'income'`, hors virements) :
+
+- Regrouper par montant ±10 % et écart 25–35 jours — **réutiliser `longestMonthlyChain` d'`indicators.ts`** (déjà écrit pour les dépenses), pas le réécrire.
+- `cycle_pay_day` = médiane du jour du mois des occurrences ; `expected_income` = médiane des montants ; confiance = occurrences ÷ cycles observés.
+- Chaîne de ≥ 3 occurrences → mode `payday` proposé. Sinon, revenus présents mais dispersés → `irregular` proposé. Aucun revenu → `calendar`, rien à proposer.
+
+### Écran de confirmation
+
+À la première ouverture du dashboard après mise à jour, une carte sous le hero :
+
+```
+D'après tes derniers mois
+Tu es payé vers le 28 · ~2 100 000
+[ C'est ça ]   [ Modifier ]   [ Mes revenus sont irréguliers ]
+```
+
+« C'est ça » écrit les réglages et la carte disparaît. « Modifier » ouvre le même formulaire que **Paramètres → Mon cycle** (jour, montant, mode). Un tap suffit quand l'app a vu juste.
+
+### Ce qui change immédiatement
+
+- Hero : « Gardé **ce cycle** » + libellé du cycle (« 28 juil. → 27 août »).
+- Bilan : analyse le cycle personnel ; le repli sur le dernier cycle complet (déjà codé) s'aligne.
+- Notification « ton bilan est prêt » : programmée le jour de paye, pas le 1ᵉʳ.
+- Revenu du cycle absent → **revenu attendu** utilisé et affiché comme estimé (« revenu estimé 2 100 000 d'après tes mois précédents ») ; l'état `noIncome` ne s'applique plus qu'à l'absence totale d'historique. Ceci remplace le point A de la Phase 6.1.
+
+Budgets et rapports restent calendaires dans cette phase (migration en Phase 9).
+
+### Prompt Claude Code — Phase 7
+
+```
+Lis PRD_ANALYSE.md, Partie II, section « Phase 7 ».
+Phases 0 à 6 livrées. Utilisateurs EXISTANTS d'abord.
+
+1. lib/analysis/cycle.ts : getCurrentCycle / getPreviousCycles lisent les
+   réglages (cycle_mode, cycle_pay_day) — fonction pure avec les réglages
+   en paramètre + un hook mince qui les fournit.
+2. lib/analysis/payday.ts : detectPayday(db) — réutilise longestMonthlyChain
+   sur les revenus ; retourne { mode, payDay, expectedIncome, confidence }.
+3. Écran Paramètres → Mon cycle + carte de confirmation sous le hero
+   (une fois, disparaît après réponse).
+4. Revenu attendu : injecté dans getIndicators quand le revenu du cycle
+   est nul ; flag incomeEstimated affiché dans le bilan.
+5. Hero : libellé du cycle. Notification bilan : jour de paye.
+6. i18n fr/en/mg. Aucun changement sur budgets/rapports.
+
+Quand tu as fini : montre-moi detectPayday sur ma base (jour et montant
+détectés), le nouveau getCurrentCycle, et une capture de la carte.
+```
+
+---
+
+## 10. Phase 8 — Charges fixes
+
+### Pourquoi une brique à part
+
+Une charge fixe n'est ni une transaction (elle est attendue avant d'exister) ni une planification (ponctuelle). C'est **de l'argent déjà engagé** : tant qu'elle n'est pas réglée, elle ne doit jamais être comptée comme disponible. C'est la pièce qui manquait entre « ce que je gagne » et « ce que je peux dépenser ».
+
+### Migration 26
+
+```sql
+CREATE TABLE IF NOT EXISTS fixed_charges (
+  id TEXT PRIMARY KEY,
+  category_id TEXT,
+  label TEXT NOT NULL,
+  amount INTEGER NOT NULL,          -- centimes
+  day_of_month INTEGER NOT NULL,    -- 1–31
+  source TEXT NOT NULL,             -- 'detected' | 'manual'
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS fixed_charge_settlements (
+  charge_id TEXT NOT NULL,
+  cycle_label TEXT NOT NULL,
+  transaction_id TEXT,              -- null si « payé » manuel
+  settled_at TEXT NOT NULL,
+  PRIMARY KEY (charge_id, cycle_label)
+);
+```
+
+Soft delete, non destructif. Les deux tables entrent dans `BACKUP_TABLES` / `BACKUP_WIPE_TABLES`, `BACKUP_FILE_VERSION` → 3 (rétro-compatible, même mécanique qu'en Phase 4).
+
+### Détection (existants d'abord)
+
+`detectRecurring` (Phase 1) trouve déjà les dépenses qui reviennent (montant ±15 %, 25–35 j, ≥ 3 occurrences). Celles à `confidence ≥ 0.75` sont proposées dans un écran **« Charges fixes repérées »** : une ligne par récurrence (catégorie, montant moyen, jour), cochée par défaut, montant éditable. Valider insère en `source = 'detected'`. Apprentissage continu : une nouvelle récurrence absente de la table → suggestion « Ajouter X en charge fixe ? » (carte dashboard, une fois).
+
+### Règlement d'une charge
+
+Une charge est **réglée** pour un cycle si :
+- une dépense de même catégorie, montant ±15 %, tombe dans le cycle → rattachée automatiquement (`transaction_id`), ou
+- l'utilisateur tape « Payé » (règlement manuel).
+
+État par cycle : `réglée ✓` / `à venir (dans N jours)` / `en retard`. Total **engagé** = charges non réglées du cycle — c'est ce montant que la Phase 9 retire du disponible.
+
+### Écran « Charges fixes »
+
+Accessible depuis Paramètres et depuis le dashboard (ligne « Charges fixes : 3 réglées · 2 à venir · 410 000 engagés »). Liste, ajout manuel (catégorie, montant, jour), activation/désactivation, suppression douce.
+
+### Prompt Claude Code — Phase 8
+
+```
+Lis PRD_ANALYSE.md, Partie II, section « Phase 8 ».
+Phase 7 livrée. Existants d'abord — la saisie à l'onboarding vient en Phase 10.
+
+1. Migration 26 (fixed_charges + fixed_charge_settlements), DATABASE_VERSION 26.
+   Backup : les 2 tables, BACKUP_FILE_VERSION 3, rétro-compatible.
+2. lib/fixedCharges/ : détection (réutilise detectRecurring), état par cycle
+   (réglée / à venir / en retard), total engagé. Fonctions pures.
+3. Écran « Charges fixes repérées » (confirmation en un tap) + écran
+   « Charges fixes » (liste, ajout, payé manuel).
+4. Rattachement automatique à la saisie d'une dépense correspondante.
+5. Notification J-3 avant une charge non réglée (une par charge).
+6. i18n fr/en/mg.
+
+Montre-moi d'abord le diff backup (constants), puis la détection sur ma base.
+```
+
+---
+
+## 11. Phase 9 — Reste à vivre et l'agent à la saisie
+
+C'est le produit. Tout ce qui précède existe pour rendre ce chiffre juste.
+
+### Le calcul
+
+```
+disponible      = revenu du cycle (saisi, sinon attendu)
+                  − charges fixes du cycle (réglées + à venir)
+                  − épargne visée (objectif saveAmount, Phase 6)
+dépensé libre   = dépenses du cycle − charges fixes réglées
+restant         = disponible − dépensé libre
+jours restants  = totalDays − elapsedDays + 1
+reste à vivre   = restant ÷ jours restants
+```
+
+Recalculé chaque jour à partir du **restant réel** : ce qui n'est pas dépensé un jour se reporte naturellement sur les suivants, sans mécanique de report à part. Trois états : **vert** (reste à vivre ≥ plan du début de cycle), **orange** (en dessous), **rouge** (restant ≤ 0 — on vit sur les réserves).
+
+Mode `irregular` : le chiffre devient le **runway** = (solde liquide − charges à venir sous 30 j) ÷ dépense moyenne par jour sur 3 cycles → « Avec ce que tu as, tu tiens 47 jours ».
+
+### Le chiffre du jour (hero)
+
+Un seul chiffre en haut du dashboard, plus gros que le solde :
+
+```
+AUJOURD'HUI TU PEUX DÉPENSER
+42 000 Ar
+Cycle 28 juil. → 27 août · jour 11/31 · 1 235 000 restants
+```
+
+Il **remplace** le duo « gardé / taux » de la Phase 3 (ces deux chiffres passent dans le bilan). Le solde net reste visible dessous.
+
+### L'agent à la saisie
+
+Après l'enregistrement d'une dépense (`add.tsx`), une ligne apparaît sous la confirmation, 3 s, non bloquante, jamais moralisatrice :
+
+| Situation | Message |
+|---|---|
+| Dans le jour | « Il te reste 17 000 pour aujourd'hui » |
+| Jour dépassé | « Tu dépasses le jour de 23 000 → demain tu auras 19 000 » |
+| Charge fixe reconnue | « Factures réglée ✓ · 410 000 restants pour le cycle » |
+| Restant ≤ 0 | « Tu es sur tes réserves : −65 000 sur ce cycle » |
+
+Ton : le chiffre, jamais « attention », « trop », « mauvais ». C'est la Phase 2 appliquée à la seconde où l'argent sort.
+
+### Budgets et rapports sur le cycle personnel
+
+- `budget_history.year_month` devient la **clé de cycle** (`cycle_label`) — `ensureCurrentMonthBudgetHistory` et `useBudgets` lisent `getCurrentCycle()`. Migration de données : les clés `'YYYY-MM'` existantes restent valides en mode `calendar` ; en mode `payday`, le cycle courant est re-seedé depuis `categories.budget_limit`.
+- `PeriodSelector` gagne une période **« Cycle »**, par défaut quand `cycle_mode ≠ calendar`.
+- Le calendrier reste un calendrier ; ses totaux de période suivent le cycle.
+
+### Événements PostHog
+
+`daily_number_shown` (état vert/orange/rouge), `entry_feedback_shown` (type), `cycle_end_state` (positive \| negative, envoyé au premier lancement après la fin d'un cycle) — le KPI de la Partie II.
+
+### Prompt Claude Code — Phase 9
+
+```
+Lis PRD_ANALYSE.md, Partie II, section « Phase 9 ».
+Phases 7 et 8 livrées.
+
+1. lib/pilot/ : computeDailyBudget(indicators, fixedCharges, goal, cycle)
+   et computeRunway(...) — fonctions pures, null jamais NaN, gardes sur les
+   dénominateurs.
+2. Hero : le chiffre du jour remplace gardé/taux (qui migrent dans le bilan).
+3. add.tsx : ligne de retour après enregistrement (3 s, non bloquante),
+   4 cas du PRD, rattachement des charges fixes.
+4. Budgets et rapports sur le cycle : budget_history par cycle_label,
+   période « Cycle » dans PeriodSelector.
+5. PostHog : daily_number_shown, entry_feedback_shown, cycle_end_state.
+6. i18n fr/en/mg. Release 3.0.0 (le hero change de sens).
+
+Montre-moi computeDailyBudget sur ma base (le chiffre du jour), puis une
+capture du hero et une de la ligne de retour à la saisie.
+```
+
+---
+
+## 12. Phase 10 — Alertes, onboarding remodelé, bilan-réglage
+
+### Alertes de trajectoire (déterministes, max une par jour)
+
+| Déclencheur | Message | Action |
+|---|---|---|
+| Projection du cycle < 0 | « À ce rythme : −150 000 le 27 » | voir le bilan |
+| Charge fixe non réglée à J-3 | « Factures 233 000 dans 3 jours · tu as 410 000 » | marquer payé / voir |
+| Paye attendue non saisie à J+2 | « Ta paye du 28 n'est pas enregistrée — reçue ? » | saisir le revenu |
+| Revenu reçu en mode irrégulier | « 300 000 reçus — on les ajoute au disponible ? » | oui / plus tard |
+
+Via `lib/notifications.ts`, identifiants stables, cancel-then-schedule.
+
+### Onboarding remodelé (nouveaux utilisateurs)
+
+Trois questions, une minute, chacune passable :
+
+1. « Quand reçois-tu ton argent ? » → jour fixe (le …) / c'est irrégulier
+2. « À peu près combien ? » → montant, optionnel
+3. « Tes charges fixes ? » → liste prête (loyer, électricité, eau, internet, transport, école, téléphone…), un montant sur celles qui concernent l'utilisateur
+
+Écrit `settings` (cycle) + `fixed_charges` (`source = 'manual'`). Tout est passable : sans réponse, mode `calendar`, et l'app **apprend** ensuite (Phases 7–8) en proposant ce qu'elle détecte. Le WOW moment de l'onboarding actuel devient le **premier chiffre du jour**.
+
+### Le bilan devient le réglage du cycle suivant
+
+En fin de cycle, l'écran « Mon bilan » propose d'ajuster, un tap chacun :
+- **revenu attendu** si le revenu réel s'en écarte de > 10 %,
+- **charges fixes** dont le montant réel diffère (« Factures : 233 000 prévu, 251 000 réel — on met à jour ? »),
+- **budgets** sur 3 cycles (plafond > 2× le **max** des 3 derniers cycles → abaisser ; **max** et non moyenne, pour ne pas piéger Vacances),
+- **objectif d'épargne** si tenu 3 cycles de suite (« tu tiens 200 000 depuis 3 cycles — passer à 250 000 ? »).
+
+Et le nettoyage issu de la Phase 6.1 : retrait de `noSpendStreak` (artefact de saisie en rafale), règles de base `uncategorized` / `topCategories` / `monthOverMonth`, dérive de catégorie → action « voir la catégorie » (jamais un budget sous la dépense courante), garde de pertinence ≥ 5 % des dépenses.
+
+### Prompt Claude Code — Phase 10
+
+```
+Lis PRD_ANALYSE.md, Partie II, section « Phase 10 ».
+Phases 7 à 9 livrées et observées.
+
+1. Alertes : 4 déclencheurs, max 1/jour, identifiants stables.
+2. Onboarding : 3 questions passables, écrit settings + fixed_charges ;
+   WOW moment = premier chiffre du jour.
+3. Bilan-réglage : 4 propositions ajustables en un tap ; nettoyage 6.1
+   (retrait noSpendStreak, 3 règles de base, action dérive → voir catégorie).
+4. i18n fr/en/mg. Release 3.1.0.
+
+Montre-moi les 3 écrans d'onboarding et le bloc « réglage » du bilan.
+```
+
+---
+
+## 13. Récapitulatif
 
 | Phase | Contenu | Fichiers | Release |
 |---|---|---|---|
@@ -779,13 +1079,17 @@ scoreInsights, et une capture des chips d'intention.
 | **3** | Écran, carte d'entrée, hero | 5–7 | **2.1.0** |
 | **4** | Historique, backup, gamification, notif | 8 | **2.2.0** |
 | **6** | Objectif, intentions, règles budget — analyse à la demande | ~6 | **2.3.0** |
-| **5** | Analyse multi-cycles — règles d'historique + calibrage perso | ~5 créés | **2.4.0** |
+| **5** | Analyse multi-cycles — règles d'historique + calibrage perso | ~5 créés | après 3.1.0 |
+| **7** | Cycle personnel (jour de paye), revenu attendu, détection depuis l'historique | ~5 | **2.4.0** |
+| **8** | Charges fixes : migration 26, détection, règlement, écrans | ~8 | **2.5.0** |
+| **9** | Reste à vivre du jour + agent à la saisie, budgets/rapports sur le cycle | ~8 | **3.0.0** |
+| **10** | Alertes, onboarding remodelé, bilan-réglage (+ nettoyage 6.1) | ~8 | **3.1.0** |
 
 Phase 0 en premier, sans exception : les trois bugs corrigés faussent les calculs sur lesquels tout le reste repose.
 
 ---
 
-## 10. Releases
+## 14. Releases
 
 ### Quatre livraisons, pas une
 
@@ -795,7 +1099,11 @@ Phase 0 en premier, sans exception : les trois bugs corrigés faussent les calcu
 | **2.1.0** | minor | Phases 1–3 — l'analyse fonctionne, sans persistance |
 | **2.2.0** | minor | Phase 4 — historique, boucle, gamification |
 | **2.3.0** | minor | Phase 6 — objectif, intentions, règles budget |
-| **2.4.0** | minor | Phase 5 — analyse multi-cycles, calibrage personnel |
+| **2.4.0** | minor | Phase 7 — cycle personnel, revenu attendu |
+| **2.5.0** | minor | Phase 8 — charges fixes (migration 26, backup v3) |
+| **3.0.0** | major | Phase 9 — reste à vivre du jour, agent à la saisie, budgets/rapports sur le cycle (le hero change de sens) |
+| **3.1.0** | minor | Phase 10 — alertes, onboarding remodelé, bilan-réglage |
+| ensuite | minor | Phase 5 — analyse multi-cycles |
 
 **La Phase 0 part seule et vite.** Une cinquantaine de lignes, aucune nouvelle surface UI, et elle corrige un signal actuellement faux pour tous les utilisateurs dans la seconde moitié de chaque mois. Aucune raison de la retenir derrière une feature de plusieurs semaines. Bénéfice secondaire : si la logique de rythme a un cas limite, il se trouve sur une release de 6 fichiers plutôt que noyé dans une de trente.
 
@@ -827,15 +1135,13 @@ Trancher : le régénérer depuis `constants/changelog.ts`, ou le supprimer. Un 
 
 ---
 
-## 11. Hors périmètre — pistes v2
+## 15. Hors périmètre — pistes v2
 
-- **Cycle de paie détecté** — repérer un revenu récurrent (montant ±10 %, ~30 j, 3 occurrences) et faire commencer le cycle au jour de paie. Quelqu'un payé le 28 vit du 28 au 27 ; aujourd'hui tous les calculs coupent son cycle en deux. C'est la plus grosse amélioration de justesse possible, mais elle touche budgets, rapports et calendrier — un chantier à part entière.
-- **Reste à vivre du jour** — un seul chiffre en haut du dashboard : ce qu'on peut dépenser aujourd'hui sans casser le mois, avec report du non-dépensé sur le lendemain.
 - **Répartition à la saisie du revenu** — bottom sheet de découpage en enveloppes quand un revenu est enregistré.
 
 ---
 
-## 12. Points de vigilance
+## 16. Points de vigilance
 
 **Vérifier la complétude des données avant de se fier aux constats.** Sur le device de test, le compte Cash est à 0 et Mvola à 434 Ar — tout passe par Bank. Si les utilisateurs réels font pareil, les dépenses en espèces ne sont pas saisies et l'analyse portera sur une image partielle. Regarder dans PostHog la répartition des transactions par type de compte avant de construire dessus, et envisager un constat dédié : « aucune dépense en espèces enregistrée ce cycle ».
 
