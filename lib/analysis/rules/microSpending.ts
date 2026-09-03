@@ -24,7 +24,9 @@ export const microSpendingRule: Rule = (i) => {
     severity,
     weight,
     titleKey: 'analysis.microSpending.title',
-    params: { count: i.microCount, total: formatAr(i.microTotal) },
+    bodyKey: 'analysis.microSpending.body',
+    // `count` : i18next pluralise la ligne factuelle sur ce param.
+    params: { count: i.microCount, total: formatAr(i.microTotal), threshold: formatAr(i.microThreshold) },
     evidence: `${i.microCount} × < ${formatAr(i.microThreshold)} = ${formatAr(i.microTotal)}`,
   };
 };

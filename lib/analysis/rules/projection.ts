@@ -18,7 +18,13 @@ export const projectionRule: Rule = (i, cycle) => {
     severity: 'info',
     weight,
     titleKey: 'analysis.projection.title',
-    params: { projected: formatAr(i.projectedEnd) },
+    bodyKey: 'analysis.projection.body',
+    params: {
+      projected: formatAr(i.projectedEnd),
+      spent: formatAr(i.expenses),
+      elapsed: cycle.elapsedDays,
+      total: cycle.totalDays,
+    },
     // ex. « 500 000 ÷ 29 × 31 = 534 000 »
     evidence: `${formatAr(i.expenses)} ÷ ${cycle.elapsedDays} × ${cycle.totalDays} = ${formatAr(i.projectedEnd)}`,
   };

@@ -31,8 +31,15 @@ export const savingsRateRule: Rule = (i) => {
     id: 'savingsRate',
     severity,
     weight,
-    titleKey: 'analysis.savingsRate.title',
-    params: { kept: formatAr(i.keptAmount), rate: formatPct(rate) },
+    // Paye dépassée : « tu as gardé −12 % » ne se dit pas → variante dédiée.
+    titleKey: rate < 0 ? 'analysis.savingsRate.titleOver' : 'analysis.savingsRate.title',
+    bodyKey: rate < 0 ? 'analysis.savingsRate.bodyOver' : 'analysis.savingsRate.body',
+    params: {
+      kept: formatAr(i.keptAmount),
+      rate: formatPct(rate),
+      income: formatAr(i.income),
+      over: formatAr(Math.max(0, -i.keptAmount)),
+    },
     evidence: `${formatAr(i.keptAmount)} ÷ ${formatAr(i.income)} = ${formatPct(rate)}`,
     action,
   };

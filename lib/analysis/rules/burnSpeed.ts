@@ -23,7 +23,8 @@ export const burnSpeedRule: Rule = (i) => {
     severity,
     weight,
     titleKey: 'analysis.burnSpeed.title',
-    params: { rate: formatPct(i.burnSpeed) },
+    bodyKey: 'analysis.burnSpeed.body',
+    params: { rate: formatPct(i.burnSpeed), amount: formatAr(first7) },
     evidence: `${formatAr(first7)} ÷ ${formatAr(i.income)} = ${formatPct(i.burnSpeed)}`,
   };
 };

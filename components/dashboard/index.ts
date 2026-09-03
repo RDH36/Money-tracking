@@ -8,4 +8,5 @@ export { StreakXPStrip } from './sections/StreakXPStrip';
 export { AccountsCarousel } from './sections/AccountsCarousel';
 export { BudgetsCard } from './sections/BudgetsCard';
 export { RecentTransactionsCard } from './sections/RecentTransactionsCard';
-export { formatDateLabelFr, formatMonthLabelFr, startOfMonth } from './helpers';
+export { formatDateLabelFr, formatMonthLabelFr, startOfMonth, pickOverspend, accountDisplayName } from './helpers';
+export { DashboardModals } from './DashboardModals';

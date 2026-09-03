@@ -41,6 +41,7 @@
     "monthIncome": "Income · this month",
     "monthExpense": "Expenses · this month",
     "kept": "Kept this month",
+    "keptCycle": "Kept this cycle",
     "savingsRate": "Savings rate",
     "budgets": "Budgets",
     "viewAll": "View all",
@@ -70,21 +71,42 @@
     "paceMarker": "month pace"
   },
   "analysis": {
-    "savingsRate": { "title": "{{kept}} kept this cycle · {{rate}} of income" },
-    "projection": { "title": "At the current pace, month-end estimated at {{projected}}" },
-    "burnSpeed": { "title": "{{rate}} of income spent in the first 7 days" },
-    "fixedCosts": {
-      "title_one": "{{count}} fixed expense · {{share}} of income",
-      "title_other": "{{count}} fixed expenses · {{share}} of income"
+    "savingsRate": {
+      "title": "You kept {{rate}} of your pay",
+      "body": "{{kept}} {{currency}} out of {{income}} {{currency}}.",
+      "titleOver": "You spent more than your pay",
+      "bodyOver": "{{over}} {{currency}} beyond the {{income}} {{currency}} you received."
     },
-    "categoryDrift": { "title": "{{category}} · +{{pct}} % above its usual" },
+    "projection": {
+      "title": "At this pace, you'll end the month at {{projected}} {{currency}} in spending",
+      "body": "{{spent}} {{currency}} in {{elapsed}} days out of {{total}}."
+    },
+    "burnSpeed": {
+      "title": "{{rate}} of your pay went in the first week",
+      "body": "{{amount}} {{currency}} in 7 days, often the bills due early in the month."
+    },
+    "fixedCosts": {
+      "title_one": "Your fixed costs take {{share}} of your pay",
+      "title_other": "Your fixed costs take {{share}} of your pay",
+      "body_one": "{{count}} cost that comes back every month, {{amount}} {{currency}} in total.",
+      "body_other": "{{count}} costs that come back every month, {{amount}} {{currency}} in total."
+    },
+    "categoryDrift": {
+      "title": "{{category}} weighs more than usual",
+      "body": "{{amount}} {{currency}} this month, versus {{avg}} {{currency}} on average (+{{pct}}%)."
+    },
     "bestCycle": {
-      "record": "Best savings rate of your last 6 cycles · {{rate}}",
-      "reference": "Your best recent cycle · {{best}} ({{month}})"
+      "record": "Your best month in six months",
+      "reference": "You've done better before",
+      "bodyRecord": "{{rate}} of your pay kept.",
+      "bodyReference": "{{best}} kept in {{month}}, versus {{rate}} this month."
     },
     "microSpending": {
       "title_one": "{{count}} small expense · {{total}}",
-      "title_other": "{{count}} small expenses · {{total}}"
+      "title_other": "{{count}} small expenses · {{total}}",
+      "title": "Small expenses add up",
+      "body_one": "{{count}} expense under {{threshold}} {{currency}}: {{total}} {{currency}} in total.",
+      "body_other": "{{count}} expenses under {{threshold}} {{currency}}: {{total}} {{currency}} in total."
     },
     "noSpendStreak": {
       "title_one": "{{count}} day without spending out of {{total}}",
@@ -95,26 +117,26 @@
       "budget": "Create the budget",
       "budgetFor": "Create a {{category}} budget at {{amount}} {{currency}}",
       "transferAmount": "Set {{amount}} {{currency}} aside",
-      "raiseBudget": "Raise the {{category}} budget to {{amount}} {{currency}}",
-      "lowerBudget": "Lower the {{category}} budget to {{amount}} {{currency}}"
+      "raiseBudget": "Adjust your {{category}} budget to {{amount}} {{currency}}",
+      "lowerBudget": "Adjust your {{category}} budget to {{amount}} {{currency}}"
     },
-    "title": "My review",
+    "title": "Your month",
     "intro": "Looking at your numbers…",
     "skipHint": "Tap to skip",
     "keptTitle": "This cycle, you kept",
     "keptDetail": "out of {{income}} income · {{rate}}",
     "bestComparison": "Your best cycle: {{best}} ({{month}})",
-    "weighSection": "What weighs",
-    "actionSection": "Do this now",
+    "weighSection": "What weighed",
+    "actionSection": "What now?",
     "dismiss": "This doesn't help me",
     "actionDone": "Done",
     "actionError": "Action not possible right now",
     "insufficientTitle": "Your first review is coming",
     "insufficient_one": "{{count}} more day of data and your first review will be ready",
     "insufficient_other": "{{count}} more days of data and your first review will be ready",
-    "calmNote": "Nothing notable this cycle",
-    "entryTitle": "Analyze my cycle",
-    "entrySubtitle": "3 findings, 1 action in one tap",
+    "calmNote": "Nothing notable this month",
+    "entryTitle": "Your month",
+    "entrySubtitle": "How much you keep, and why",
     "reportsCta": "What do these numbers say?",
     "emptyCycleMessage_one": "{{count}} transaction recorded this cycle — too few for a review",
     "emptyCycleMessage_other": "{{count}} transactions recorded this cycle — too few for a review",
@@ -129,14 +151,10 @@
     "sinceLastKeptLess": "You kept {{amount}} {{currency}} less this cycle",
     "sinceLastNoChange": "Indicators steady since last time",
     "cycleOf": "Review of {{month}}",
+    "incomeEstimated": "Income estimated at {{amount}} {{currency}} from your previous months",
+    "incomeEstimatedEdit": "Edit",
     "hidden": "Finding hidden",
     "undo": "Undo",
-    "intent": {
-      "overview": "Overview",
-      "overspend": "Spending too much?",
-      "budgets": "My budgets?",
-      "savings": "Save more"
-    },
     "goal": {
       "title": "Your goal right now?",
       "saveAmount": "Set aside every month",
@@ -145,17 +163,87 @@
       "amountPlaceholder": "Amount per month (Ar)",
       "confirm": "Confirm",
       "current": "Goal: {{label}}",
-      "edit": "Edit"
+      "edit": "Edit",
+      "overline": "Goal",
+      "none": "Not chosen yet",
+      "choose": "Choose",
+      "help": "It shapes the findings and the suggested action. You can change it anytime.",
+      "amountLabel": "Amount to set aside each month ({{currency}})",
+      "saveShort": "Set aside {{amount}} {{currency}}"
     },
     "budgetOverrun": {
-      "exceeded": "{{category}} · budget exceeded by {{amount}}",
-      "pace": "{{category}} · heading to {{projected}} on a {{limit}} budget"
+      "exceeded": "{{category}} went over its budget",
+      "pace": "{{category}} is heading over its budget",
+      "bodyExceeded": "{{spent}} {{currency}} against a cap of {{limit}} {{currency}} (+{{amount}}).",
+      "bodyPace": "At this pace: {{projected}} {{currency}} against {{limit}} {{currency}}."
     },
-    "budgetUnused": { "title": "{{category}} budget used at {{pct}} %" },
+    "budgetUnused": {
+      "title": "Your {{category}} budget is far from what you actually spend",
+      "body": "Cap {{limit}} {{currency}}, spent {{spent}} {{currency}} ({{pct}}%): it won't warn you."
+    },
     "goalGap": {
-      "reached": "Goal met · {{kept}} kept out of {{goal}} targeted",
-      "behind": "Goal {{goal}} · kept this cycle: {{kept}} ({{pct}})"
-    }
+      "reached": "Savings goal reached",
+      "behind": "Your savings goal isn't reached yet",
+      "bodyReached": "{{kept}} {{currency}} set aside, goal {{goal}} {{currency}}.",
+      "bodyBehind": "{{kept}} {{currency}} set aside out of {{goal}} {{currency}} targeted ({{pct}})."
+    },
+    "topCategory": {
+      "title": "{{category}} is your biggest expense",
+      "body": "{{amount}} {{currency}}, that is {{pct}}% of your spending."
+    },
+    "verdict": {
+      "green": "In the green",
+      "orange": "Tight",
+      "red": "In the red",
+      "unknown": "Incomplete"
+    },
+    "keptOn": "kept out of {{income}} of pay · {{rate}}",
+    "keptOnEstimated": "out of ~{{income}} of estimated pay · {{rate}}",
+    "overOn": "more than your {{income}} of pay · {{rate}}",
+    "record": "Your record: {{best}} in {{month}}",
+    "seeCalc": "See the math",
+    "hideCalc": "Hide the math",
+    "hideInsight": "Hide this insight",
+    "actionBenefit": {
+      "createBudget": "A ceiling close to what you really spend will warn you at the right time next month.",
+      "createTransfer": "Set aside now, this money will not drift into spending.",
+      "createPlanification": "Planned ahead, this amount will not surprise you again.",
+      "openScreen": "The details are ready, you only need to look."
+    },
+    "actionButton": {
+      "createBudget": "Adjust my budget",
+      "createTransfer": "Set aside",
+      "createPlanification": "Plan it",
+      "openScreen": "See details"
+    },
+    "notForMe": "Not for me",
+    "noIncome": {
+      "dayOf": "{{range}} · day {{elapsed}} of {{total}}",
+      "spentSoFar": "Spent so far",
+      "title": "I am missing your pay for this month",
+      "body": "With it, I can tell you how much you keep and where you stand in the month.",
+      "usual": "You usually receive ~{{amount}} around the {{day}}.",
+      "add": "Add my pay",
+      "useEstimate": "Use {{amount}} as an estimate",
+      "meanwhile": "In the meantime"
+    },
+    "entry": {
+      "overline": "Your month · {{range}}",
+      "kept": "kept · {{rate}} of your pay",
+      "keptEstimated": "kept · {{rate}} of your estimated pay",
+      "over": "spent beyond your pay",
+      "seeWhy": "See why"
+    },
+    "otherAngle": "See from another angle",
+    "intent": {
+      "overview": "Overview",
+      "overspend": "Spending",
+      "budgets": "Budgets",
+      "savings": "Savings"
+    },
+    "introCompare": "Comparing with your previous months…",
+    "introWeigh": "Looking for what weighed…",
+    "loadingHint": "Bubule is calculating on your phone"
   },
   "add": {
     "newTransaction": "New Transaction",
@@ -262,7 +350,44 @@
     "sat": "S",
     "sun": "S"
   },
+  "cycle": {
+    "confirm": {
+      "title": "Based on your last months",
+      "paydayLine": "Paid around the {{day}}",
+      "amountLine": "~{{amount}} {{currency}}",
+      "irregularTitle": "Your income looks irregular",
+      "irregularLine": "Your month will follow the calendar",
+      "yes": "That's it",
+      "edit": "Change the day",
+      "irregular": "Irregular income",
+      "hasPayday": "I have a payday"
+    }
+  },
   "settings": {
+    "cycle": {
+      "title": "My cycle",
+      "subtitle": "From one pay to the next",
+      "help": "Your month starts on the day you get paid, not on the 1st.",
+      "modeSection": "Mode",
+      "modePayday": "A fixed day",
+      "modePaydayDesc": "Paid around the same day each month",
+      "modeIrregular": "Irregular income",
+      "modeIrregularDesc": "Freelance, trade, income in bursts",
+      "modeCalendar": "End of month",
+      "modeCalendarDesc": "From the 1st to the last day of the month",
+      "daySection": "Payday",
+      "dayHelp": "If the month is shorter, the last day of the month is used.",
+      "incomeSection": "Usual income",
+      "incomeLabel": "Usual income per month ({{currency}})",
+      "incomePlaceholder": "E.g. 2000000",
+      "incomeHelp": "Optional. Used as an estimate until your pay is recorded.",
+      "save": "Save",
+      "detectedTitle": "Based on your entries",
+      "detectedLine": "Paid around the {{day}}, ~{{amount}} {{currency}}",
+      "detectedLineNoAmount": "Paid around the {{day}}",
+      "use": "Use",
+      "incomeFocusHint": "Your pay for this month isn't recorded yet: Mitsitsy uses this amount as an estimate. Adjust it if needed, then tap Save."
+    },
     "title": "Settings",
     "whatsNew": "What's New",
     "gameDataTitle": "Game data",
@@ -1296,5 +1421,47 @@
     "tip": "You can set a different initial balance when creating one — useful to match your real accounts.",
     "tipPrefix": "Tip.",
     "lastUpdate": "Updated {{time}}"
+  },
+  "intro": {
+    "mois": {
+      "new": "New",
+      "title": "Your month, in one answer",
+      "subtitle": "Mitsitsy reads your spending and your pay, and tells you every month:",
+      "p1Title": "Whether you ended in the green",
+      "p1Body": "What you kept, compared with your best months.",
+      "p2Title": "What weighed on it",
+      "p2Body": "Three sentences, not a table. The math stays one tap away.",
+      "p3Title": "One thing to do",
+      "p3Body": "A single move you can apply right away, to keep more next month.",
+      "trust": "Everything is computed on your phone. Nothing leaves the app.",
+      "continue": "Continue",
+      "later": "Later",
+      "step2": "Step 2 of 2",
+      "payTitle": "One thing to check: your pay",
+      "payIntro": "Your month starts on the day you get paid, not on the 1st. Based on your entries:",
+      "paidAround": "Paid around the {{day}}",
+      "aboutPerMonth": "about {{amount}} {{currency}} per month",
+      "spotted_one": "Spotted on your last pay. You can correct the day if needed.",
+      "spotted_other": "Spotted on your last {{count}} pays. You can correct the day if needed.",
+      "confirm": "That's it, see my month",
+      "changeDay": "Change the day",
+      "irregular": "Irregular income",
+      "irregularTitle": "Your income looks irregular",
+      "irregularBody": "Your month will follow the calendar, from the 1st to the last day. You can set a payday if you have one.",
+      "hasPayday": "I have a payday",
+      "notFoundTitle": "I haven't spotted your pay yet",
+      "notFoundBody": "Set your payday so your month starts at the right time. Otherwise it follows the calendar.",
+      "setPayday": "Set my payday",
+      "seeAnyway": "See my month anyway",
+      "editable": "Editable at any time in Settings → My cycle",
+      "about": "About",
+      "gotIt": "Got it",
+      "why": "The goal: end every month in the green, whatever your income. Your month starts the day you get paid, not on the 1st.",
+      "vsTitle": "Reports or Your month?",
+      "vsReportsName": "Reports",
+      "vsReports": "your numbers in detail: charts, totals by category and period. You read and draw your own conclusions.",
+      "vsMonthName": "Your month",
+      "vsMonth": "the conclusion, already drawn: in the green or not, what weighed, and one thing to do."
+    }
   }
 }

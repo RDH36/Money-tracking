@@ -25,7 +25,9 @@ export const fixedCostsRule: Rule = (i) => {
     severity,
     weight,
     titleKey: 'analysis.fixedCosts.title',
-    params: { count: solid.length, share: formatPct(share) },
+    bodyKey: 'analysis.fixedCosts.body',
+    // `count` : i18next pluralise le titre et la ligne factuelle sur ce param.
+    params: { count: solid.length, share: formatPct(share), amount: formatAr(fixedSum) },
     evidence: `${formatAr(fixedSum)} ÷ ${formatAr(i.income)} = ${formatPct(share)}`,
   };
 };

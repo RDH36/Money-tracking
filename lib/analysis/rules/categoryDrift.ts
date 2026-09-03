@@ -48,7 +48,13 @@ export const categoryDriftRule: Rule = (i) => {
     severity,
     weight,
     titleKey: 'analysis.categoryDrift.title',
-    params: { category: top.categoryName as string, pct: overPct },
+    bodyKey: 'analysis.categoryDrift.body',
+    params: {
+      category: top.categoryName as string,
+      pct: overPct,
+      amount: formatAr(top.cycleSpend),
+      avg: formatAr(Math.round(top.avgPrevious as number)),
+    },
     evidence: `${formatAr(top.cycleSpend)} ÷ ${formatAr(top.avgPrevious as number)} = ${Math.round(drift * 100)} %`,
     action: {
       type: 'createBudget',

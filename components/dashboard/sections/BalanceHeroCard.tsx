@@ -19,6 +19,8 @@ interface BalanceHeroCardProps {
   overspendBudget?: OverspendBudget;
   onOverspendPress?: () => void;
   currencyCode?: string;
+  /** Libellé du cycle courant (« 28 juil. → 27 août »). Absent = libellé mensuel. */
+  cycleLabel?: string;
 }
 
 export function BalanceHeroCard({
@@ -31,6 +33,7 @@ export function BalanceHeroCard({
   overspendBudget,
   onOverspendPress,
   currencyCode = 'Ar',
+  cycleLabel,
 }: BalanceHeroCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -115,7 +118,7 @@ export function BalanceHeroCard({
         </View>
 
         <View style={{ marginTop: 18, flexDirection: 'row', gap: 18 }}>
-          <KeptCol v2={v2} kept={monthIncome - monthExpense} currencyCode={currencyCode} />
+          <KeptCol v2={v2} kept={monthIncome - monthExpense} currencyCode={currencyCode} cycleLabel={cycleLabel} />
           <View style={{ width: 1, backgroundColor: 'rgba(245,245,241,0.1)' }} />
           <RateCol v2={v2} income={monthIncome} expense={monthExpense} />
         </View>
@@ -171,13 +174,13 @@ function HeroColLabel({ v2, children }: { v2: V2Tokens; children: string }) {
   );
 }
 
-/** Gardé ce mois = revenus − dépenses. Vert si positif, rouge si négatif. */
-function KeptCol({ v2, kept, currencyCode }: { v2: V2Tokens; kept: number; currencyCode: string }) {
+/** Gardé ce cycle = revenus − dépenses. Vert si positif, rouge si négatif. */
+function KeptCol({ v2, kept, currencyCode, cycleLabel }: { v2: V2Tokens; kept: number; currencyCode: string; cycleLabel?: string }) {
   const { t } = useTranslation();
   const positive = kept >= 0;
   return (
     <View>
-      <HeroColLabel v2={v2}>{t('dashboard.kept')}</HeroColLabel>
+      <HeroColLabel v2={v2}>{t(cycleLabel ? 'dashboard.keptCycle' : 'dashboard.kept')}</HeroColLabel>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
         <Ionicons name={positive ? 'arrow-up' : 'arrow-down'} size={12} color={positive ? '#7DD3A6' : '#E8A99B'} />
         <Text
@@ -189,6 +192,11 @@ function KeptCol({ v2, kept, currencyCode }: { v2: V2Tokens; kept: number; curre
           {positive ? '+' : '−'}{formatMoneyFr(Math.abs(kept))} {currencyCode}
         </Text>
       </View>
+      {cycleLabel ? (
+        <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkOnDarkM, marginTop: 3 }}>
+          {cycleLabel}
+        </Text>
+      ) : null}
     </View>
   );
 }

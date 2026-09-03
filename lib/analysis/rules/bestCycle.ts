@@ -21,6 +21,7 @@ export const bestCycleRule: Rule = (i) => {
       severity: 'info',
       weight: 30,
       titleKey: 'analysis.bestCycle.record',
+      bodyKey: 'analysis.bestCycle.bodyRecord',
       params: { rate: formatPct(cur) },
       evidence: `${formatPct(cur)} > ${formatPct(best)}`,
     };
@@ -34,7 +35,8 @@ export const bestCycleRule: Rule = (i) => {
     severity: 'info',
     weight: clampWeight((best - cur) * 60 + 15, 15, 60),
     titleKey: 'analysis.bestCycle.reference',
-    params: { best: formatPct(best), month: i.bestCycle.label },
+    bodyKey: 'analysis.bestCycle.bodyReference',
+    params: { best: formatPct(best), month: i.bestCycle.label, rate: formatPct(cur) },
     evidence: `${formatPct(cur)} vs ${formatPct(best)}`,
   };
   return reference;

@@ -7,24 +7,46 @@
  * (revenus nuls, aucun cycle précédent, catégorie sans historique) est gardée.
  */
 
+// — Cycle personnel (Phase 7) —
+
 /**
- * Un cycle = un mois calendaire (v1). Bornes construites en heure LOCALE puis
+ * Mode de cycle, stocké dans `settings` (`cycle_mode`) :
+ * - `calendar` : 1ᵉʳ → fin de mois (défaut, comportement historique) ;
+ * - `payday`   : d'un jour de paye au suivant (`payDay` 1–31) ;
+ * - `irregular`: revenus par à-coups → bornes calendaires, pilotage par le runway.
+ */
+export type CycleMode = 'calendar' | 'payday' | 'irregular';
+
+export interface CycleSettings {
+  mode: CycleMode;
+  /** Jour de paye 1–31, utilisé seulement en mode `payday` (sinon `null`). */
+  payDay: number | null;
+}
+
+export const DEFAULT_CYCLE_SETTINGS: CycleSettings = { mode: 'calendar', payDay: null };
+
+/**
+ * Un cycle = un mois calendaire (`calendar` / `irregular`) ou une période de
+ * paye à paye (`payday`). Bornes construites en heure LOCALE puis
  * `.toISOString()` — même pattern que `getLocalMonthBounds` de useBudgets.
  */
 export interface Cycle {
-  /** ISO UTC, borne incluse (début du mois local). */
+  /** ISO UTC, borne incluse (début local du cycle). */
   start: string;
-  /** ISO UTC, borne exclue (début du mois suivant). */
+  /** ISO UTC, borne exclue (début local du cycle suivant). */
   end: string;
-  /** Étiquette locale 'YYYY-MM', ex. '2026-07'. */
+  /**
+   * Étiquette locale : 'YYYY-MM' (ex. '2026-07') en calendar/irregular,
+   * date ISO locale du début 'YYYY-MM-DD' (ex. '2026-07-28') en payday.
+   */
   label: string;
-  /** Nombre total de jours du mois. */
+  /** Nombre total de jours du cycle. */
   totalDays: number;
   /** Jours écoulés, borné à `totalDays`, jamais 0. `= totalDays` si cycle passé. */
   elapsedDays: number;
   /** `elapsedDays / totalDays`, dans ]0,1]. */
   elapsedRatio: number;
-  /** Vrai si le cycle est le mois courant. */
+  /** Vrai si le cycle est celui en cours. */
   isCurrent: boolean;
 }
 
@@ -93,9 +115,10 @@ export interface InsightAction {
 }
 
 /**
- * Un constat produit par une règle. `titleKey` + `params` = message i18n ;
- * `evidence` = le calcul en clair (chiffres/symboles, non traduit) pour que
- * l'utilisateur puisse le vérifier.
+ * Un constat produit par une règle. `titleKey` + `params` = phrase humaine
+ * (le titre, sans chiffre technique) ; `bodyKey` + `params` = la ligne
+ * factuelle (les chiffres) ; `evidence` = le calcul en clair (chiffres /
+ * symboles, non traduit) pour que l'utilisateur puisse le vérifier.
  */
 export interface Insight {
   /** Identifiant stable (pour le rejet via analysis_dismissed). */
@@ -103,7 +126,14 @@ export interface Insight {
   severity: InsightSeverity;
   /** Poids 0–100, calculé par la règle ; sert au tri du scoring. */
   weight: number;
+  /** Clé i18n du titre : une phrase humaine, factuelle, jamais moralisatrice. */
   titleKey: string;
+  /**
+   * Clé i18n de la ligne factuelle secondaire (chiffres, comparaison). Mêmes
+   * `params` que `titleKey`. Le param `currency` n'est PAS fourni par la règle :
+   * l'UI l'injecte au rendu.
+   */
+  bodyKey?: string;
   params: Record<string, number | string>;
   /** Le calcul, affiché tel quel. Obligatoire. */
   evidence: string;
@@ -121,8 +151,14 @@ export interface Indicators {
   cycle: Cycle;
 
   // — Contexte brut du cycle —
-  /** Revenus du cycle, en centimes. */
+  /** Revenus du cycle, en centimes (ou revenu attendu si `incomeEstimated`). */
   income: number;
+  /**
+   * Vrai quand le revenu du cycle est absent (0) et que le revenu attendu
+   * (`expected_income`) a été injecté à sa place (Phase 7) : `income` et tous
+   * les indicateurs qui en dérivent sont alors une estimation.
+   */
+  incomeEstimated: boolean;
   /** Dépenses du cycle, en centimes. */
   expenses: number;
   /** Seuil micro-dépense, dérivé du revenu (jamais une constante), en centimes. */

@@ -22,3 +22,5 @@ export { useQuests } from './useQuests';
 export { useStoreReview } from './useStoreReview';
 export { useTransactionStats, filterByPeriod, getDailyTotals, getBarChartData, navigateDate, formatPeriodLabel } from './useTransactionStats';
 export type { PeriodType, PeriodStats, DailyTotal } from './useTransactionStats';
+export { useCycleSettings, useCycleSettingsValue, loadCycleSettings } from './useCycleSettings';
+export type { SaveCycleParams, UseCycleSettingsResult } from './useCycleSettings';

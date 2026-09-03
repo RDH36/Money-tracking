@@ -28,7 +28,13 @@ export const budgetOverrunRule: Rule = (i, cycle) => {
       severity: 'urgent',
       weight: clampWeight(55 + (ratio - 1) * 60, 55, 95),
       titleKey: 'analysis.budgetOverrun.exceeded',
-      params: { category: top.categoryName ?? '', amount: formatAr(top.spent - top.limit) },
+      bodyKey: 'analysis.budgetOverrun.bodyExceeded',
+      params: {
+        category: top.categoryName ?? '',
+        amount: formatAr(top.spent - top.limit),
+        spent: formatAr(top.spent),
+        limit: formatAr(top.limit),
+      },
       evidence: `${formatAr(top.spent)} / ${formatAr(top.limit)}`,
       action,
     };
@@ -40,6 +46,7 @@ export const budgetOverrunRule: Rule = (i, cycle) => {
     severity: 'watch',
     weight: clampWeight(45 + (ratio - 1) * 50, 45, 85),
     titleKey: 'analysis.budgetOverrun.pace',
+    bodyKey: 'analysis.budgetOverrun.bodyPace',
     params: {
       category: top.categoryName ?? '',
       projected: formatAr(top.projected),

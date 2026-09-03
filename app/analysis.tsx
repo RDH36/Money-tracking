@@ -1,28 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScrollView, Pressable, View, Text, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
+import { useV2 } from '@/constants/designTokensV2';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useAccounts, useCategories, useGamification } from '@/hooks';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useAnalysisGoal } from '@/hooks/useAnalysisGoal';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import { XP_VALUES } from '@/constants/badges';
-import type { AnalysisIntent } from '@/lib/analysis/score';
-import {
-  BubuleIntro, InsightCard, ActionBlock, SinceLastCard,
-  IntentChips, GoalCard, DismissedLine, NavCta, KeptSummary,
-} from '@/components/analysis';
+import { intentForGoal } from '@/lib/analysis/score';
+import { BubuleIntro, SinceLastCard, GoalRow, DismissedLine, EmptyState } from '@/components/analysis';
+import { VerdictCard, WeighRow, WeighCard, SectionLabel, ActionCard, NoIncomeBlock } from '@/components/analysis/mois';
+import { formatCycleRange } from '@/lib/analysis/cycle';
+import { getVerdict } from '@/lib/analysis/verdict';
 import type { InsightAction } from '@/lib/analysis/types';
 
-function formatMonthYear(label: string, lang: string): string {
-  const [y, m] = label.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
-}
-
+/**
+ * « Ton mois » : verdict d'abord (carte sombre), puis ce qui a pesé, puis la
+ * seule action, puis les réglages secondaires (angle, objectif) en bas.
+ */
 export default function AnalysisScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -33,12 +32,15 @@ export default function AnalysisScreen() {
   const { updateCategory } = useCategories();
   const { awardXP } = useGamification();
   const { goal, goalAmount, setGoal } = useAnalysisGoal();
-  const [intent, setIntent] = useState<AnalysisIntent>('overview');
+  const intent = intentForGoal(goal);
   const {
     loading, state, daysUntilReady, cycleTxCount, cycle, indicators, result,
     sinceLast, sessionDismissed, dismiss, undismiss, markAnalyzed, recordActionApplied,
   } = useAnalysis({ intent, goal, goalAmount });
   const [showIntro, setShowIntro] = useState(true);
+
+  const range = cycle ? formatCycleRange(cycle, i18n.language) : '';
+  const verdict = useMemo(() => (indicators ? getVerdict(indicators) : null), [indicators]);
 
   useEffect(() => {
     // Un cycle vide n'est pas une analyse. XP seulement quand une NOUVELLE
@@ -78,6 +80,12 @@ export default function AnalysisScreen() {
     [accounts, createTransfer, updateCategory, recordActionApplied]
   );
 
+  // « Pas pour moi » = rejet (réversible) du constat qui porte l'action.
+  const declineAction = useCallback(() => {
+    const carrier = result?.insights.find((i) => i.action === result.action);
+    if (carrier) dismiss(carrier.id);
+  }, [result, dismiss]);
+
   const header = (
     <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <Pressable
@@ -87,114 +95,103 @@ export default function AnalysisScreen() {
       >
         <Ionicons name="chevron-back" size={18} color={v2.ink} />
       </Pressable>
-      <Text style={{ fontFamily: v2.fontDisplay, fontSize: 22, color: v2.ink, letterSpacing: -0.5 }}>{t('analysis.title')}</Text>
+      <Text style={{ flex: 1, fontFamily: v2.fontDisplay, fontSize: 22, color: v2.ink, letterSpacing: -0.5 }}>{t('analysis.title')}</Text>
+      <Pressable
+        onPress={() => router.push('/intro-mois?replay=1' as any)}
+        hitSlop={6}
+        accessibilityLabel={t('intro.mois.about')}
+        style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Ionicons name="help-outline" size={18} color={v2.ink} />
+      </Pressable>
     </View>
   );
 
-  // Intro Bubule (jamais bloquante : max 2 s, skippable).
-  if (showIntro && !loading && state !== 'insufficientData') {
+  // Bubule cherche : c'est l'état de chargement (phrases qui changent), puis
+  // 2 s minimum ; skippable dès que le calcul est fini.
+  const onIntroDone = useCallback(() => setShowIntro(false), []);
+  if (showIntro && (loading || state !== 'insufficientData')) {
     return (
       <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
         {header}
-        <BubuleIntro onDone={() => setShowIntro(false)} />
+        <BubuleIntro onDone={onIntroDone} loading={loading} />
       </View>
     );
   }
 
-  const sectionLabel = (key: string) => (
-    <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: v2.inkSubtle, marginTop: 6 }}>
-      {t(key)}
-    </Text>
+  const weighBlock =
+    result && (result.insights.length > 0 || sessionDismissed.length > 0) ? (
+      <View>
+        <SectionLabel text={t(state === 'noIncome' ? 'analysis.noIncome.meanwhile' : 'analysis.weighSection')} />
+        <View style={{ gap: 10 }}>
+          {result.insights.length > 0 ? (
+            <WeighCard>
+              {result.insights.map((insight, index) => (
+                <WeighRow
+                  key={insight.id}
+                  insight={insight}
+                  currency={currency}
+                  index={index}
+                  last={index === result.insights.length - 1}
+                  onDismiss={dismiss}
+                />
+              ))}
+            </WeighCard>
+          ) : null}
+          {sessionDismissed.map((id) => (
+            <DismissedLine key={id} onUndo={() => undismiss(id)} />
+          ))}
+        </View>
+      </View>
+    ) : null;
+
+  const actionBlock = result?.action ? (
+    <View>
+      <SectionLabel text={t('analysis.actionSection')} />
+      <ActionCard action={result.action} currency={currency} onExecute={executeAction} onDecline={declineAction} />
+    </View>
+  ) : null;
+
+  const calmBlock = (
+    <View style={{ backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, borderRadius: 18, padding: 16 }}>
+      <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkMuted, textAlign: 'center' }}>{t('analysis.calmNote')}</Text>
+    </View>
   );
 
-  const insightsBlock = result ? (
-    <>
-      {result.insights.length > 0 ? (
-        <>
-          {sectionLabel('analysis.weighSection')}
-          <View style={{ gap: 10 }}>
-            {result.insights.map((insight, index) => (
-              <InsightCard key={insight.id} insight={insight} index={index} onDismiss={dismiss} />
-            ))}
-          </View>
-        </>
-      ) : null}
-      {sessionDismissed.map((id) => (
-        <DismissedLine key={id} onUndo={() => undismiss(id)} />
-      ))}
-      {result.action ? (
-        <View style={{ gap: 8, marginTop: 6 }}>
-          {sectionLabel('analysis.actionSection')}
-          <ActionBlock action={result.action} currency={currency} onExecute={executeAction} />
-        </View>
-      ) : null}
-    </>
-  ) : null;
+  // Sous le verdict : l'objectif durable, qui oriente constats et action.
+  const focus = <GoalRow goal={goal} goalAmount={goalAmount} currency={currency} onSelect={setGoal} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
       {header}
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 20, gap: 18 }}>
         {loading ? (
           <View style={{ paddingVertical: 80, alignItems: 'center' }}>
             <ActivityIndicator color={v2.brand} />
           </View>
         ) : state === 'insufficientData' ? (
-          <View style={{ paddingVertical: 60, alignItems: 'center', gap: 10 }}>
-            <Ionicons name="hourglass-outline" size={30} color={v2.inkSubtle} />
-            <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 17, color: v2.ink, textAlign: 'center' }}>{t('analysis.insufficientTitle')}</Text>
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkSubtle, textAlign: 'center', maxWidth: 280 }}>
-              {t('analysis.insufficient', { count: daysUntilReady })}
-            </Text>
-          </View>
+          <EmptyState
+            icon="hourglass-outline"
+            title={t('analysis.insufficientTitle')}
+            message={t('analysis.insufficient', { count: daysUntilReady })}
+          />
         ) : state === 'emptyCycle' ? (
-          <View style={{ paddingTop: 20, gap: 16, alignItems: 'center' }}>
-            <Ionicons name="ellipse-outline" size={28} color={v2.inkSubtle} />
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 14, color: v2.inkMuted, textAlign: 'center', maxWidth: 300 }}>
-              {t('analysis.emptyCycleMessage', { count: cycleTxCount })}
-            </Text>
-            <View style={{ alignSelf: 'stretch' }}>
-              <NavCta v2={v2} label={t('analysis.emptyCycleCta')} icon="add-circle-outline" onPress={goAdd} />
-            </View>
-          </View>
-        ) : indicators && result ? (
+          <EmptyState
+            icon="ellipse-outline"
+            message={t('analysis.emptyCycleMessage', { count: cycleTxCount })}
+            cta={{ label: t('analysis.emptyCycleCta'), icon: 'add-circle-outline', onPress: goAdd }}
+          />
+        ) : indicators && result && cycle && verdict ? (
           <>
-            <IntentChips intent={intent} onChange={setIntent} />
-            <GoalCard goal={goal} goalAmount={goalAmount} currency={currency} onSelect={setGoal} />
-            {cycle && !cycle.isCurrent ? (
-              <View style={{ alignSelf: 'flex-start', backgroundColor: v2.bgRaised, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12 }}>
-                <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.ink }}>
-                  {t('analysis.cycleOf', { month: formatMonthYear(cycle.label, i18n.language) })}
-                </Text>
-              </View>
-            ) : null}
-            {sinceLast ? <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} /> : null}
             {state === 'noIncome' ? (
-              <>
-                <View style={{ gap: 6, paddingTop: 4 }}>
-                  <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, letterSpacing: 0.3 }}>{t('analysis.spentTitle')}</Text>
-                  <Text style={{ fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 30, letterSpacing: -1, color: v2.ink }}>
-                    {formatMoneyFr(indicators.expenses)} {currency}
-                  </Text>
-                </View>
-                <View style={{ backgroundColor: v2.warnSoft, borderWidth: 1, borderColor: `${v2.warn}44`, borderRadius: 14, padding: 14, gap: 10 }}>
-                  <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.ink, lineHeight: 18 }}>{t('analysis.noIncomeBanner')}</Text>
-                  <NavCta v2={v2} label={t('analysis.noIncomeCta')} icon="trending-up-outline" onPress={goAdd} />
-                </View>
-                {insightsBlock}
-              </>
+              <NoIncomeBlock cycle={cycle} expenses={indicators.expenses} range={range} currency={currency} onAddIncome={goAdd} />
             ) : (
-              <>
-                <KeptSummary v2={v2} indicators={indicators} currency={currency} lang={i18n.language} />
-                {state === 'calmMonth' && result.insights.length === 0 ? (
-                  <View style={{ backgroundColor: v2.bgSurface, borderWidth: 1, borderColor: v2.hairline, borderRadius: 16, padding: 16 }}>
-                    <Text style={{ fontFamily: v2.fontUI, fontSize: 13, color: v2.inkMuted, textAlign: 'center' }}>{t('analysis.calmNote')}</Text>
-                  </View>
-                ) : (
-                  insightsBlock
-                )}
-              </>
+              <VerdictCard verdict={verdict} income={indicators.income} range={range} currency={currency} lang={i18n.language} />
             )}
+            {focus}
+            {sinceLast ? <SinceLastCard sinceLast={sinceLast} indicators={indicators} currency={currency} /> : null}
+            {state === 'calmMonth' && result.insights.length === 0 ? calmBlock : weighBlock}
+            {actionBlock}
           </>
         ) : null}
       </ScrollView>

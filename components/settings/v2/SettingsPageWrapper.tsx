@@ -1,4 +1,5 @@
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
@@ -21,11 +22,13 @@ export function SettingsPageWrapper({ title, subtitle, children }: SettingsPageW
       <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14 }}>
         <SettingsHeader title={title} subtitle={subtitle} onBack={() => router.back()} />
       </View>
-      <ScrollView
+      <KeyboardAwareScrollView
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 40 }}
       >
         {children}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

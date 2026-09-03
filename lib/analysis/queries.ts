@@ -211,7 +211,9 @@ export async function fetchBudgetLimits(
      FROM budget_history bh
      JOIN categories c ON c.id = bh.category_id AND c.deleted_at IS NULL
      WHERE bh.year_month = ? AND bh.budget_limit > 0`,
-    [cycle.label]
+    // Cycle de paye : label 'YYYY-MM-DD' → mois du début de cycle (budgets
+    // encore calendaires jusqu'en Phase 9).
+    [cycle.label.slice(0, 7)]
   );
 }
 

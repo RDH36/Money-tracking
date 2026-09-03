@@ -40,6 +40,7 @@
     "monthIncome": "Vola miditra · amin'ity volana ity",
     "monthExpense": "Vola mivoaka · amin'ity volana ity",
     "kept": "Voatahiry ity volana ity",
+    "keptCycle": "Voatahiry ity tsingerina ity",
     "savingsRate": "Tahan'ny fitsimbinana",
     "budgets": "Tetibola",
     "viewAll": "Hijery rehetra",
@@ -69,21 +70,42 @@
     "paceMarker": "hafainganam-pandaniana"
   },
   "analysis": {
-    "savingsRate": { "title": "{{kept}} voatahiry amin'ity tsingerina ity · {{rate}} amin'ny fidiram-bola" },
-    "projection": { "title": "Amin'ity hafainganam-pandaniana ity, tombanana ho {{projected}} ny faran'ny volana" },
-    "burnSpeed": { "title": "{{rate}} amin'ny fidiram-bola lany tao anatin'ny 7 andro voalohany" },
-    "fixedCosts": {
-      "title_one": "{{count}} fandaniana raikitra · {{share}} amin'ny fidiram-bola",
-      "title_other": "{{count}} fandaniana raikitra · {{share}} amin'ny fidiram-bola"
+    "savingsRate": {
+      "title": "Notahirizinao ny {{rate}} amin'ny karamanao",
+      "body": "{{kept}} {{currency}} amin'ny {{income}} {{currency}}.",
+      "titleOver": "Mihoatra ny karamanao ny fandanianao",
+      "bodyOver": "{{over}} {{currency}} mihoatra ny {{income}} {{currency}} azonao."
     },
-    "categoryDrift": { "title": "{{category}} · +{{pct}} % ambonin'ny fahazarany" },
+    "projection": {
+      "title": "Amin'izao hafainganana izao, hahatratra {{projected}} {{currency}} ny fandanianao amin'ny faran'ny volana",
+      "body": "{{spent}} {{currency}} tao anatin'ny {{elapsed}} andro amin'ny {{total}}."
+    },
+    "burnSpeed": {
+      "title": "Lany tamin'ny herinandro voalohany ny {{rate}} amin'ny karamanao",
+      "body": "{{amount}} {{currency}} tao anatin'ny 7 andro, matetika ny vola aloa amin'ny fiandohan'ny volana."
+    },
+    "fixedCosts": {
+      "title_one": "Mandany {{share}} amin'ny karamanao ny vola aloanao isam-bolana",
+      "title_other": "Mandany {{share}} amin'ny karamanao ny vola aloanao isam-bolana",
+      "body_one": "{{count}} fandaniana miverina isam-bolana, {{amount}} {{currency}} ny totaliny.",
+      "body_other": "{{count}} fandaniana miverina isam-bolana, {{amount}} {{currency}} ny totaliny."
+    },
+    "categoryDrift": {
+      "title": "Mavesatra kokoa noho ny mahazatra ny {{category}}",
+      "body": "{{amount}} {{currency}} tamin'ity volana ity, raha {{avg}} {{currency}} ny salan'isa (+{{pct}} %)."
+    },
     "bestCycle": {
-      "record": "Tahan'ny fitsimbinana ambony indrindra amin'ny tsingerina 6 farany · {{rate}}",
-      "reference": "Ny tsingerinao tsara indrindra · {{best}} ({{month}})"
+      "record": "Ny volana tsara indrindra nandritra ny enim-bolana",
+      "reference": "Efa nahavita tsara kokoa ianao",
+      "bodyRecord": "{{rate}} amin'ny karamanao no notahirizina.",
+      "bodyReference": "{{best}} notahirizina tamin'ny {{month}}, raha {{rate}} tamin'ity volana ity."
     },
     "microSpending": {
       "title_one": "{{count}} fandaniana kely · {{total}}",
-      "title_other": "{{count}} fandaniana kely · {{total}}"
+      "title_other": "{{count}} fandaniana kely · {{total}}",
+      "title": "Mitambatra ny fandaniana madinika",
+      "body_one": "{{count}} fandaniana latsaky ny {{threshold}} {{currency}} : {{total}} {{currency}} ny totaliny.",
+      "body_other": "{{count}} fandaniana latsaky ny {{threshold}} {{currency}} : {{total}} {{currency}} ny totaliny."
     },
     "noSpendStreak": {
       "title_one": "{{count}} andro tsy nandaniana tamin'ny {{total}}",
@@ -94,26 +116,26 @@
       "budget": "Hamorona ny tetibola",
       "budgetFor": "Hamorona tetibola {{category}} amin'ny {{amount}} {{currency}}",
       "transferAmount": "Atokàny {{amount}} {{currency}}",
-      "raiseBudget": "Akaro ho {{amount}} {{currency}} ny tetibola {{category}}",
-      "lowerBudget": "Ahenao ho {{amount}} {{currency}} ny tetibola {{category}}"
+      "raiseBudget": "Hanitsy ny teti-bola {{category}} ho {{amount}} {{currency}}",
+      "lowerBudget": "Hanitsy ny teti-bola {{category}} ho {{amount}} {{currency}}"
     },
-    "title": "Ny jeriko",
+    "title": "Ny volanao",
     "intro": "Mijery ny isanao aho…",
     "skipHint": "Tsindrio raha handingana",
     "keptTitle": "Amin'ity tsingerina ity, voatahirinao",
     "keptDetail": "amin'ny {{income}} fidiram-bola · {{rate}}",
     "bestComparison": "Ny tsingerinao tsara indrindra : {{best}} ({{month}})",
-    "weighSection": "Izay mavesatra",
-    "actionSection": "Atao izao",
+    "weighSection": "Izay nanavesatra",
+    "actionSection": "Ary izao ?",
     "dismiss": "Tsy manampy ahy ity",
     "actionDone": "Vita",
     "actionError": "Tsy azo atao izao ny hetsika",
     "insufficientTitle": "Ho avy ny jery voalohany",
     "insufficient_one": "{{count}} andro angona sisa dia ho vonona ny jery voalohanao",
     "insufficient_other": "{{count}} andro angona sisa dia ho vonona ny jery voalohanao",
-    "calmNote": "Tsy misy manaitra amin'ity tsingerina ity",
-    "entryTitle": "Hamakafaka ny tsingerinao",
-    "entrySubtitle": "Fehin-kevitra 3, hetsika 1 amin'ny tsindrona iray",
+    "calmNote": "Tsy misy zava-dehibe tamin'ity volana ity",
+    "entryTitle": "Ny volanao",
+    "entrySubtitle": "Firy no tazoninao, ary nahoana",
     "reportsCta": "Inona no lazain'ireo isa ireo ?",
     "emptyCycleMessage_one": "{{count}} raki-bola voarakitra amin'ity tsingerina ity — vitsy loatra ho an'ny jery",
     "emptyCycleMessage_other": "{{count}} raki-bola voarakitra amin'ity tsingerina ity — vitsy loatra ho an'ny jery",
@@ -128,14 +150,10 @@
     "sinceLastKeptLess": "Voatahirinao {{amount}} {{currency}} latsaka tamin'ity tsingerina ity",
     "sinceLastNoChange": "Milamina ny isa hatramin'ny farany",
     "cycleOf": "Jerin'ny {{month}}",
+    "incomeEstimated": "Fidiram-bola tombanana ho {{amount}} {{currency}} araka ny volana teo aloha",
+    "incomeEstimatedEdit": "Hanova",
     "hidden": "Nafenina ny fehin-kevitra",
     "undo": "Averina",
-    "intent": {
-      "overview": "Topi-maso",
-      "overspend": "Mandany be ve aho ?",
-      "budgets": "Ny tetibolako ?",
-      "savings": "Hitahiry bebe kokoa"
-    },
     "goal": {
       "title": "Inona ny tanjonao izao ?",
       "saveAmount": "Mitahiry isam-bolana",
@@ -144,17 +162,87 @@
       "amountPlaceholder": "Vola isam-bolana (Ar)",
       "confirm": "Ekena",
       "current": "Tanjona : {{label}}",
-      "edit": "Ovaina"
+      "edit": "Ovaina",
+      "overline": "Tanjona",
+      "none": "Mbola tsy voafidy",
+      "choose": "Hifidy",
+      "help": "Mitarika ny fanamarihana sy ny hetsika atolotra izy. Azonao ovaina foana.",
+      "amountLabel": "Vola atokana isam-bolana ({{currency}})",
+      "saveShort": "Manokana {{amount}} {{currency}}"
     },
     "budgetOverrun": {
-      "exceeded": "{{category}} · nihoatra ny tetibola {{amount}}",
-      "pace": "{{category}} · mizotra ho {{projected}} amin'ny tetibola {{limit}}"
+      "exceeded": "Nihoatra ny tetibolany ny {{category}}",
+      "pace": "Hihoatra ny tetibolany ny {{category}}",
+      "bodyExceeded": "{{spent}} {{currency}} raha {{limit}} {{currency}} ny fetra (+{{amount}}).",
+      "bodyPace": "Amin'izao hafainganana izao : {{projected}} {{currency}} raha {{limit}} {{currency}} ny fetra."
     },
-    "budgetUnused": { "title": "Tetibola {{category}} nampiasaina {{pct}} %" },
+    "budgetUnused": {
+      "title": "Lavitra ny tena fandanianao ny tetibola {{category}}",
+      "body": "Fetra {{limit}} {{currency}}, lany {{spent}} {{currency}} ({{pct}} %) : tsy hampitandrina anao izy."
+    },
     "goalGap": {
-      "reached": "Tratra ny tanjona · {{kept}} voatahiry tamin'ny {{goal}} nokendrena",
-      "behind": "Tanjona {{goal}} · voatahiry tamin'ity tsingerina ity : {{kept}} ({{pct}})"
-    }
+      "reached": "Tratra ny tanjona fitahirizana",
+      "behind": "Mbola tsy tratra ny tanjona fitahirizanao",
+      "bodyReached": "{{kept}} {{currency}} natokana, tanjona {{goal}} {{currency}}.",
+      "bodyBehind": "{{kept}} {{currency}} natokana amin'ny {{goal}} {{currency}} kendrena ({{pct}})."
+    },
+    "topCategory": {
+      "title": "{{category}} no fandaniana lehibe indrindra",
+      "body": "{{amount}} {{currency}}, izany hoe {{pct}} % amin'ny fandanianao."
+    },
+    "verdict": {
+      "green": "Maitso",
+      "orange": "Tery",
+      "red": "Mena",
+      "unknown": "Tsy feno"
+    },
+    "keptOn": "tazonina tamin'ny karama {{income}} · {{rate}}",
+    "keptOnEstimated": "tamin'ny karama tombanana ~{{income}} · {{rate}}",
+    "overOn": "mihoatra ny karamanao {{income}} · {{rate}}",
+    "record": "Ny rekitrao : {{best}} tamin'ny {{month}}",
+    "seeCalc": "Jereo ny kajy",
+    "hideCalc": "Afeno ny kajy",
+    "hideInsight": "Afeno ity fanamarihana ity",
+    "actionBenefit": {
+      "createBudget": "Fetra akaiky ny tena fandanianao no hampitandrina anao amin'ny fotoana mety amin'ny volana manaraka.",
+      "createTransfer": "Natokana dieny izao, tsy ho lasa fandaniana intsony io vola io.",
+      "createPlanification": "Efa nomanina mialoha, tsy hahagaga anao intsony io vola io.",
+      "openScreen": "Vonona ny antsipiriany, jereo fotsiny."
+    },
+    "actionButton": {
+      "createBudget": "Hanitsy ny teti-bolako",
+      "createTransfer": "Hanokana vola",
+      "createPlanification": "Handrindra",
+      "openScreen": "Jereo ny antsipiriany"
+    },
+    "notForMe": "Tsy ho ahy",
+    "noIncome": {
+      "dayOf": "{{range}} · andro faha-{{elapsed}} amin'ny {{total}}",
+      "spentSoFar": "Lany hatreto",
+      "title": "Tsy hitako ny karamanao tamin'ity volana ity",
+      "body": "Miaraka aminy, azoko lazaina aminao hoe firy no tazoninao ary aiza ianao ao anatin'ny volana.",
+      "usual": "Mazàna mahazo ~{{amount}} ianao manodidina ny faha-{{day}}.",
+      "add": "Hampiditra ny karamako",
+      "useEstimate": "Ampiasao ho tombana ny {{amount}}",
+      "meanwhile": "Mandra-piandry"
+    },
+    "entry": {
+      "overline": "Ny volanao · {{range}}",
+      "kept": "tazonina · {{rate}} amin'ny karamanao",
+      "keptEstimated": "tazonina · {{rate}} amin'ny karama tombanana",
+      "over": "lany mihoatra ny karamanao",
+      "seeWhy": "Jereo ny antony"
+    },
+    "otherAngle": "Jereo amin'ny lafiny hafa",
+    "intent": {
+      "overview": "Fijery ankapobeny",
+      "overspend": "Fandaniana",
+      "budgets": "Teti-bola",
+      "savings": "Tahiry"
+    },
+    "introCompare": "Ampitahaiko amin'ny volana teo aloha…",
+    "introWeigh": "Tadiaviko izay nanavesatra…",
+    "loadingHint": "Manao kajy eo amin'ny findainao i Bubule"
   },
   "add": {
     "newTransaction": "Tateram-bola vaovao",
@@ -261,7 +349,44 @@
     "sat": "As",
     "sun": "Al"
   },
+  "cycle": {
+    "confirm": {
+      "title": "Araka ny volana farany",
+      "paydayLine": "Mandray karama manodidina ny {{day}}",
+      "amountLine": "~{{amount}} {{currency}}",
+      "irregularTitle": "Toa tsy tafatoetra ny fidiram-bolanao",
+      "irregularLine": "Hanaraka ny kalandrie ny volanao",
+      "yes": "Izay tokoa",
+      "edit": "Hanova ny andro",
+      "irregular": "Fidiram-bola tsy tafatoetra",
+      "hasPayday": "Manana andro fandraisana karama aho"
+    }
+  },
   "settings": {
+    "cycle": {
+      "title": "Ny tsingeriko",
+      "subtitle": "Manomboka amin'ny karama iray ka hatramin'ny manaraka",
+      "help": "Manomboka amin'ny andro andraisanao karama ny volanao, fa tsy amin'ny 1.",
+      "modeSection": "Fomba",
+      "modePayday": "Andro raikitra",
+      "modePaydayDesc": "Mandray karama isam-bolana manodidina ny andro iray mitovy",
+      "modeIrregular": "Fidiram-bola tsy tafatoetra",
+      "modeIrregularDesc": "Asa mahaleo tena, varotra, fidiram-bola tsindraindray",
+      "modeCalendar": "Faran'ny volana",
+      "modeCalendarDesc": "Manomboka ny 1 ka hatramin'ny andro farany amin'ny volana",
+      "daySection": "Andro fandraisana karama",
+      "dayHelp": "Raha fohy kokoa ny volana, ny andro farany amin'ny volana no raisina.",
+      "incomeSection": "Fidiram-bola mahazatra",
+      "incomeLabel": "Fidiram-bola mahazatra isam-bolana ({{currency}})",
+      "incomePlaceholder": "Ohatra: 2000000",
+      "incomeHelp": "Tsy voatery. Tombana ampiasaina raha mbola tsy voasoratra ny karamanao.",
+      "save": "Tehirizina",
+      "detectedTitle": "Araka ny nosoratanao",
+      "detectedLine": "Mandray karama manodidina ny {{day}}, ~{{amount}} {{currency}}",
+      "detectedLineNoAmount": "Mandray karama manodidina ny {{day}}",
+      "use": "Ampiasaina",
+      "incomeFocusHint": "Mbola tsy voasoratra ny karamanao amin'ity volana ity : io vola io no ampiasain'i Mitsitsy ho tombana. Ahitsio raha ilaina, dia tsindrio ny Tehirizina."
+    },
     "title": "Firafitra",
     "whatsNew": "Vaovao",
     "gameDataTitle": "Angona lalao",
@@ -1252,5 +1377,47 @@
     "tip": "Azonao apetraka amin'ny solatandindona fototra hafa raha mamorona — manampy hampifanaraka amin'ny kaontinao tena.",
     "tipPrefix": "Tip.",
     "lastUpdate": "Nohavaozina {{time}}"
+  },
+  "intro": {
+    "mois": {
+      "new": "Vaovao",
+      "title": "Ny volanao, amin'ny valiny iray",
+      "subtitle": "Mamaky ny fandanianao sy ny karamanao i Mitsitsy, ka milaza aminao isam-bolana hoe:",
+      "p1Title": "Raha nifarana tao amin'ny maitso ianao",
+      "p1Body": "Izay notehirizinao, ampitahaina amin'ny volanao tsara indrindra.",
+      "p2Title": "Izay nanavesatra",
+      "p2Body": "Fehezanteny telo, fa tsy tabilao. Tsindry iray monja ny kajy.",
+      "p3Title": "Zavatra iray hatao",
+      "p3Body": "Dingana tokana, azo ampiharina avy hatrany, mba hitahiry bebe kokoa amin'ny volana manaraka.",
+      "trust": "Ao amin'ny findainao avokoa no anaovana ny kajy. Tsy misy mivoaka ny app.",
+      "continue": "Hanohy",
+      "later": "Aoriana",
+      "step2": "Dingana 2 amin'ny 2",
+      "payTitle": "Zavatra iray hamarinina: ny karamanao",
+      "payIntro": "Manomboka amin'ny andro andraisanao karama ny volanao, fa tsy amin'ny 1. Araka ny nosoratanao:",
+      "paidAround": "Mandray karama manodidina ny {{day}}",
+      "aboutPerMonth": "tokony ho {{amount}} {{currency}} isam-bolana",
+      "spotted_one": "Hita tamin'ny karamanao farany. Azonao ahitsy ny andro raha ilaina.",
+      "spotted_other": "Hita tamin'ny karamanao {{count}} farany. Azonao ahitsy ny andro raha ilaina.",
+      "confirm": "Izay tokoa, hijery ny volako",
+      "changeDay": "Hanova ny andro",
+      "irregular": "Fidiram-bola tsy tafatoetra",
+      "irregularTitle": "Toa tsy tafatoetra ny fidiram-bolanao",
+      "irregularBody": "Hanaraka ny kalandrie ny volanao, manomboka ny 1 ka hatramin'ny andro farany. Azonao atao ny mametraka andro fandraisana karama raha manana ianao.",
+      "hasPayday": "Manana andro fandraisana karama aho",
+      "notFoundTitle": "Mbola tsy hitako ny karamanao",
+      "notFoundBody": "Lazao ny andro andraisanao karama mba hanomboka amin'ny fotoana mety ny volanao. Raha tsy izany, hanaraka ny kalandrie izy.",
+      "setPayday": "Hilaza ny androko fandraisana karama",
+      "seeAnyway": "Hijery ny volako ihany",
+      "editable": "Azo ovaina foana ao amin'ny Fikirakirana → Ny tsingeriko",
+      "about": "Momba azy",
+      "gotIt": "Azoko",
+      "why": "Ny tanjona : mamarana ny volana tsirairay ao anatin'ny maitso, na firy na firy ny karamanao. Manomboka amin'ny andro andraisanao karama ny volanao, fa tsy amin'ny voalohan'ny volana.",
+      "vsTitle": "Tatitra sa Ny volanao ?",
+      "vsReportsName": "Tatitra",
+      "vsReports": "ny isanao amin'ny antsipiriany : sary, totaly isaky ny sokajy sy vanim-potoana. Mamaky ianao, manatsoaka hevitra.",
+      "vsMonthName": "Ny volanao",
+      "vsMonth": "ny fehin-kevitra, efa voatsoaka : ao anatin'ny maitso sa tsia, izay nanavesatra, ary hetsika iray hatao."
+    }
   }
 }

@@ -247,16 +247,40 @@ export async function cancelStreakReminder(): Promise<void> {
 }
 
 /**
- * Rappel de fin de cycle (Phase 4) : « ton bilan est prêt », programmé pour le
- * 1er du mois suivant à 09:00. Un seul — cancel-then-schedule, idempotent.
+ * Prochaine échéance du rappel « bilan prêt », à 09:00 locale.
+ * - `payDay` fourni (mode `payday`, Phase 7) : premier jour de paye ≥ demain,
+ *   borné à `min(payDay, joursDuMois)` pour les mois courts (31 → 28 fév.).
+ * - sinon : 1er du mois suivant (comportement Phase 4).
+ * Fonction pure, `now` injectable pour les tests.
  */
-export async function scheduleAnalysisReadyReminder(): Promise<void> {
+export function nextAnalysisReadyDate(payDay?: number | null, now: Date = new Date()): Date {
+  if (payDay == null || payDay < 1 || payDay > 31) {
+    return new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0);
+  }
+  const day = Math.trunc(payDay);
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  for (let offset = 0; offset <= 2; offset++) {
+    const year = tomorrow.getFullYear();
+    const month = tomorrow.getMonth() + offset;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const candidate = new Date(year, month, Math.min(day, lastDay), 9, 0, 0);
+    if (candidate >= tomorrow) return candidate;
+  }
+  // Inatteignable (deux mois suffisent toujours) — repli sûr.
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0);
+}
+
+/**
+ * Rappel de fin de cycle (Phase 4) : « ton bilan est prêt ». Programmé au jour
+ * de paye si `payDay` est fourni (Phase 7), sinon le 1er du mois suivant, à
+ * 09:00. Un seul — cancel-then-schedule, idempotent.
+ */
+export async function scheduleAnalysisReadyReminder(payDay?: number | null): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(ANALYSIS_READY_ID); } catch {}
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) return;
 
-  const now = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0);
+  const target = nextAnalysisReadyDate(payDay);
 
   await Notifications.scheduleNotificationAsync({
     identifier: ANALYSIS_READY_ID,

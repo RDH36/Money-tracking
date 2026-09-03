@@ -18,11 +18,7 @@ import {
 import { useBudgets } from '@/hooks/useBudgets';
 import { useDashboardFocus } from '@/hooks/useDashboardFocus';
 import { calculateLevel, xpProgress, xpToNextLevel } from '@/constants/badges';
-import { AddAccountModal } from '@/components/AddAccountModal';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { LevelUpModal } from '@/components/LevelUpModal';
-import { FeatureUnlockedModal } from '@/components/FeatureUnlockedModal';
-import { LockedFeatureModal, type LockedFeature } from '@/components/LockedFeatureModal';
+import type { LockedFeature } from '@/components/LockedFeatureModal';
 import {
   DashboardHeader,
   BalanceHeroCard,
@@ -33,11 +29,17 @@ import {
   RecentTransactionsCard,
   formatDateLabelFr,
   formatMonthLabelFr,
-  startOfMonth,
+  DashboardModals,
+  pickOverspend,
+  accountDisplayName,
 } from '@/components/dashboard';
 import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
 import { AnalysisEntryCard } from '@/components/analysis';
+import { CycleConfirmCard, sumCycleTotals } from '@/components/cycle';
 import { useAnalysisEntry } from '@/hooks/useAnalysisEntry';
+import { useIntroMoisAutoOpen } from '@/hooks/useIntroMois';
+import { useCycleSettings } from '@/hooks/useCycleSettings';
+import { getCurrentCycle, formatCycleRange } from '@/lib/analysis/cycle';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -65,6 +67,8 @@ export default function DashboardScreen() {
   } = useTransactions();
   const { topBudgets, overspentBudgets, refresh: refreshBudgets, elapsedRatio } = useBudgets();
   const { visible: analysisEntryVisible } = useAnalysisEntry();
+  // Intro « Ton mois » (Phase 8) : auto-ouverte une fois, puis porte d'entrée.
+  const intro = useIntroMoisAutoOpen(analysisEntryVisible);
   const { balanceHidden, toggleBalanceVisibility, appLockEnabled } = useSettings();
   const appLockBanner = useAppLockBanner();
   const { hasNew, checkNew } = useWhatsNew();
@@ -80,37 +84,18 @@ export default function DashboardScreen() {
   const [unlockQueue, setUnlockQueue] = useState<string[]>([]);
   const [lockedFeature, setLockedFeature] = useState<LockedFeature | null>(null);
 
-  const totalBalance = useMemo(
-    () => accounts.reduce((s, a) => s + a.current_balance, 0),
-    [accounts]
+  const totalBalance = useMemo(() => accounts.reduce((s, a) => s + a.current_balance, 0), [accounts]);
+
+  // Cycle personnel (Phase 7) : le hero suit les bornes du cycle, pas le mois.
+  const { settings: cycleSettings, isConfirmed: cycleConfirmed } = useCycleSettings();
+  const cycle = useMemo(() => getCurrentCycle(new Date(), cycleSettings), [cycleSettings]);
+  const { monthIncome, monthExpense } = useMemo(
+    () => sumCycleTotals(transactions, cycle),
+    [transactions, cycle]
   );
 
-  const { monthIncome, monthExpense } = useMemo(() => {
-    const monthStart = startOfMonth(new Date()).getTime();
-    let income = 0;
-    let expense = 0;
-    for (const tx of transactions) {
-      const t = new Date(tx.transaction_date).getTime();
-      if (t < monthStart || tx.transfer_id) continue;
-      if (tx.type === 'income') income += tx.amount;
-      else if (tx.type === 'expense') expense += tx.amount;
-    }
-    return { monthIncome: income, monthExpense: expense };
-  }, [transactions]);
-
-  const recentTransactions = useMemo(
-    () => transactions.slice(0, 4),
-    [transactions]
-  );
-
-  const overspendBudget = useMemo(() => {
-    const first = overspentBudgets[0];
-    if (!first || !first.budgetLimit) return undefined;
-    return {
-      name: first.category.name,
-      overshoot: first.spent - first.budgetLimit,
-    };
-  }, [overspentBudgets]);
+  const recentTransactions = useMemo(() => transactions.slice(0, 4), [transactions]);
+  const overspendBudget = useMemo(() => pickOverspend(overspentBudgets), [overspentBudgets]);
 
   useDashboardFocus({
     refreshAccounts,
@@ -133,10 +118,7 @@ export default function DashboardScreen() {
     }
     return result;
   };
-  const getAccountName = (a: AccountWithBalance): string =>
-    a.is_default === 1
-      ? a.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash')
-      : a.name;
+  const getAccountName = (a: AccountWithBalance): string => accountDisplayName(a, t);
   const now = new Date();
 
   return (
@@ -174,7 +156,6 @@ export default function DashboardScreen() {
 
           <CloudBackupSurveyPrompt />
 
-
           <BalanceHeroCard
             totalBalance={totalBalance}
             accountsCount={accounts.length}
@@ -185,11 +166,16 @@ export default function DashboardScreen() {
             overspendBudget={overspendBudget}
             onOverspendPress={() => router.push('/history')}
             currencyCode={currency.code}
+            cycleLabel={formatCycleRange(cycle, i18n.language)}
           />
+
+          {intro.seen && !cycleConfirmed ? <CycleConfirmCard /> : null}
 
           {analysisEntryVisible ? (
             <View style={{ marginTop: 16 }}>
-              <AnalysisEntryCard onPress={() => router.push('/analysis' as any)} />
+              <AnalysisEntryCard
+                onPress={() => router.push((intro.seen ? '/analysis' : '/intro-mois') as any)}
+              />
             </View>
           ) : null}
 
@@ -234,37 +220,26 @@ export default function DashboardScreen() {
         </View>
       </ScrollView>
 
-      <ConfirmDialog
-        isOpen={!!deleteTarget} title={t('history.deleteConfirm')}
-        message={t('history.deleteMessage')} confirmText={t('common.delete')}
-        isDestructive onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) {
-            posthog.capture('transaction_deleted', { transaction_type: deleteTarget.type, source: 'dashboard' });
-            deleteTransaction(deleteTarget.id);
-            refreshAccounts();
-          }
-          setDeleteTarget(null);
+      <DashboardModals
+        deleteTarget={deleteTarget}
+        onCloseDelete={() => setDeleteTarget(null)}
+        onConfirmDelete={(tx) => {
+          posthog.capture('transaction_deleted', { transaction_type: tx.type, source: 'dashboard' });
+          deleteTransaction(tx.id);
+          refreshAccounts();
         }}
-      />
-
-      <AddAccountModal
-        isOpen={showAddAccount}
-        onClose={() => setShowAddAccount(false)}
+        showAddAccount={showAddAccount}
+        onCloseAddAccount={() => setShowAddAccount(false)}
         onCreateAccount={handleCreateAccount}
         canCreateAccount={canCreateAccount}
         customAccountsCount={customAccountsCount}
         maxCustomAccounts={maxCustomAccounts}
-      />
-
-      <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
-      <FeatureUnlockedModal
+        levelUp={levelUp}
+        onCloseLevelUp={() => setLevelUp(null)}
         unlockKey={unlockQueue[0] ?? null}
-        onClose={() => setUnlockQueue((q) => q.slice(1))}
-      />
-      <LockedFeatureModal
-        feature={lockedFeature}
-        onClose={() => setLockedFeature(null)}
+        onCloseUnlock={() => setUnlockQueue((q) => q.slice(1))}
+        lockedFeature={lockedFeature}
+        onCloseLocked={() => setLockedFeature(null)}
       />
     </View>
   );

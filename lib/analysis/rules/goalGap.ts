@@ -19,6 +19,7 @@ export function makeGoalGapRule(goalAmount: number): Rule {
         severity: 'info',
         weight: 40,
         titleKey: 'analysis.goalGap.reached',
+        bodyKey: 'analysis.goalGap.bodyReached',
         params: { kept: formatAr(kept), goal: formatAr(goalAmount) },
         evidence: `${formatAr(kept)} ≥ ${formatAr(goalAmount)}`,
       };
@@ -32,6 +33,7 @@ export function makeGoalGapRule(goalAmount: number): Rule {
       severity: kept < goalAmount / 2 ? 'watch' : 'info',
       weight: clampWeight(45 + (1 - kept / goalAmount) * 35, 45, 85),
       titleKey: 'analysis.goalGap.behind',
+      bodyKey: 'analysis.goalGap.bodyBehind',
       params: { goal: formatAr(goalAmount), kept: formatAr(kept), pct: `${pct} %` },
       evidence: `${formatAr(kept)} ÷ ${formatAr(goalAmount)} = ${pct} %`,
       action: {

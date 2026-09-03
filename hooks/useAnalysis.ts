@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSQLiteContext } from '@/lib/database';
-import { getCurrentCycle, getPreviousCycles } from '@/lib/analysis/cycle';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useCycleSettingsValue } from '@/hooks/useCycleSettings';
+import { pickCycleToAnalyze, computeSinceLast, type SinceLast } from '@/hooks/useAnalysisCycle';
 import { getIndicators } from '@/lib/analysis/indicators';
 import { scoreInsights, type ScoreOptions, type ScoreResult } from '@/lib/analysis/score';
 import {
@@ -11,25 +13,20 @@ import {
   undismissInsight,
   markActionApplied,
 } from '@/lib/analysis/persistence';
-import {
-  DAY_MS,
-  EMPTY_CYCLE_TX,
-  LAST_ANALYSIS_KEY,
-  assess,
-  fetchCycleTxCount,
-  fetchDataStat,
-} from '@/lib/analysis/sufficiency';
+import { EMPTY_CYCLE_TX, LAST_ANALYSIS_KEY, assess, fetchDataStat } from '@/lib/analysis/sufficiency';
 import type { Cycle, Indicators } from '@/lib/analysis/types';
+
+export type { SinceLast } from '@/hooks/useAnalysisCycle';
 
 /** Au-dessus (avec revenu) : un « mois calme » devient une info crédible. */
 const CALM_MIN_TX = 15;
-/** Profondeur du repli : cycles complets scannés pour trouver de la matière. */
-const FALLBACK_CYCLES = 6;
 
 /**
  * État explicite de l'analyse. `calmMonth` exige des conditions POSITIVES
  * (revenu présent, activité réelle) : il ne peut plus jamais être atteint par
- * absence de données.
+ * absence de données. `noIncome` = aucun revenu sur le cycle NI revenu attendu
+ * (Phase 7 : `getIndicators` injecte le revenu attendu quand le cycle en est
+ * dépourvu, donc `income === 0` signifie « rien à estimer »).
  */
 export type AnalysisState =
   | 'insufficientData'
@@ -37,33 +34,6 @@ export type AnalysisState =
   | 'noIncome'
   | 'calmMonth'
   | 'normal';
-
-/** Comparaison avec la dernière analyse persistée (bloc « depuis la dernière fois »). */
-export interface SinceLast {
-  daysSince: number;
-  prevKept: number;
-  prevMicroTotal: number;
-  prevMicroCount: number;
-  prevSavingsRate: number | null;
-}
-
-/**
- * Choisit le cycle à analyser. Le cycle courant s'il a de la matière ; sinon,
- * repli sur le cycle complet le plus récent qui en a — 5 mois d'historique ne
- * doivent jamais donner « rien à analyser » le 7 du mois.
- */
-async function pickCycleToAnalyze(
-  db: ReturnType<typeof useSQLiteContext>
-): Promise<{ cycle: Cycle; txCount: number }> {
-  const current = getCurrentCycle();
-  const currentCount = await fetchCycleTxCount(db, current);
-  if (currentCount >= EMPTY_CYCLE_TX) return { cycle: current, txCount: currentCount };
-  for (const prev of getPreviousCycles(FALLBACK_CYCLES)) {
-    const n = await fetchCycleTxCount(db, prev);
-    if (n >= EMPTY_CYCLE_TX) return { cycle: prev, txCount: n };
-  }
-  return { cycle: current, txCount: currentCount };
-}
 
 export interface UseAnalysisResult {
   loading: boolean;
@@ -92,6 +62,9 @@ export interface UseAnalysisResult {
 
 export function useAnalysis(opts: ScoreOptions = {}): UseAnalysisResult {
   const db = useSQLiteContext();
+  // Phase 7 : cycle personnel + revenu attendu, lus depuis le store.
+  const settings = useCycleSettingsValue();
+  const expectedIncome = useSettingsStore((s) => s.expectedIncome);
   const [loading, setLoading] = useState(true);
   const [enough, setEnough] = useState(false);
   const [daysUntilReady, setDaysUntilReady] = useState(30);
@@ -117,33 +90,15 @@ export function useAnalysis(opts: ScoreOptions = {}): UseAnalysisResult {
         setLoading(false);
         return;
       }
-      const { cycle: c, txCount: count } = await pickCycleToAnalyze(db);
+      const { cycle: c, txCount: count } = await pickCycleToAnalyze(db, settings);
       const [ind, dismissed, last] = await Promise.all([
-        getIndicators(db, c),
+        getIndicators(db, c, { expectedIncome, settings }),
         getDismissedIds(db),
         getLastAnalysis(db),
       ]);
       if (!alive) return;
-      // Comparaison avec la dernière analyse persistée — seulement si elle
-      // existe et ne date pas de la minute (rechargements d'écran).
-      if (last) {
-        analysisIdRef.current = last.id;
-        const daysSince = Math.floor((Date.now() - new Date(last.created_at).getTime()) / DAY_MS);
-        if (daysSince >= 1) {
-          try {
-            const prev = JSON.parse(last.indicators_json) as Partial<Indicators>;
-            setSinceLast({
-              daysSince,
-              prevKept: prev.keptAmount ?? 0,
-              prevMicroTotal: prev.microTotal ?? 0,
-              prevMicroCount: prev.microCount ?? 0,
-              prevSavingsRate: prev.savingsRate ?? null,
-            });
-          } catch {
-            setSinceLast(null);
-          }
-        }
-      }
+      if (last) analysisIdRef.current = last.id;
+      setSinceLast(computeSinceLast(last));
       setCycle(c);
       setIndicators(ind);
       setCycleTxCount(count);
@@ -153,7 +108,7 @@ export function useAnalysis(opts: ScoreOptions = {}): UseAnalysisResult {
     return () => {
       alive = false;
     };
-  }, [db]);
+  }, [db, settings, expectedIncome]);
 
   const result = useMemo<ScoreResult | null>(
     () =>

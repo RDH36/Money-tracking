@@ -1,14 +1,22 @@
 /**
  * Calcul des 12 indicateurs — fonctions pures, aucune dépendance React.
  *
- * `getIndicators(db, cycle)` fait le minimum de requêtes : un premier appel pour
+ * `getIndicators(db, cycle, opts)` fait le minimum de requêtes : un premier appel pour
  * les totaux (dont dépend le seuil micro), puis toutes les autres en parallèle.
  * Aucune boucle sur du SQL. Toute division dont le dénominateur peut valoir 0
  * est gardée → jamais `NaN`, jamais `Infinity`, `null` à la place.
  */
 import type { SQLiteDatabase } from 'expo-sqlite';
-import type { BestCycle, BudgetStatus, CategoryDrift, Cycle, Indicators, RecurringExpense } from './types';
-import { getPreviousCycles } from './cycle';
+import type {
+  BestCycle,
+  BudgetStatus,
+  CategoryDrift,
+  Cycle,
+  CycleSettings,
+  Indicators,
+  RecurringExpense,
+} from './types';
+import { cycleAnchorDate, getPreviousCycles } from './cycle';
 import {
   fetchBudgetLimits,
   fetchCategoryNames,
@@ -35,10 +43,20 @@ export function computeMicroThreshold(incomeCentimes: number): number {
   return flooredAr * 100;
 }
 
-/** Plus longue chaîne de dépenses à cadence mensuelle (gap 25–35 j, montant ±15 %). */
-function longestMonthlyChain(list: ExpenseRow[]): ExpenseRow[] {
+/** Ligne datée avec montant : le minimum pour détecter une cadence mensuelle. */
+export interface DatedAmount {
+  amount: number;
+  transaction_date: string;
+}
+
+/**
+ * Plus longue chaîne de lignes à cadence mensuelle : écart 25–35 j entre deux
+ * occurrences, montant dans ±`tolerance` de la moyenne courante de la chaîne
+ * (0.15 pour les dépenses récurrentes, 0.10 pour les revenus — voir payday.ts).
+ */
+export function longestMonthlyChain<T extends DatedAmount>(list: T[], tolerance = 0.15): T[] {
   const rows = [...list].sort((a, b) => a.transaction_date.localeCompare(b.transaction_date));
-  let best: ExpenseRow[] = [];
+  let best: T[] = [];
   for (let i = 0; i < rows.length; i++) {
     const chain = [rows[i]];
     let sum = rows[i].amount;
@@ -48,7 +66,7 @@ function longestMonthlyChain(list: ExpenseRow[]): ExpenseRow[] {
       if (gapDays < 25) continue; // même mois : on saute le doublon
       if (gapDays > 35) break; // cadence rompue
       const avg = sum / chain.length;
-      if (avg > 0 && Math.abs(rows[j].amount - avg) / avg > 0.15) continue; // hors ±15 %
+      if (avg > 0 && Math.abs(rows[j].amount - avg) / avg > tolerance) continue; // hors tolérance
       chain.push(rows[j]);
       sum += rows[j].amount;
       lastTime = new Date(rows[j].transaction_date).getTime();
@@ -92,17 +110,31 @@ function computeNoSpendDays(rows: ExpenseRow[], cycle: Cycle): number {
   return Math.max(0, cycle.elapsedDays - days.size);
 }
 
-export async function getIndicators(db: SQLiteDatabase, cycle: Cycle): Promise<Indicators> {
-  // Cycles précédents RELATIFS au cycle analysé (milieu de mois → sans ambiguïté
-  // de fuseau), du plus récent au plus ancien.
-  const [year, month] = cycle.label.split('-').map(Number);
-  const prev = getPreviousCycles(6, new Date(year, month - 1, 15));
+export interface IndicatorsOptions {
+  /** Revenu attendu (centimes) : injecté si le revenu du cycle vaut 0 (Phase 7). */
+  expectedIncome?: number | null;
+  /** Réglages de cycle, pour dériver les cycles précédents dans le même mode. */
+  settings?: CycleSettings;
+}
+
+export async function getIndicators(
+  db: SQLiteDatabase,
+  cycle: Cycle,
+  opts: IndicatorsOptions = {}
+): Promise<Indicators> {
+  // Cycles précédents RELATIFS au cycle analysé (ancre au milieu du cycle →
+  // sans ambiguïté de fuseau, quel que soit le mode), du plus récent au plus ancien.
+  const prev = getPreviousCycles(6, cycleAnchorDate(cycle), opts.settings);
   const prev3Start = prev[2].start; // début du 3ᵉ cycle précédent
   const day7Iso = new Date(new Date(cycle.start).getTime() + 7 * DAY_MS).toISOString();
 
   // Totaux d'abord : le seuil micro en dépend.
   const totals = await fetchCurrentTotals(db, cycle, day7Iso);
-  const income = totals.income;
+  // Revenu du cycle absent → revenu attendu à la place ; tout ce qui dérive du
+  // revenu (seuil micro, taux d'épargne, part fixe, burn…) devient une estimation.
+  const expected = opts.expectedIncome ?? 0;
+  const incomeEstimated = totals.income <= 0 && expected > 0;
+  const income = incomeEstimated ? expected : totals.income;
   const expenses = totals.expenses;
   const microThreshold = computeMicroThreshold(income);
 
@@ -173,6 +205,7 @@ export async function getIndicators(db: SQLiteDatabase, cycle: Cycle): Promise<I
   return {
     cycle,
     income,
+    incomeEstimated,
     expenses,
     microThreshold,
     cyclesAvailable,

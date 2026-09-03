@@ -13,10 +13,21 @@ import { RULES, makeGoalGapRule } from './rules';
 /** Nombre maximum de constats affichés. */
 export const MAX_INSIGHTS = 3;
 
-/** La raison du lancement — choisie via les chips en tête d'écran. */
+/** L'angle de lecture — dérivé de l'objectif (Phase 8), plus choisi à part. */
 export type AnalysisIntent = 'overview' | 'overspend' | 'budgets' | 'savings';
-/** L'objectif durable de l'utilisateur — demandé à la première ouverture. */
+/** L'objectif durable de l'utilisateur — choisi dans « Ton mois », modifiable. */
 export type AnalysisGoal = 'saveAmount' | 'keepBudgets' | 'understand';
+
+/**
+ * Angle induit par l'objectif : un seul réglage pour l'utilisateur, les deux
+ * notions se recouvraient (retour propriétaire).
+ */
+export function intentForGoal(goal: AnalysisGoal | null | undefined): AnalysisIntent {
+  if (goal === 'saveAmount') return 'savings';
+  if (goal === 'keepBudgets') return 'budgets';
+  if (goal === 'understand') return 'overspend';
+  return 'overview';
+}
 
 export interface ScoreOptions {
   intent?: AnalysisIntent;
@@ -28,7 +39,7 @@ export interface ScoreOptions {
 /** Règles favorisées par intention (id de base, avant le `:`). */
 const INTENT_BOOST: Record<AnalysisIntent, string[]> = {
   overview: [],
-  overspend: ['burnSpeed', 'microSpending', 'categoryDrift', 'projection'],
+  overspend: ['burnSpeed', 'microSpending', 'categoryDrift', 'projection', 'topCategory'],
   budgets: ['budgetOverrun', 'budgetUnused'],
   savings: ['savingsRate', 'goalGap', 'fixedCosts'],
 };

@@ -95,6 +95,12 @@ export default function SettingsScreen() {
             onPress={() => router.push('/settings/categories' as any)}
           />
           <SettingsRow
+            icon="calendar-outline"
+            iconColor="#0E8C82"
+            label={t('settings.cycle.title')}
+            onPress={() => router.push('/settings/cycle' as any)}
+          />
+          <SettingsRow
             icon="color-palette-outline"
             iconColor="#EC4899"
             label={t('settings.appearance')}
