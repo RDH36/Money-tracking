@@ -12,7 +12,6 @@ import { DatabaseProvider } from "@/lib/database/sqlite";
 import { getBgBaseHex } from "@/constants/designTokens";
 import { posthog } from "@/lib/posthog";
 import { LockGate } from "@/components/lock";
-import { EditTransactionSheet } from "@/components/transactions/EditTransactionSheet";
 
 function LoadingFallback() {
   return (
@@ -47,7 +46,6 @@ function AppContent() {
         <Stack.Screen name="whats-new" />
         <Stack.Screen name="other-apps" />
       </Stack>
-      <EditTransactionSheet />
     </>
   );
 }

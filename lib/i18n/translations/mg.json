@@ -1525,18 +1525,5 @@
     },
     "editButton": "Ovay",
     "editA11y": "Ovay ny fifanakalozana {{label}}"
-  },
-  "editTx": {
-    "title": "Hanova ny fifanakalozana",
-    "titleTransfer": "Hanova ny famindrana",
-    "a11y": "Hanova {{label}}",
-    "amount": "Vola",
-    "date": "Daty nanaovana azy",
-    "category": "Sokajy",
-    "account": "Kaonty",
-    "from": "Avy amin'ny",
-    "to": "Ho any amin'ny",
-    "note": "Fanamarihana",
-    "transferHint": "Miova miaraka ireo kaonty roa amin'ny famindrana: vola mitovy, daty mitovy."
   }
 }
