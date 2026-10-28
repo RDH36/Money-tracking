@@ -1448,7 +1448,7 @@
     "failed_other": "Sary {{count}} tsy voavaky",
     "currencyMismatch": "Vola {{read}} no voavaky, {{app}} kosa ny volanao : hamarino aloha vao tehirizina.",
     "accountLabel": "Kaonty banky",
-    "tapToEdit": "Tsindrio ny fifanakalozana iray raha hanova azy.",
+    "tapToEdit": "« Ovay » raha hanitsy fifanakalozana alohan'ny hitahirizana azy.",
     "save_one": "Tehirizo ny fifanakalozana {{count}}",
     "save_other": "Tehirizo ny fifanakalozana {{count}}",
     "saveNone": "Tsy misy voamarika",
@@ -1522,6 +1522,8 @@
       "body": "Makà sarin'ny efijery Transactions an'ny MCB Juice, dia safidio eto. Vakian'i Mitsitsy ao amin'ny finday ny fifanakalozanao, tsy mila internet, ary hamarininao aloha vao tahirizina.",
       "pick": "Hisafidy sary",
       "later": "Avy eo"
-    }
+    },
+    "editButton": "Ovay",
+    "editA11y": "Ovay ny fifanakalozana {{label}}"
   }
 }

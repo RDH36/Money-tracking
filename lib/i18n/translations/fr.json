@@ -1492,7 +1492,7 @@
     "failed_other": "{{count}} images illisibles",
     "currencyMismatch": "Montants lus en {{read}}, ta devise est {{app}} : vérifie-les avant d'enregistrer.",
     "accountLabel": "Compte bancaire",
-    "tapToEdit": "Touche une opération pour la modifier.",
+    "tapToEdit": "Touche « Modifier » pour corriger une opération avant de l'enregistrer.",
     "save_one": "Enregistrer {{count}} opération",
     "save_other": "Enregistrer {{count}} opérations",
     "saveNone": "Aucune opération cochée",
@@ -1566,6 +1566,8 @@
       "body": "Fais une capture de l'écran Transactions de MCB Juice, puis choisis-la ici. Mitsitsy lit tes opérations sur le téléphone, sans internet, et tu vérifies tout avant d'enregistrer.",
       "pick": "Choisir mes captures",
       "later": "Plus tard"
-    }
+    },
+    "editButton": "Modifier",
+    "editA11y": "Modifier l'opération {{label}}"
   }
 }

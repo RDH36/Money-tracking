@@ -1492,7 +1492,7 @@
     "failed_other": "{{count}} unreadable images",
     "currencyMismatch": "Amounts read in {{read}}, your currency is {{app}}: check them before saving.",
     "accountLabel": "Bank account",
-    "tapToEdit": "Tap a transaction to edit it.",
+    "tapToEdit": "Tap “Edit” to fix a transaction before saving it.",
     "save_one": "Save {{count}} transaction",
     "save_other": "Save {{count}} transactions",
     "saveNone": "No transaction ticked",
@@ -1566,6 +1566,8 @@
       "body": "Take a screenshot of the MCB Juice Transactions screen, then pick it here. Mitsitsy reads your transactions on the phone, offline, and you check everything before saving.",
       "pick": "Choose my screenshots",
       "later": "Later"
-    }
+    },
+    "editButton": "Edit",
+    "editA11y": "Edit transaction {{label}}"
   }
 }

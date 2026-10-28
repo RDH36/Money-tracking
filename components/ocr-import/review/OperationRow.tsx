@@ -116,14 +116,32 @@ export function OperationRow({
             {tagText}
           </Text>
         </View>
-        <Text
-          style={{
-            fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: amountColor,
-            fontVariant: ['tabular-nums'], letterSpacing: -0.2,
-          }}
-        >
-          {`${isCredit ? '+' : '−'}${formatMoney(item.amount)}`}
-        </Text>
+        <View style={{ alignItems: 'flex-end', gap: 8 }}>
+          <Text
+            style={{
+              fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: amountColor,
+              fontVariant: ['tabular-nums'], letterSpacing: -0.2,
+            }}
+          >
+            {`${isCredit ? '+' : '−'}${formatMoney(item.amount)}`}
+          </Text>
+          {/* Bouton visible (plus de geste caché) : 30 px + hitSlop 8 = zone de 46 px. */}
+          <Pressable
+            onPress={onPress}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('ocrImport.editA11y', { label: item.note || item.op.label })}
+            style={{
+              flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 10,
+              borderRadius: 15, borderWidth: 1, borderColor: v2.hairlineStrong, backgroundColor: v2.bgBase,
+            }}
+          >
+            <Ionicons name="pencil" size={12} color={v2.ink} />
+            <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '600', color: v2.ink }}>
+              {t('ocrImport.editButton')}
+            </Text>
+          </Pressable>
+        </View>
       </Pressable>
     </View>
   );
