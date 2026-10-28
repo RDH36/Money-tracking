@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -116,7 +117,7 @@ export function CategoryQuickGrid({
                   maxWidth: '100%',
                 }}
               >
-                {cat.name}
+                {getCategoryDisplayName(cat.id, cat.name, t)}
               </Text>
             </Pressable>
           );

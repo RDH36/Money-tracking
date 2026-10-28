@@ -17,6 +17,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useV2 } from '@/constants/designTokensV2';
+import { getCategoryDisplayName } from '@/constants/categories';
 import type { Category } from '@/types';
 import { CategorySheetGrid } from './CategorySheetGrid';
 import { CategorySheetTopBar, type FilterKey } from './CategorySheetTopBar';
@@ -82,14 +83,14 @@ export function CategorySelectSheet({
       list = list.filter((c) => c.category_type === 'income');
     }
     const q = search.trim().toLowerCase();
-    if (q) list = list.filter((c) => c.name.toLowerCase().includes(q));
+    if (q) list = list.filter((c) => getCategoryDisplayName(c.id, c.name, t).toLowerCase().includes(q));
     return list;
-  }, [categories, filter, search]);
+  }, [categories, filter, search, t]);
 
-  const draftName = useMemo(
-    () => categories.find((c) => c.id === draftId)?.name ?? null,
-    [categories, draftId]
-  );
+  const draftName = useMemo(() => {
+    const cat = categories.find((c) => c.id === draftId);
+    return cat ? getCategoryDisplayName(cat.id, cat.name, t) : null;
+  }, [categories, draftId, t]);
 
   const handleConfirm = () => {
     if (draftId) {
