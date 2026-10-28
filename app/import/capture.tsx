@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, FlatList } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
@@ -11,7 +10,13 @@ import { useCurrency } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/currency';
 import { SOURCE_PARSERS } from '@/lib/ocr';
 import { SettingsHeader } from '@/components/settings/v2/SettingsHeader';
-import { EditOperationSheet, ImportStateView, OperationRow, ReviewSummary } from '@/components/ocr-import';
+import {
+  EditOperationSheet, ImportStateView, OperationRow, ReviewSummary, openCaptureImport, pickCaptures,
+} from '@/components/ocr-import';
+import { ReviewList } from '@/components/ocr-import/review/ReviewList';
+import { ReadingView } from '@/components/ocr-import/states/ReadingView';
+import { DoneView } from '@/components/ocr-import/states/DoneView';
+import { EmptyView } from '@/components/ocr-import/states/EmptyView';
 import type { AccountWithBalance } from '@/types';
 
 function parseUris(raw: string | undefined): string[] {
@@ -20,6 +25,15 @@ function parseUris(raw: string | undefined): string[] {
     return Array.isArray(list) ? list.filter((u): u is string => typeof u === 'string') : [];
   } catch {
     return [];
+  }
+}
+
+/** Nouvelle sélection dans la galerie : remplace l'import affiché. */
+async function importMore() {
+  try {
+    openCaptureImport(await pickCaptures(), true);
+  } catch (err) {
+    console.warn('Image picker failed:', err);
   }
 }
 
@@ -42,118 +56,73 @@ export default function ImportCaptureScreen() {
     const a = accounts.find((acc) => acc.id === id);
     return a ? getAccountName(a) : null;
   };
-  const sourceLabel = SOURCE_PARSERS.find((p) => p.id === imp.stats.sources[0])?.label;
+  const sourceLabel = SOURCE_PARSERS.find((p) => p.id === imp.stats.sources[0])?.label ?? null;
   const editing = imp.items.find((i) => i.key === editingKey) ?? null;
-
-  const header = (
-    <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
-      <SettingsHeader
-        title={t('ocrImport.title')}
-        subtitle={sourceLabel ? t('ocrImport.overline', { source: sourceLabel }) : t('ocrImport.overlineUnknown')}
-        onBack={() => router.back()}
-      />
-    </View>
-  );
+  const close = () => router.back();
 
   let body;
-  if (imp.phase === 'reading') {
-    body = (
-      <ImportStateView
-        title={t('ocrImport.reading', { current: Math.min(imp.progress.done + 1, imp.progress.total), total: imp.progress.total })}
-        body={t('ocrImport.readingHint')}
-      />
-    );
-  } else if (imp.phase === 'error' || uris.length === 0) {
+  if (uris.length === 0 || imp.phase === 'error' || (imp.phase === 'review' && imp.items.length === 0 && imp.stats.failed === imp.stats.captures)) {
     body = (
       <ImportStateView
         icon="alert-circle-outline" tone="bad"
         title={t('ocrImport.errorTitle')} body={t('ocrImport.errorBody')}
-        primary={{ label: t('ocrImport.finish'), onPress: () => router.back() }}
+        primary={{ label: t('ocrImport.pickOther'), onPress: importMore }}
+        secondary={{ label: t('ocrImport.finish'), onPress: close }}
       />
     );
+  } else if (imp.phase === 'reading') {
+    body = <ReadingView uri={imp.currentUri} done={imp.progress.done} total={imp.progress.total} />;
   } else if (imp.phase === 'done') {
     body = (
-      <ImportStateView
-        icon="checkmark-circle-outline" tone="good"
-        title={t('ocrImport.doneTitle', { count: imp.savedCount })} body={t('ocrImport.doneBody', { count: imp.savedCount })}
-        primary={{ label: t('ocrImport.viewHistory'), onPress: () => router.replace('/(tabs)/history') }}
-        secondary={{ label: t('ocrImport.finish'), onPress: () => router.back() }}
-      />
+      <DoneView count={imp.savedCount} onView={() => router.replace('/transactions')} onImportMore={importMore} />
     );
   } else if (imp.items.length === 0) {
     body = (
-      <ImportStateView
-        icon="document-text-outline"
-        title={t('ocrImport.emptyTitle')} body={t('ocrImport.emptyBody')}
-        primary={{ label: t('ocrImport.finish'), onPress: () => router.back() }}
-      />
+      <EmptyView reason={imp.stats.sources.length === 0 ? 'notMcb' : 'noOps'} onPickOther={importMore} onClose={close} />
     );
   } else {
-    const saving = imp.phase === 'saving';
+    const dupSelected = imp.items.filter((i) => i.selected && i.duplicate).length;
+    const notice = imp.saveFailed
+      ? { text: t('ocrImport.saveFailed'), tone: 'bad' as const }
+      : imp.invalidSelected > 0
+        ? { text: t('ocrImport.invalid', { count: imp.invalidSelected }), tone: 'bad' as const }
+        : dupSelected > 0
+          ? { text: t('ocrImport.dupSelected', { count: dupSelected }), tone: 'warn' as const }
+          : null;
     body = (
-      <>
-        <FlatList
-          data={imp.items}
-          keyExtractor={(i) => i.key}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 8 }}
-          ListHeaderComponent={
-            <View style={{ marginBottom: 12 }}>
-              <ReviewSummary
-                items={imp.items} stats={imp.stats} appCurrency={currency.code}
-                accounts={accounts} onAccountChange={imp.setAccountForAll}
-                formatMoney={formatMoney} getAccountName={getAccountName}
-              />
-            </View>
-          }
-          renderItem={({ item }) => (
-            <OperationRow
-              item={item}
-              category={expenseCategories.find((c) => c.id === item.categoryId) ?? null}
-              counterAccountName={accountName(item.counterAccountId)}
-              formatMoney={formatMoney}
-              locale={i18n.language}
-              onToggle={() => imp.toggle(item.key)}
-              onPress={() => setEditingKey(item.key)}
-            />
-          )}
-        />
-        <View
-          style={{
-            paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16,
-            borderTopWidth: 1, borderTopColor: v2.hairline, backgroundColor: v2.bgBase,
-          }}
-        >
-          {imp.saveFailed || imp.invalidSelected > 0 ? (
-            <Text style={{ marginBottom: 8, fontFamily: v2.fontUI, fontSize: 12, color: v2.bad, textAlign: 'center' }}>
-              {imp.saveFailed ? t('ocrImport.saveFailed') : t('ocrImport.invalid', { count: imp.invalidSelected })}
-            </Text>
-          ) : null}
-          <Pressable
-            onPress={imp.save}
-            disabled={imp.selectedCount === 0 || saving}
-            style={{
-              backgroundColor: v2.bgInk, borderRadius: 14, paddingVertical: 16,
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-              opacity: imp.selectedCount === 0 || saving ? 0.5 : 1,
-            }}
-          >
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.inkOnDark }}>
-              {saving
-                ? t('ocrImport.saving')
-                : imp.selectedCount === 0
-                  ? t('ocrImport.saveNone')
-                  : t('ocrImport.save', { count: imp.selectedCount })}
-            </Text>
-            {!saving && imp.selectedCount > 0 ? <Ionicons name="checkmark" size={15} color={v2.inkOnDark} /> : null}
-          </Pressable>
-        </View>
-      </>
+      <ReviewList
+        items={imp.items}
+        locale={i18n.language}
+        selectedCount={imp.selectedCount}
+        saving={imp.phase === 'saving'}
+        notice={notice}
+        onSave={imp.save}
+        header={
+          <ReviewSummary
+            items={imp.items} stats={imp.stats} sourceLabel={sourceLabel} appCurrency={currency.code}
+            accounts={accounts} onAccountChange={imp.setAccountForAll}
+            formatMoney={formatMoney} getAccountName={getAccountName}
+          />
+        }
+        renderItem={(item) => (
+          <OperationRow
+            item={item}
+            category={expenseCategories.find((c) => c.id === item.categoryId) ?? null}
+            counterAccountName={accountName(item.counterAccountId)}
+            formatMoney={formatMoney}
+            onToggle={() => imp.toggle(item.key)}
+            onPress={() => setEditingKey(item.key)}
+          />
+        )}
+      />
     );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
-      {header}
+      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
+        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={close} />
+      </View>
       {body}
       <EditOperationSheet
         item={editing}
@@ -162,6 +131,7 @@ export default function ImportCaptureScreen() {
         accounts={accounts}
         categories={expenseCategories}
         currencySymbol={currency.symbol}
+        currencyLocale={currency.locale}
         formatMoney={formatMoney}
         getAccountName={getAccountName}
       />

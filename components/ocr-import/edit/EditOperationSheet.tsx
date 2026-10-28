@@ -21,6 +21,7 @@ interface EditOperationSheetProps {
   accounts: AccountWithBalance[];
   categories: Category[];
   currencySymbol: string;
+  currencyLocale: string;
   formatMoney: (cents: number) => string;
   getAccountName: (a: AccountWithBalance) => string;
 }
@@ -30,7 +31,7 @@ function ymdToDate(ymd: string): Date {
 }
 
 export function EditOperationSheet({
-  item, onClose, onApply, accounts, categories, currencySymbol, formatMoney, getAccountName,
+  item, onClose, onApply, accounts, categories, currencySymbol, currencyLocale, formatMoney, getAccountName,
 }: EditOperationSheetProps) {
   const v2 = useV2();
   const { t, i18n } = useTranslation();
@@ -107,7 +108,7 @@ export function EditOperationSheet({
       </FieldBlock>
 
       <FieldBlock label={t('ocrImport.edit.amount')}>
-        <AmountField value={amount} onChangeText={(s) => setAmount(formatAmountInput(s))} currencySymbol={currencySymbol} />
+        <AmountField value={amount} onChangeText={setAmount} currencySymbol={currencySymbol} locale={currencyLocale} />
       </FieldBlock>
 
       <DateField

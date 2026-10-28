@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { dedupeOperations } from '@/lib/ocr';
 import { readCaptures } from '@/lib/ocr/import/read';
@@ -36,15 +36,23 @@ export function useCaptureImport(uris: string[]) {
   const [stats, setStats] = useState<ImportStats>(EMPTY_STATS);
   const [savedCount, setSavedCount] = useState(0);
   const [saveFailed, setSaveFailed] = useState(false);
-  const started = useRef(false);
   const urisKey = uris.join('|');
 
+  // Relancé à chaque nouvelle liste de captures (« Importer d'autres captures »,
+  // nouveau partage qui remplace l'écran) : l'état repart de zéro.
   useEffect(() => {
-    if (started.current || uris.length === 0) return;
-    started.current = true;
+    if (uris.length === 0) return;
+    let cancelled = false;
+    setPhase('reading');
+    setProgress({ done: 0, total: uris.length });
+    setItems([]);
+    setStats(EMPTY_STATS);
+    setSaveFailed(false);
     (async () => {
       try {
-        const reading = await readCaptures(uris, (done, total) => setProgress({ done, total }));
+        const reading = await readCaptures(uris, (done, total) => {
+          if (!cancelled) setProgress({ done, total });
+        });
         const existing = await loadExistingForDedupe(db, reading.operations);
         const { items: deduped, merged } = dedupeOperations(reading.operations, existing);
         const [history, validCategoryIds, accounts] = await Promise.all([
@@ -52,6 +60,7 @@ export function useCaptureImport(uris: string[]) {
           loadExpenseCategoryIds(db),
           loadImportAccounts(db, reading.sources[0] ?? 'mcb'),
         ]);
+        if (cancelled) return;
         setItems(buildReviewItems(deduped, { history, validCategoryIds, ...accounts }));
         setStats({
           captures: uris.length,
@@ -64,9 +73,12 @@ export function useCaptureImport(uris: string[]) {
         setPhase('review');
       } catch (err) {
         console.error('Capture import failed:', err);
-        setPhase('error');
+        if (!cancelled) setPhase('error');
       }
     })();
+    return () => {
+      cancelled = true;
+    };
     // urisKey : relancer uniquement si la liste de captures change vraiment.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, urisKey]);
@@ -108,8 +120,11 @@ export function useCaptureImport(uris: string[]) {
     }
   }, [db, toSave]);
 
+  // Capture en cours de lecture (miniature de l'écran de chargement).
+  const currentUri = uris[Math.min(progress.done, uris.length - 1)] ?? null;
+
   return {
-    phase, progress, items, stats, savedCount, saveFailed,
+    phase, progress, currentUri, items, stats, savedCount, saveFailed,
     selectedCount: toSave.length, invalidSelected,
     toggle, update, setAccountForAll, save,
   };

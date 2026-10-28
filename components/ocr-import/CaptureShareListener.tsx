@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
+import { usePathname } from 'expo-router';
 import { OCR_IMPORT_ENABLED } from '@/constants/app';
 import { addShareListener, getSharedImages } from '@/modules/mitsitsy-ocr';
 import { openCaptureImport } from './ImportCaptureEntry';
@@ -10,11 +11,18 @@ import { openCaptureImport } from './ImportCaptureEntry';
  * déverrouillé l'appli avant d'arriver sur l'écran de vérification.
  */
 export function CaptureShareListener() {
+  const pathname = usePathname();
+  // Lu dans les callbacks sans réabonner les écouteurs à chaque navigation.
+  const onImportScreen = useRef(false);
+  useEffect(() => {
+    onImportScreen.current = pathname === '/import/capture';
+  }, [pathname]);
+
   useEffect(() => {
     if (!OCR_IMPORT_ENABLED) return;
     const check = () => {
       getSharedImages()
-        .then(openCaptureImport)
+        .then((uris) => openCaptureImport(uris, onImportScreen.current))
         .catch((err) => console.warn('Reading shared images failed:', err));
     };
     check();

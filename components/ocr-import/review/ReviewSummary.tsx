@@ -13,6 +13,7 @@ type IoniconName = ComponentProps<typeof Ionicons>['name'];
 interface ReviewSummaryProps {
   items: ReviewItem[];
   stats: ImportStats;
+  sourceLabel: string | null;
   appCurrency: string;
   accounts: AccountWithBalance[];
   onAccountChange: (accountId: string) => void;
@@ -20,17 +21,24 @@ interface ReviewSummaryProps {
   getAccountName: (a: AccountWithBalance) => string;
 }
 
+/** En-tête de la vérification : décompte par type, avertissements, compte bancaire. */
 export function ReviewSummary({
-  items, stats, appCurrency, accounts, onAccountChange, formatMoney, getAccountName,
+  items, stats, sourceLabel, appCurrency, accounts, onAccountChange, formatMoney, getAccountName,
 }: ReviewSummaryProps) {
   const v2 = useV2();
   const { t } = useTranslation();
-  const duplicates = items.filter((i) => i.duplicate).length;
+  const fresh = items.filter((i) => !i.duplicate);
   const sharedAccount = items.every((i) => i.accountId === items[0]?.accountId) ? items[0]?.accountId ?? null : null;
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
 
+  const parts = [
+    { key: 'expenses', count: fresh.filter((i) => i.kind === 'expense').length },
+    { key: 'incomes', count: fresh.filter((i) => i.kind === 'income').length },
+    { key: 'withdrawals', count: fresh.filter((i) => i.kind === 'transfer').length },
+    { key: 'known', count: items.length - fresh.length },
+  ].filter((p) => p.count > 0);
+
   const notices: { icon: IoniconName; text: string; tone: 'info' | 'warn' }[] = [];
-  if (duplicates > 0) notices.push({ icon: 'copy-outline', text: t('ocrImport.duplicates', { count: duplicates }), tone: 'warn' });
   if (stats.merged > 0) notices.push({ icon: 'git-merge-outline', text: t('ocrImport.merged', { count: stats.merged }), tone: 'info' });
   if (stats.partial > 0) notices.push({ icon: 'cut-outline', text: t('ocrImport.partial', { count: stats.partial }), tone: 'info' });
   if (stats.unrecognized > 0) notices.push({ icon: 'help-circle-outline', text: t('ocrImport.unrecognized', { count: stats.unrecognized }), tone: 'info' });
@@ -39,28 +47,42 @@ export function ReviewSummary({
 
   return (
     <View>
-      <View
-        style={{
-          backgroundColor: v2.bgInk, borderRadius: 18, padding: 16,
-          flexDirection: 'row', alignItems: 'center', gap: 12,
-        }}
-      >
-        <View
-          style={{
-            width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(245,245,241,0.08)',
-            alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <Ionicons name="scan-outline" size={20} color={v2.inkOnDark} />
+      <View style={{ backgroundColor: v2.bgInk, borderRadius: 18, padding: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View
+            style={{
+              width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(245,245,241,0.08)',
+              alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="scan-outline" size={20} color={v2.inkOnDark} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: v2.fontDisplay, fontSize: 17, fontWeight: '700', color: v2.inkOnDark }}>
+              {fresh.length > 0 ? t('ocrImport.detected', { count: fresh.length }) : t('ocrImport.nothingNew')}
+            </Text>
+            <Text style={{ marginTop: 2, fontFamily: v2.fontUIRegular, fontSize: 12, color: v2.inkOnDarkM }}>
+              {t('ocrImport.fromCaptures', { source: sourceLabel ?? '', count: stats.captures })}
+            </Text>
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: v2.fontDisplay, fontSize: 17, fontWeight: '700', color: v2.inkOnDark }}>
-            {t('ocrImport.detected', { count: items.length })}
-          </Text>
-          <Text style={{ marginTop: 2, fontFamily: v2.fontUIRegular, fontSize: 12, color: v2.inkOnDarkM }}>
-            {t('ocrImport.tapToEdit')}
-          </Text>
-        </View>
+        {parts.length > 0 ? (
+          <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {parts.map((p) => (
+              <View
+                key={p.key}
+                style={{ backgroundColor: 'rgba(245,245,241,0.10)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}
+              >
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 11, fontWeight: '600', color: v2.inkOnDark }}>
+                  {t(`ocrImport.summary.${p.key}`, { count: p.count })}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        <Text style={{ marginTop: 10, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkOnDarkM }}>
+          {t('ocrImport.tapToEdit')}
+        </Text>
       </View>
 
       {notices.length > 0 ? (

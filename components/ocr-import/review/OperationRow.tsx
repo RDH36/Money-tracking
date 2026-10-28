@@ -9,28 +9,27 @@ import type { Category } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
+/** Fond léger de la pastille d'icône à partir d'une couleur #rrggbb. */
+function tint(color: string): string {
+  return color.startsWith('#') && color.length === 7 ? `${color}1F` : 'rgba(127,127,127,0.12)';
+}
+
 interface OperationRowProps {
   item: ReviewItem;
   category: Category | null;
   counterAccountName: string | null;
   formatMoney: (cents: number) => string;
-  locale: string;
   onToggle: () => void;
   onPress: () => void;
 }
 
-function shortDate(ymd: string, locale: string): string {
-  const d = new Date(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10));
-  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-}
-
 export function OperationRow({
-  item, category, counterAccountName, formatMoney, locale, onToggle, onPress,
+  item, category, counterAccountName, formatMoney, onToggle, onPress,
 }: OperationRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const isCredit = item.direction === 'credit';
-  const amountColor = item.kind === 'income' ? v2.good : item.kind === 'transfer' ? v2.inkMuted : v2.ink;
+  const amountColor = isCredit && item.kind !== 'transfer' ? v2.good : item.kind === 'transfer' ? v2.inkMuted : v2.ink;
 
   const badge = item.duplicate
     ? { text: t(`ocrImport.${item.duplicate === 'reference' ? 'dupReference' : item.duplicate === 'similar' ? 'dupSimilar' : 'dupBatch'}`), fg: v2.warn, bg: v2.warnSoft }
@@ -44,8 +43,9 @@ export function OperationRow({
   if (item.kind === 'transfer') {
     tagIcon = 'swap-horizontal';
     tagText = `${t('ocrImport.edit.transfer')} ${isCredit ? '←' : '→'} ${counterAccountName ?? t('ocrImport.noAccount')}`;
+    tagColor = v2.inkMuted;
   } else if (item.kind === 'income') {
-    tagIcon = 'arrow-down-circle-outline';
+    tagIcon = 'arrow-down';
     tagText = t('ocrImport.edit.income');
     tagColor = v2.good;
   } else if (category) {
@@ -61,7 +61,8 @@ export function OperationRow({
         backgroundColor: v2.bgSurface, borderRadius: 16, borderWidth: 1,
         borderColor: item.selected ? v2.hairlineStrong : v2.hairline,
         paddingVertical: 12, paddingRight: 14, paddingLeft: 4,
-        opacity: item.selected ? 1 : 0.6,
+        // Décochée (doublon ou choix) : grisée.
+        opacity: item.selected ? 1 : 0.55,
       }}
     >
       <Pressable
@@ -84,36 +85,36 @@ export function OperationRow({
       </Pressable>
 
       <Pressable onPress={onPress} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View
+          style={{
+            width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+            backgroundColor: tint(tagColor),
+          }}
+        >
+          <Ionicons name={tagIcon} size={16} color={tagColor} />
+        </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text
+          {badge ? (
+            <View
               style={{
-                fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', letterSpacing: 1,
-                textTransform: 'uppercase', color: v2.inkSubtle,
+                alignSelf: 'flex-start', marginBottom: 3, backgroundColor: badge.bg,
+                borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1,
               }}
             >
-              {shortDate(item.date, locale)}
-            </Text>
-            {badge ? (
-              <View style={{ backgroundColor: badge.bg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}>
-                <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', color: badge.fg }}>
-                  {badge.text}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+              <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', color: badge.fg }}>
+                {badge.text}
+              </Text>
+            </View>
+          ) : null}
           <Text
             numberOfLines={2}
-            style={{ marginTop: 3, fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.ink }}
+            style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.ink }}
           >
             {item.note || item.op.label}
           </Text>
-          <View style={{ marginTop: 5, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <Ionicons name={tagIcon} size={12} color={tagColor} />
-            <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
-              {tagText}
-            </Text>
-          </View>
+          <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
+            {tagText}
+          </Text>
         </View>
         <Text
           style={{
