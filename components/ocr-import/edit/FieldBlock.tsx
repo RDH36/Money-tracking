@@ -1,7 +1,7 @@
 import { View, Text, TextInput } from 'react-native';
 import type { ReactNode } from 'react';
 import { useV2 } from '@/constants/designTokensV2';
-import { formatAmountLocal, parseAmountLocal } from '@/lib/amountInput';
+import { formatAmountLocal, parseAmountLocal } from '@/lib/ocr/import/amountLocal';
 
 /** Titre de section du formulaire de modification (même style que l'ajout). */
 export function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
