@@ -49,3 +49,4 @@ app-example
 .mcp.json
 skills-lock.json
 /screen
+modules/mitsitsy-ocr/android/build/
