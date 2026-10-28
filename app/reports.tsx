@@ -18,6 +18,7 @@ import {
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useV2 } from '@/constants/designTokensV2';
+import { ANALYSIS_ENABLED } from '@/constants/app';
 import { LegendDot } from '@/components/reports/ReportPrimitives';
 import { NetSummaryCard } from '@/components/reports/NetSummaryCard';
 import { CategoryBreakdownV2 } from '@/components/reports/CategoryBreakdownV2';
@@ -162,6 +163,7 @@ export default function ReportsScreen() {
             </>
           )}
 
+          {ANALYSIS_ENABLED ? (
           <Pressable
             onPress={() => router.push('/analysis' as any)}
             style={{
@@ -183,6 +185,7 @@ export default function ReportsScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={16} color={v2.inkSubtle} />
           </Pressable>
+          ) : null}
         </View>
       </ScrollView>
     </View>

@@ -14,6 +14,7 @@ import { cancelAllReminders } from '@/lib/notifications';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AboutSection, DangerZoneSection } from '@/components/settings';
 import { useV2 } from '@/constants/designTokensV2';
+import { ANALYSIS_ENABLED } from '@/constants/app';
 import {
   SectionLabel,
   SettingsCard,
@@ -94,12 +95,14 @@ export default function SettingsScreen() {
             value={t('settingsV2.categoriesCustomCount', { count: customCategoriesCount })}
             onPress={() => router.push('/settings/categories' as any)}
           />
-          <SettingsRow
-            icon="calendar-outline"
-            iconColor="#0E8C82"
-            label={t('settings.cycle.title')}
-            onPress={() => router.push('/settings/cycle' as any)}
-          />
+          {ANALYSIS_ENABLED ? (
+            <SettingsRow
+              icon="calendar-outline"
+              iconColor="#0E8C82"
+              label={t('settings.cycle.title')}
+              onPress={() => router.push('/settings/cycle' as any)}
+            />
+          ) : null}
           <SettingsRow
             icon="color-palette-outline"
             iconColor="#EC4899"

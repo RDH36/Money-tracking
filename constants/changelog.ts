@@ -11,32 +11,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "2.4.0",
-    date: "2026-09-03",
-    changes: [
-      { type: "added", key: "changelog.tonMois" },
-      { type: "added", key: "changelog.payCycle" },
-      { type: "added", key: "changelog.tonMoisIntro" },
-      { type: "improved", key: "changelog.tonMoisGoal" },
-      { type: "improved", key: "changelog.settingsKeyboard" },
-    ],
-  },
-  {
-    version: "2.2.0",
-    date: "2026-08-03",
-    changes: [
-      { type: "added", key: "changelog.analysisFeature" },
-      { type: "added", key: "changelog.analysisSinceLast" },
-      { type: "added", key: "changelog.analysisHeroKept" },
-      { type: "added", key: "changelog.analysisGamification" },
-      { type: "added", key: "changelog.analysisReminder" },
-      { type: "improved", key: "changelog.backupIncludesAnalyses" },
-    ],
-  },
-  {
     version: "2.0.4",
-    date: "2026-07-29",
+    date: "2026-10-14",
     changes: [
+      { type: "added", key: "changelog.otherAppsPromo" },
+      { type: "improved", key: "changelog.analysisHeroKept" },
+      { type: "improved", key: "changelog.settingsKeyboard" },
       { type: "fixed", key: "changelog.avgPerDayFix" },
       { type: "improved", key: "changelog.budgetPaceStatus" },
       { type: "fixed", key: "changelog.budgetResetLive" },

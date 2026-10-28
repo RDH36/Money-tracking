@@ -41,6 +41,7 @@ import { useIntroMoisAutoOpen } from '@/hooks/useIntroMois';
 import { useCycleSettings } from '@/hooks/useCycleSettings';
 import { getCurrentCycle, formatCycleRange } from '@/lib/analysis/cycle';
 import { useV2 } from '@/constants/designTokensV2';
+import { ANALYSIS_ENABLED } from '@/constants/app';
 import { useCurrency } from '@/stores/settingsStore';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { AccountWithBalance } from '@/types';
@@ -169,7 +170,7 @@ export default function DashboardScreen() {
             cycleLabel={formatCycleRange(cycle, i18n.language)}
           />
 
-          {intro.seen && !cycleConfirmed ? <CycleConfirmCard /> : null}
+          {ANALYSIS_ENABLED && intro.seen && !cycleConfirmed ? <CycleConfirmCard /> : null}
 
           {analysisEntryVisible ? (
             <View style={{ marginTop: 16 }}>

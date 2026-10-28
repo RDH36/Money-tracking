@@ -804,6 +804,7 @@
     "fasterFirstExpense": "Fanoratana haingana kokoa: efa voafidy mialoha ny kaontinao lehibe",
     "appLock": "Fanidiana ny app amin'ny kaody PIN sy fingerprint/Face ID hiarovana ny kaontinao",
     "otherAppsPage": "Pejy vaovao « Ireo app hafa » hahitana ireo zavatra hafa noforoniko",
+    "otherAppsPromo": "Fantaro i Monster Cannon, lalao arcade, sy Hifety, fanasana an-tserasera, ao amin'ny « Ireo app hafa » (sary fanomezana)",
     "customTransactionDate": "Safidio ny datin'ny fandaniana na fidiram-bola: na tara aza ny fanoratana dia mipetraka amin'ny volana mety ihany",
     "backdatedDateDisplay": "Ny tateram-bola voasoratra amin'ny andro hafa dia maneho mazava hoe « lany ny… · nosoratana ny… »",
     "reportsUseTransactionDate": "Ny tetibola, tatitra ary kalandrie dia mampiasa ny tena datin'ny tateram-bola izao",
@@ -1308,9 +1309,12 @@
   "otherApps": {
     "overline": "Mitsitsy",
     "title": "Ireo app hafa",
-    "subtitle": "Jereo ireo application hafa noforoniko. Misy maro ho avy tsy ho ela!",
+    "subtitle": "Jereo ireo zavatra hafa noforonin'ny studio : lalao, tranonkala fanasana sy maro hafa. Misy maro ho avy tsy ho ela!",
+    "monsterCannonTagline": "Lalao arcade : kendreo ny tafondro, potehy ny onjan'ny biby goavana ary reseo ny boss.",
+    "hifetyTagline": "Fanasana an-tserasera mihetsika : zarao rohy iray ary araho ny valin'ny vahininao.",
     "flipiaTagline": "Lalao memory mifaninana — avadiho ny karatra ka tadiavo ny mpiara-mira alohan'ny mpifaninana aminao.",
     "openStore": "Alaina",
+    "openSite": "Tsidiho",
     "comingSoon": "Tsy ho ela"
   },
   "cloudSurvey": {

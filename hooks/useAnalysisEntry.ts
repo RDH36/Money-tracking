@@ -11,6 +11,7 @@ import { fetchCurrentTotals } from '@/lib/analysis/queries';
 import { formatCycleRange } from '@/lib/analysis/cycle';
 import { getVerdict, type VerdictStatus } from '@/lib/analysis/verdict';
 import { scheduleAnalysisReadyReminder } from '@/lib/notifications';
+import { ANALYSIS_ENABLED } from '@/constants/app';
 import type { CycleSettings, Indicators } from '@/lib/analysis/types';
 
 /** Verdict allégé pour la carte d'entrée : statut, gardé, taux, libellé du cycle. */
@@ -75,6 +76,8 @@ export function useAnalysisEntry(): { visible: boolean; verdict: EntryVerdict | 
   const payDay = settings.mode === 'payday' ? settings.payDay : null;
 
   useEffect(() => {
+    // Feature masquée : ni carte, ni intro auto, ni rappel programmé.
+    if (!ANALYSIS_ENABLED) return;
     let alive = true;
     (async () => {
       const stat = await fetchDataStat(db);

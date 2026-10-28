@@ -840,6 +840,7 @@
     "fasterFirstExpense": "Faster entry: your main account is now pre-selected",
     "appLock": "App lock with a PIN code and fingerprint/Face ID to protect your accounts",
     "otherAppsPage": "New \"My other apps\" page to discover my other creations",
+    "otherAppsPromo": "Discover Monster Cannon, our arcade game, and Hifety, online invitations, in \"My other apps\" (gift icon)",
     "customTransactionDate": "Pick the date of an expense or income: log it late and it still lands in the right month",
     "backdatedDateDisplay": "Transactions dated on another day now clearly show \"spent on… · recorded on…\"",
     "reportsUseTransactionDate": "Budgets, reports and calendar now use the real transaction date",
@@ -1352,9 +1353,12 @@
   "otherApps": {
     "overline": "Mitsitsy",
     "title": "My other apps",
-    "subtitle": "Discover the other apps I've built. More coming soon!",
+    "subtitle": "Discover the studio's other creations: a game, an invitations website and more. More coming soon!",
+    "monsterCannonTagline": "Arcade game: aim, bounce and blast waves of monsters, then beat the bosses.",
+    "hifetyTagline": "Animated online invitations: share one link and track your guests' replies.",
     "flipiaTagline": "Competitive memory game — flip the cards and find the pairs before your opponent.",
     "openStore": "Get it",
+    "openSite": "Visit",
     "comingSoon": "Soon"
   },
   "cloudSurvey": {

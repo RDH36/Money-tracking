@@ -13,11 +13,12 @@ export function OtherAppCard({ app }: OtherAppCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const posthog = usePostHog();
-  const released = !!app.storeUrl;
+  const url = app.storeUrl ?? app.siteUrl;
+  const isSite = !app.storeUrl;
 
-  const handleOpenStore = () => {
+  const handleOpen = () => {
     posthog.capture('other_app_clicked', { target: app.id });
-    Linking.openURL(app.storeUrl!);
+    Linking.openURL(url!);
   };
 
   return (
@@ -58,9 +59,9 @@ export function OtherAppCard({ app }: OtherAppCardProps) {
         </Text>
       </View>
 
-      {released ? (
+      {url ? (
         <Pressable
-          onPress={handleOpenStore}
+          onPress={handleOpen}
           hitSlop={6}
           style={{
             flexDirection: 'row',
@@ -72,9 +73,9 @@ export function OtherAppCard({ app }: OtherAppCardProps) {
             paddingHorizontal: 14,
           }}
         >
-          <Ionicons name="download-outline" size={15} color="#FFFFFF" />
+          <Ionicons name={isSite ? 'globe-outline' : 'download-outline'} size={15} color="#FFFFFF" />
           <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
-            {t('otherApps.openStore')}
+            {t(isSite ? 'otherApps.openSite' : 'otherApps.openStore')}
           </Text>
         </Pressable>
       ) : (

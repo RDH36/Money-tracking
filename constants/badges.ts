@@ -1,3 +1,5 @@
+import { ANALYSIS_ENABLED } from './app';
+
 export interface BadgeDefinition {
   id: string;
   nameKey: string;
@@ -6,7 +8,7 @@ export interface BadgeDefinition {
   color: string;
 }
 
-export const BADGES: BadgeDefinition[] = [
+const ALL_BADGES: BadgeDefinition[] = [
   {
     id: 'first_expense',
     nameKey: 'gamification.badgeFirstExpense',
@@ -86,6 +88,9 @@ export const BADGES: BadgeDefinition[] = [
   // --- Endgame ---
   { id: 'quest_master', nameKey: 'gamification.badgeQuestMaster', descriptionKey: 'gamification.badgeQuestMasterDesc', icon: 'diamond', color: '#F59E0B' },
 ];
+
+/** Le badge Analyste suit la visibilité de la feature conseil. */
+export const BADGES = ALL_BADGES.filter((b) => ANALYSIS_ENABLED || b.id !== 'analyst_6');
 
 export const DAILY_CHALLENGE_TYPES = [
   'log_expense',

@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { UNLOCK_KEYS, type UnlockKey } from './unlocks';
+import { ANALYSIS_ENABLED } from '@/constants/app';
 
 export type QuestMetric =
   | 'longest_streak'
@@ -34,7 +35,7 @@ export interface QuestDefinition {
  * 5 long-term quests. Each has 3 progressive steps.
  * Final step of the Collector unlocks the Prism theme.
  */
-export const QUESTS: QuestDefinition[] = [
+const ALL_QUESTS: QuestDefinition[] = [
   // --- Tier 1 ---
   {
     id: 'marathon', tier: 1,
@@ -172,6 +173,9 @@ export const QUESTS: QuestDefinition[] = [
     ],
   },
 ];
+
+/** La quête Conseiller suit la visibilité de la feature conseil. */
+export const QUESTS = ALL_QUESTS.filter((q) => ANALYSIS_ENABLED || q.id !== 'advisor');
 
 /** Returns only Tier 1 quests. */
 export const TIER_1_QUESTS = QUESTS.filter((q) => q.tier === 1);
