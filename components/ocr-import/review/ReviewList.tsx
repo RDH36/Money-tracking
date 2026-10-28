@@ -89,6 +89,7 @@ export function ReviewList({
           accessibilityState={{ disabled }}
           style={{
             backgroundColor: v2.bgInk, borderRadius: 14, paddingVertical: 16,
+            borderWidth: 1, borderColor: v2.hairlineStrong,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
             opacity: disabled ? 0.45 : 1,
           }}

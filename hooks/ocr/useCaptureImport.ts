@@ -88,7 +88,14 @@ export function useCaptureImport(uris: string[]) {
   }, []);
 
   const update = useCallback((key: string, patch: Partial<ReviewItem>) => {
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, ...patch } : i)));
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.key !== key) return i;
+        // Montant corrigé : ce n'est plus l'opération déjà enregistrée, le badge doublon tombe.
+        const amountChanged = patch.amount !== undefined && patch.amount !== i.amount;
+        return { ...i, ...patch, duplicate: amountChanged ? null : i.duplicate };
+      })
+    );
   }, []);
 
   /** Change le compte bancaire de toutes les opérations. */

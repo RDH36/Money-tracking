@@ -27,7 +27,11 @@ export function DialogPrimaryBtn({ label, onPress, disabled, isLoading }: Button
     <Pressable
       onPress={onPress}
       disabled={disabled || isLoading}
-      style={{ ...baseStyle, backgroundColor: v2.bgInk, opacity: disabled || isLoading ? 0.5 : 1 }}
+      // Liseré : invisible en clair, détache le bouton du fond en mode sombre.
+      style={{
+        ...baseStyle, backgroundColor: v2.bgInk, borderWidth: 1, borderColor: v2.hairlineStrong,
+        opacity: disabled || isLoading ? 0.5 : 1,
+      }}
     >
       {isLoading ? <ActivityIndicator size="small" color={v2.inkOnDark} /> : null}
       <Text

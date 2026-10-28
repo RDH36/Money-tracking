@@ -56,6 +56,7 @@ export function DoneView({ count, onView, onImportMore }: DoneViewProps) {
           onPress={onView}
           style={{
             marginTop: 26, alignSelf: 'stretch', backgroundColor: v2.bgInk, borderRadius: 14,
+            borderWidth: 1, borderColor: v2.hairlineStrong,
             paddingVertical: 15, alignItems: 'center',
           }}
         >

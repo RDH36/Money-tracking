@@ -49,6 +49,7 @@ export function ImportStateView({ icon, tone = 'neutral', title, body, primary, 
           onPress={primary.onPress}
           style={{
             marginTop: 8, alignSelf: 'stretch', backgroundColor: v2.bgInk, borderRadius: 14,
+            borderWidth: 1, borderColor: v2.hairlineStrong,
             paddingVertical: 15, alignItems: 'center',
           }}
         >

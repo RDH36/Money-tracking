@@ -53,6 +53,7 @@ export function EmptyView({ reason, onPickOther, onClose }: EmptyViewProps) {
         onPress={onPickOther}
         style={{
           marginTop: 24, backgroundColor: v2.bgInk, borderRadius: 14, paddingVertical: 15,
+          borderWidth: 1, borderColor: v2.hairlineStrong,
           flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}
       >
