@@ -42,8 +42,7 @@ export default function TransactionsScreen() {
   const monthTransactions = useMemo(
     () =>
       transactions.filter((tx) => {
-        // Comptabilité : le mois de l'opération (transaction_date), pas celui de la saisie.
-        const d = new Date(tx.transaction_date || tx.created_at);
+        const d = new Date(tx.created_at);
         return d.getFullYear() === monthDate.getFullYear() && d.getMonth() === monthDate.getMonth();
       }),
     [transactions, monthDate]

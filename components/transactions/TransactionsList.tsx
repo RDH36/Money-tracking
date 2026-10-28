@@ -192,9 +192,7 @@ export function TransactionsList({ transactions, currencyCode, onDelete, hideDay
   return (
     <View style={{ gap: 8 }}>
       {items.map((item) => {
-        const dateIso = item.kind === 'group'
-          ? item.latestCreatedAt
-          : item.transaction.transaction_date || item.transaction.created_at;
+        const dateIso = item.kind === 'group' ? item.latestCreatedAt : item.transaction.created_at;
         const key = dayKey(dateIso);
         const showHeader = !hideDayHeaders && key !== lastDay;
         lastDay = key;
