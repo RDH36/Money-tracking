@@ -64,13 +64,7 @@ export function EditTransactionSheet() {
       db.getFirstAsync<{ account_id: string }>(
         `SELECT account_id FROM transactions WHERE transfer_id = ? AND id != ? AND deleted_at IS NULL`,
         [target.transfer_id, target.id]
-      ).then((row) => {
-        // Sens du transfert : « Depuis » = jambe dépense, « Vers » = jambe revenu.
-        if (target.type === 'income') {
-          setAccountId(row?.account_id ?? null);
-          setToAccountId(target.account_id);
-        } else setToAccountId(row?.account_id ?? null);
-      });
+      ).then((row) => setToAccountId(row?.account_id ?? null));
     }
   }, [target, db, refreshCategories]);
 
