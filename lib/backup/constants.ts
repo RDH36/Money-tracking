@@ -21,6 +21,9 @@ export const BACKUP_FORMAT = 'mitsitsy-backup';
  * v2 : ajout des tables `analyses` et `analysis_dismissed` (Phase 4).
  * Rétro-compatible : un fichier v1 s'importe tel quel (tables absentes →
  * simplement vidées côté cible, sémantique « clone fidèle » conservée).
+ * Une nouvelle COLONNE (ex. transactions.external_ref, base v26) ne demande
+ * pas de bump : l'export fait SELECT * et la restauration n'insère que les
+ * colonnes communes, donc les anciennes sauvegardes restent lisibles.
  */
 export const BACKUP_FILE_VERSION = 2;
 

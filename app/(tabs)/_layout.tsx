@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { CaptureShareListener } from '@/components/ocr-import';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -11,6 +12,8 @@ export default function TabsLayout() {
   const v2 = useV2();
 
   return (
+    <>
+    <CaptureShareListener />
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -114,5 +117,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </>
   );
 }

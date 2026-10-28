@@ -150,6 +150,19 @@ CREATE INDEX IF NOT EXISTS idx_tx_analysis
   WHERE deleted_at IS NULL AND transfer_id IS NULL;
 `;
 
+// Import par capture (OCR) : référence bancaire de l'opération d'origine,
+// préfixée par la source (ex. `mcb:FT26301QW7K2`). Clé anti-doublon. NULL pour
+// toute transaction saisie à la main.
+export const ADD_EXTERNAL_REF_TO_TRANSACTIONS = `
+ALTER TABLE transactions ADD COLUMN external_ref TEXT;
+`;
+
+export const CREATE_EXTERNAL_REF_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_transactions_external_ref
+  ON transactions(external_ref)
+  WHERE external_ref IS NOT NULL;
+`;
+
 export const MAX_CUSTOM_CATEGORIES = 3;
 export const MAX_CUSTOM_ACCOUNTS = 2;
 

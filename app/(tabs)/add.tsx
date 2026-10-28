@@ -15,6 +15,7 @@ import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, getNumericValue } from '@/lib/amountInput';
 import { useV2 } from '@/constants/designTokensV2';
+import { ImportCaptureEntry } from '@/components/ocr-import';
 import {
   AddTransactionHeader, ModeToggle, TypePills, AmountDisplay,
   ThresholdPreviewCard, AccountPickerV2, CategoryQuickGrid,
@@ -122,6 +123,7 @@ export default function AddTransactionScreen() {
       >
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           <AddTransactionHeader title={t('add.newTransaction')} />
+          <ImportCaptureEntry />
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>

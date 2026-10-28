@@ -27,9 +27,11 @@ import {
   CREATE_ANALYSES_TABLE,
   CREATE_ANALYSIS_DISMISSED_TABLE,
   CREATE_ANALYSES_INDEX,
+  ADD_EXTERNAL_REF_TO_TRANSACTIONS,
+  CREATE_EXTERNAL_REF_INDEX,
 } from './schema';
 
-const DATABASE_VERSION = 25;
+const DATABASE_VERSION = 26;
 
 interface VersionResult {
   user_version: number;
@@ -166,7 +168,24 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     currentVersion = 25;
   }
 
+  if (currentVersion < 26) {
+    await migrateToV26(db);
+    currentVersion = 26;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
+
+async function migrateToV26(db: SQLiteDatabase): Promise<void> {
+  // Import par capture (OCR) : colonne nullable external_ref + index partiel.
+  // Non destructif — les lignes existantes gardent external_ref = NULL.
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(transactions)'
+  );
+  if (!tableInfo.some((col) => col.name === 'external_ref')) {
+    await db.execAsync(ADD_EXTERNAL_REF_TO_TRANSACTIONS);
+  }
+  await db.execAsync(CREATE_EXTERNAL_REF_INDEX);
 }
 
 async function migrateToV25(db: SQLiteDatabase): Promise<void> {

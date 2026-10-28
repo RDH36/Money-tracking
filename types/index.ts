@@ -33,6 +33,8 @@ export interface Transaction {
   updated_at: string;
   sync_status: SyncStatus;
   deleted_at: string | null;
+  /** Référence de l'opération bancaire importée par capture (DB v26), sinon null. */
+  external_ref?: string | null;
 }
 
 export interface Category {

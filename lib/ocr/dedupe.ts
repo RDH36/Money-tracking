@@ -1,0 +1,101 @@
+/**
+ * Anti-doublon de l'import : d'abord la référence bancaire, sinon montant +
+ * date (± 1 jour) + libellé proche. Contrôle le lot importé (captures qui se
+ * chevauchent) et les transactions déjà en base.
+ */
+import type { ParsedOperation } from './types';
+import { daysBetween, labelOverlap } from './text';
+
+/** Transaction existante, réduite à ce qui sert à la comparaison. */
+export interface ExistingTransaction {
+  id: string;
+  type: 'expense' | 'income';
+  /** Centimes, positif. */
+  amount: number;
+  /** `YYYY-MM-DD` (date locale de transaction_date). */
+  date: string;
+  note: string | null;
+  externalRef: string | null;
+  isTransfer: boolean;
+}
+
+/** reference : même réf. bancaire en base ; similar : saisie proche en base ; batch : déjà dans le lot. */
+export type DuplicateReason = 'reference' | 'similar' | 'batch';
+
+export interface DedupedOperation {
+  op: ParsedOperation;
+  duplicate: DuplicateReason | null;
+}
+
+/** Valeur stockée dans transactions.external_ref, ex. `mcb:FT26301QW7K2`. */
+export function externalRefOf(op: ParsedOperation): string | null {
+  return op.reference ? `${op.source}:${op.reference}` : null;
+}
+
+/** Forme canonique pour comparer deux références lues par l'OCR (O/0, I/1…). */
+export function canonicalRef(ref: string): string {
+  return ref
+    .toUpperCase()
+    .replace(/[^A-Z0-9:]/g, '')
+    .replace(/O/g, '0')
+    .replace(/[IL]/g, '1')
+    .replace(/S/g, '5')
+    .replace(/Z/g, '2')
+    .replace(/B/g, '8');
+}
+
+function sameRef(a: string | null, b: string | null): boolean {
+  return !!a && !!b && canonicalRef(a) === canonicalRef(b);
+}
+
+function looksLikeSameBatchOp(a: ParsedOperation, b: ParsedOperation): boolean {
+  return (
+    a.amount === b.amount &&
+    a.date === b.date &&
+    (!a.reference || !b.reference) &&
+    labelOverlap(a.label, b.label) >= 0.8
+  );
+}
+
+function matchesExisting(op: ParsedOperation, tx: ExistingTransaction): boolean {
+  if (tx.externalRef) return false; // déjà importée avec une autre référence
+  if (Math.abs(op.amount) !== tx.amount || daysBetween(op.date, tx.date) > 1) return false;
+  if (op.kind === 'transfer') return tx.isTransfer && tx.type === (op.amount < 0 ? 'expense' : 'income');
+  if (tx.isTransfer || tx.type !== op.kind) return false;
+  const note = tx.note?.trim() ?? '';
+  return note === '' || labelOverlap(`${op.note} ${op.label}`, note) >= 0.5;
+}
+
+export function dedupeOperations(
+  ops: ParsedOperation[],
+  existing: ExistingTransaction[]
+): { items: DedupedOperation[]; merged: number } {
+  const items: DedupedOperation[] = [];
+  const usedExisting = new Set<string>();
+  let merged = 0;
+
+  for (const op of ops) {
+    const ref = externalRefOf(op);
+    // Même référence déjà dans le lot (captures qui se chevauchent) : fusion.
+    if (ref && items.some((i) => sameRef(externalRefOf(i.op), ref))) {
+      merged++;
+      continue;
+    }
+
+    let duplicate: DuplicateReason | null = null;
+    const byRef = ref ? existing.find((tx) => sameRef(tx.externalRef, ref)) : undefined;
+    if (byRef) {
+      duplicate = 'reference';
+    } else {
+      const similar = existing.find((tx) => !usedExisting.has(tx.id) && matchesExisting(op, tx));
+      if (similar) {
+        duplicate = 'similar';
+        usedExisting.add(similar.id);
+      } else if (items.some((i) => looksLikeSameBatchOp(i.op, op))) {
+        duplicate = 'batch';
+      }
+    }
+    items.push({ op, duplicate });
+  }
+  return { items, merged };
+}

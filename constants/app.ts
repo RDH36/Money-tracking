@@ -10,6 +10,12 @@ export const PROJECT_NAME = "mitsitsy";
 // feature n'est pas prête — le code complet vit sur la branche feat/conseil-analyse.
 export const ANALYSIS_ENABLED = false;
 
+// Import d'opérations depuis une capture d'écran (OCR hors ligne, MCB Juice
+// pour l'instant) : future feature Mitsitsy Plus, activée en debug seulement.
+// La cible de partage Android suit la même règle (manifeste debug, voir
+// modules/mitsitsy-ocr/app.plugin.js) : passer les deux ensemble en prod.
+export const OCR_IMPORT_ENABLED = __DEV__;
+
 // Supabase configuration
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "";
 export const SUPABASE_ANON_KEY =

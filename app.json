@@ -56,7 +56,15 @@
           "faceIDPermission": "Mitsitsy utilise Face ID pour déverrouiller l'application et protéger vos comptes."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "./modules/mitsitsy-ocr/app.plugin.js"
     ],
     "experiments": {
       "typedRoutes": true,
