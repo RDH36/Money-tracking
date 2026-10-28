@@ -11,8 +11,8 @@ import type { ReviewItem } from '@/lib/ocr/import/review';
 import type { OperationKind } from '@/lib/ocr';
 import type { AccountWithBalance, Category } from '@/types';
 import { KindSegment } from './KindSegment';
-import { CategoryChips } from '@/components/forms/CategoryChips';
-import { AmountField, FieldBlock } from '@/components/forms/FieldBlock';
+import { CategoryChips } from './CategoryChips';
+import { AmountField, FieldBlock } from './FieldBlock';
 
 interface EditOperationSheetProps {
   item: ReviewItem | null;
