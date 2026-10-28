@@ -80,9 +80,11 @@ export function ReviewSummary({
             ))}
           </View>
         ) : null}
-        <Text style={{ marginTop: 10, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkOnDarkM }}>
-          {t('ocrImport.tapToEdit')}
-        </Text>
+        {fresh.length > 0 ? (
+          <Text style={{ marginTop: 10, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkOnDarkM }}>
+            {t('ocrImport.tapToEdit')}
+          </Text>
+        ) : null}
       </View>
 
       {notices.length > 0 ? (
