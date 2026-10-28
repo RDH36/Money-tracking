@@ -5,6 +5,8 @@ import type { OperationKind, ParsedOperation } from '../types';
 
 export type Direction = 'debit' | 'credit';
 
+const FALLBACK_CATEGORY_ID = 'other';
+
 /** Ce qui sera enregistré pour une opération (modifiable par l'utilisateur). */
 export interface ImportDraft {
   kind: OperationKind;
@@ -48,7 +50,9 @@ export function buildReviewItems(items: DedupedOperation[], ctx: ReviewContext):
     direction: op.amount < 0 ? 'debit' : 'credit',
     date: op.date,
     note: op.note,
-    categoryId: suggestCategory(op, ctx.history, ctx.validCategoryIds),
+    categoryId: suggestCategory(op, ctx.history, ctx.validCategoryIds)
+      // Sans suggestion : « Autre », le bac où l'appli range déjà les dépenses sans catégorie.
+      ?? (op.kind === 'expense' && ctx.validCategoryIds.has(FALLBACK_CATEGORY_ID) ? FALLBACK_CATEGORY_ID : null),
     accountId: ctx.bankId,
     counterAccountId: op.kind === 'transfer' ? ctx.cashId : null,
     externalRef: externalRefOf(op),

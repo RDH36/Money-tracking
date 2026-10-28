@@ -48,7 +48,8 @@ function toOperation(raw: RawOperation): ParsedOperation | null {
   const date = raw.date ?? refDate;
   if (!date) return null;
 
-  const label = raw.labels.map((l) => l.text.trim()).join(' ').replace(/\s+/g, ' ');
+  // ML Kit lit souvent le « I » majuscule en « | » (« GAB-1-|TAOSY »).
+  const label = raw.labels.map((l) => l.text.trim()).join(' ').replace(/\s+/g, ' ').replace(/\|/g, 'I');
   const info = classifyLabel(label);
   const { direction, uncertain: signUncertain } = resolveDirection(
     amount.negative, raw.amount.line.color, info.direction
