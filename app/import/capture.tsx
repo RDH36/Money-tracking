@@ -75,7 +75,7 @@ export default function ImportCaptureScreen() {
     body = (
       <ImportStateView
         icon="checkmark-circle-outline" tone="good"
-        title={t('ocrImport.doneTitle', { count: imp.savedCount })} body={t('ocrImport.doneBody')}
+        title={t('ocrImport.doneTitle', { count: imp.savedCount })} body={t('ocrImport.doneBody', { count: imp.savedCount })}
         primary={{ label: t('ocrImport.viewHistory'), onPress: () => router.replace('/(tabs)/history') }}
         secondary={{ label: t('ocrImport.finish'), onPress: () => router.back() }}
       />

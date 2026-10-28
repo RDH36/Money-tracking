@@ -1472,8 +1472,9 @@
     "errorBody": "Tsy voavaky ireo sary. Andramo amin'ny sary hafa.",
     "doneTitle_one": "Fifanakalozana {{count}} voatahiry",
     "doneTitle_other": "Fifanakalozana {{count}} voatahiry",
-    "doneBody": "Isaina amin'ny tena daty nanaovana azy ao amin'ny tetibola sy tatitra izy ireo.",
-    "viewHistory": "Jereo ny tantara",
+    "doneBody_one": "Isaina amin'ny tena daty nanaovana azy ao amin'ny tetibola sy tatitra izy io.",
+    "doneBody_other": "Isaina amin'ny tena daty nanaovana azy ao amin'ny tetibola sy tatitra izy ireo.",
+    "viewHistory": "Jereo ny hetsika",
     "finish": "Vita",
     "edit": {
       "title": "Hanova ny fifanakalozana",
