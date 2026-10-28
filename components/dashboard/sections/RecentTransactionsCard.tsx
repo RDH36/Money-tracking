@@ -7,6 +7,7 @@ import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
 import { groupByPlanification } from '@/lib/groupTransactions';
 import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import { EditTxButton } from '@/components/transactions/EditTxButton';
 import { BackdatedLine } from '@/components/transactions/BackdatedLine';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -232,14 +233,10 @@ export function RecentTransactionsCard({
                   ) : null}
                   <BackdatedLine tx={tx} />
                 </View>
-                <Text
-                  style={{
-                    fontFamily: v2.fontUI, fontSize: 15, fontWeight: '700',
-                    color: tone, fontVariant: ['tabular-nums'],
-                  }}
-                >
+                <Text style={{ fontFamily: v2.fontUI, fontSize: 15, fontWeight: '700', color: tone, fontVariant: ['tabular-nums'] }}>
                   {sign}{formatMoneyFr(tx.amount)} {currencyCode}
                 </Text>
+                <EditTxButton tx={tx} label={tx.note || cat} />
               </Pressable>
             );
           })

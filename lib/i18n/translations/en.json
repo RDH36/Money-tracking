@@ -1569,5 +1569,18 @@
     },
     "editButton": "Edit",
     "editA11y": "Edit transaction {{label}}"
+  },
+  "editTx": {
+    "title": "Edit transaction",
+    "titleTransfer": "Edit transfer",
+    "a11y": "Edit {{label}}",
+    "amount": "Amount",
+    "date": "Transaction date",
+    "category": "Category",
+    "account": "Account",
+    "from": "From",
+    "to": "To",
+    "note": "Note",
+    "transferHint": "Both accounts of the transfer are updated together: same amount, same date."
   }
 }

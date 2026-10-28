@@ -1569,5 +1569,18 @@
     },
     "editButton": "Modifier",
     "editA11y": "Modifier l'opération {{label}}"
+  },
+  "editTx": {
+    "title": "Modifier la transaction",
+    "titleTransfer": "Modifier le transfert",
+    "a11y": "Modifier {{label}}",
+    "amount": "Montant",
+    "date": "Date de l'opération",
+    "category": "Catégorie",
+    "account": "Compte",
+    "from": "Depuis",
+    "to": "Vers",
+    "note": "Note",
+    "transferHint": "Les deux comptes du transfert sont mis à jour ensemble : même montant, même date."
   }
 }

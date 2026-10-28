@@ -11,6 +11,7 @@ import {
 import { formatTransactionDateTime } from '@/lib/formatTransactionDate';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import { BackdatedLine } from './BackdatedLine';
+import { EditTxButton } from './EditTxButton';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -104,6 +105,7 @@ function TransactionRow({ tx, currencyCode, onDelete, isLast }: RowProps) {
       >
         {sign}{formatMoneyFr(tx.amount)} {currencyCode}
       </Text>
+      <EditTxButton tx={tx} label={tx.note || cat} />
       {onDelete ? (
         <Pressable
           onPress={onDelete}
