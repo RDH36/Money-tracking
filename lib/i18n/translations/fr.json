@@ -1516,7 +1516,7 @@
     "errorBody": "Les captures n'ont pas pu être lues. Réessaie avec d'autres images.",
     "doneTitle_one": "{{count}} opération enregistrée",
     "doneTitle_other": "{{count}} opérations enregistrées",
-    "doneBody": "Elles sont rangées à leur vraie date dans ton historique.",
+    "doneBody": "Elles comptent à leur vraie date dans tes budgets et tes rapports.",
     "viewHistory": "Voir l'historique",
     "finish": "Terminer",
     "edit": {

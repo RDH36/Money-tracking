@@ -1516,7 +1516,7 @@
     "errorBody": "The screenshots couldn't be read. Try again with other images.",
     "doneTitle_one": "{{count}} transaction saved",
     "doneTitle_other": "{{count}} transactions saved",
-    "doneBody": "They are filed under their real date in your history.",
+    "doneBody": "They count on their real date in your budgets and reports.",
     "viewHistory": "View history",
     "finish": "Done",
     "edit": {
