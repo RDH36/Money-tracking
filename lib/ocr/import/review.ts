@@ -22,6 +22,8 @@ export interface ImportDraft {
   /** Contrepartie d'un transfert (espèces pour un retrait au distributeur). */
   counterAccountId: string | null;
   externalRef: string | null;
+  /** Doublon signalé coché exprès : enregistré malgré la référence connue. */
+  forceDuplicate?: boolean;
 }
 
 export interface ReviewItem extends ImportDraft {

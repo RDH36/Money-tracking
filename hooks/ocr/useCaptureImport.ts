@@ -117,7 +117,9 @@ export function useCaptureImport(uris: string[]) {
     setPhase('saving');
     setSaveFailed(false);
     try {
-      setSavedCount(await saveImportedOperations(db, toSave));
+      setSavedCount(await saveImportedOperations(
+        db, toSave.map((i) => ({ ...i, forceDuplicate: i.duplicate !== null }))
+      ));
       setPhase('done');
     } catch (err) {
       console.error('Saving imported operations failed:', err);

@@ -7,6 +7,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { SYSTEM_CATEGORY_INCOME_ID, SYSTEM_CATEGORY_TRANSFER_ID } from '@/lib/database/schema';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
+import { canonicalRef } from '../dedupe';
 import type { ImportDraft } from './review';
 
 function generateId(): string {
@@ -26,10 +27,25 @@ const INSERT_SQL = `INSERT INTO transactions
   (id, type, amount, category_id, account_id, transfer_id, note, created_at, transaction_date, updated_at, sync_status, external_ref)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`;
 
+/**
+ * Filet de sécurité : une opération dont la référence bancaire est déjà sur
+ * une transaction active (ou déjà enregistrée dans ce lot) n'est pas réinsérée,
+ * sauf doublon signalé que l'utilisateur a coché exprès (`forceDuplicate`).
+ * Retourne le nombre d'opérations réellement enregistrées.
+ */
 export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportDraft[]): Promise<number> {
   const now = new Date().toISOString();
+  let saved = 0;
   await db.withExclusiveTransactionAsync(async (txn) => {
+    const rows = await txn.getAllAsync<{ external_ref: string }>(
+      'SELECT external_ref FROM transactions WHERE deleted_at IS NULL AND external_ref IS NOT NULL'
+    );
+    const known = new Set(rows.map((r) => canonicalRef(r.external_ref)));
     for (const d of drafts) {
+      const ref = d.externalRef ? canonicalRef(d.externalRef) : null;
+      if (ref && known.has(ref) && !d.forceDuplicate) continue;
+      if (ref) known.add(ref);
+      saved++;
       const txDate = draftDateToIso(d.date);
       const note = d.note.trim() || null;
       if (d.kind === 'transfer') {
@@ -55,5 +71,5 @@ export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportD
     }
   });
   useDataRefreshStore.getState().bumpAll();
-  return drafts.length;
+  return saved;
 }
