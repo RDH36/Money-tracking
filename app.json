@@ -62,7 +62,15 @@
           "microphonePermission": false
         }
       ],
-      ["./modules/mitsitsy-ocr/app.plugin.js", { "shareTarget": "all" }]
+      ["./modules/mitsitsy-ocr/app.plugin.js", { "shareTarget": "all" }],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput, type TextInputInstance } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { formatAmountDisplay } from '@/lib/amountInput';
@@ -18,7 +18,7 @@ export function AmountDisplay({
 }: AmountDisplayProps) {
   const v2 = useV2();
   const { t } = useTranslation();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const display = formatAmountDisplay(value);
 
   const [caretOn, setCaretOn] = useState(true);

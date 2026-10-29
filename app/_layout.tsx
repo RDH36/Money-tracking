@@ -28,7 +28,7 @@ function AppContent() {
 
   return (
     <>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={bgColor} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <Stack
         screenOptions={{
           headerShown: false,

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { ImageSourcePropType } from 'react-native';
+import type { ImageProps } from 'expo-image';
 import { useV2 } from '@/constants/designTokensV2';
 import { ProgressDots, EyebrowLabel, BubuleHeadBubble, QuizOptionV2 } from './Primitives';
 
@@ -17,7 +17,7 @@ interface QuizScreenV2Props {
   questionLabel: string;
   title: React.ReactNode;
   bubbleSpeech: string;
-  bubbleImage: ImageSourcePropType;
+  bubbleImage: ImageProps['source'];
   options: QuizOption[];
   selected: string | null;
   onSelect: (key: string) => void;

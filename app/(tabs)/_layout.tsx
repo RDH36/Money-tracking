@@ -44,7 +44,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -53,7 +53,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.plan'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'clipboard' : 'clipboard-outline'} size={22} color={color} />
+            <Ionicons name={focused ? 'clipboard' : 'clipboard-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -97,7 +97,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.history'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'pulse' : 'pulse-outline'} size={22} color={color} />
+            <Ionicons name={focused ? 'pulse' : 'pulse-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -106,7 +106,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.settings'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={22} color={color} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={22} color={color as string} />
           ),
         }}
       />

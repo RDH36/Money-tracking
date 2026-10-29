@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput, type TextInputInstance } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ export function AddItemForm({ isLoading, onAddItem }: AddItemFormProps) {
   const [note, setNote] = useState('');
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [caretOn, setCaretOn] = useState(true);
-  const amountInputRef = useRef<TextInput>(null);
+  const amountInputRef = useRef<TextInputInstance>(null);
 
   useEffect(() => {
     const id = setInterval(() => setCaretOn((c) => !c), 500);
