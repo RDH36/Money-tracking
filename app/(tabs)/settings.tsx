@@ -14,7 +14,8 @@ import { cancelAllReminders } from '@/lib/notifications';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AboutSection, DangerZoneSection } from '@/components/settings';
 import { useV2 } from '@/constants/designTokensV2';
-import { ANALYSIS_ENABLED } from '@/constants/app';
+import { ANALYSIS_ENABLED, PLUS_ENABLED } from '@/constants/app';
+import { PlusSettingsRow } from '@/components/plus';
 import {
   SectionLabel,
   SettingsCard,
@@ -133,6 +134,7 @@ export default function SettingsScreen() {
             label={t('settings.dataBackup')}
             onPress={() => router.push('/settings/data' as any)}
           />
+          {PLUS_ENABLED ? <PlusSettingsRow /> : null}
           <SettingsRow
             icon="chatbubble-outline"
             iconColor="#14B8A6"

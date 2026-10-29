@@ -1501,8 +1501,8 @@
     "invalid_other": "{{count}} ticked transactions have no valid account",
     "saveFailed": "Saving failed, nothing was saved. Please try again.",
     "dupReference": "Already saved",
-    "dupSimilar": "Already entered?",
-    "dupBatch": "Duplicate",
+    "dupSimilar": "Possible duplicate",
+    "dupBatch": "Twice in this import",
     "toCheck": "Check this",
     "noCategory": "No category",
     "noAccount": "Pick an account",
@@ -1545,8 +1545,8 @@
       "withdrawals_other": "{{count}} withdrawals",
       "known_one": "{{count}} already saved",
       "known_other": "{{count}} already saved",
-      "maybeKnown_one": "{{count}} maybe already entered",
-      "maybeKnown_other": "{{count}} maybe already entered"
+      "maybeKnown_one": "{{count}} possible duplicate",
+      "maybeKnown_other": "{{count}} possible duplicates"
     },
     "dupSelected_one": "{{count}} duplicate checked: it will be saved a second time.",
     "dupSelected_other": "{{count}} duplicates checked: they will be saved a second time.",
@@ -1588,6 +1588,66 @@
       "flat": "Lying flat, fully in the frame",
       "light": "Well lit, no glare or shadow"
     },
-    "pickGallery": "Choose from gallery"
+    "pickGallery": "Choose from gallery",
+    "quota": {
+      "counter": "Reads this cycle: {{used}} of {{limit}}",
+      "unlimited": "Unlimited reads",
+      "reachedTitle": "Reads for this cycle used",
+      "reachedBody": "You've used your {{count}} reads for this cycle. They come back on {{date}}.",
+      "manual": "Enter manually",
+      "truncated_one": "{{count}} image read out of {{total}}: you had {{count}} read left this cycle.",
+      "truncated_other": "{{count}} images read out of {{total}}: you had {{count}} reads left this cycle."
+    },
+    "bulk": {
+      "all": "Select all",
+      "duplicates_one": "Also select the duplicate",
+      "duplicates_other": "Also select the {{count}} duplicates",
+      "clear": "Deselect all"
+    },
+    "hint": {
+      "similar": "Looks like: {{what}} · entered on {{date}}",
+      "batch": "Same amount and date as another line in this import",
+      "reference": "Already imported (same reference)"
+    }
+  },
+  "plus": {
+    "name": "Mitsitsy Plus",
+    "enterCode": "Enter a code",
+    "close": "Close",
+    "status": {
+      "free": "Free",
+      "activeUntil": "Active until {{date}}",
+      "lifetime": "Lifetime"
+    },
+    "plans": {
+      "month": "1-month pass",
+      "year": "1-year pass",
+      "lifetime": "Lifetime pass",
+      "beta": "Beta pass"
+    },
+    "until": "{{plan}} until {{date}}.",
+    "lifetimeLine": "{{plan}}.",
+    "redeem": {
+      "title": "Activation code",
+      "body": "Enter your activation code to unlock the Plus features.",
+      "placeholder": "Paste your code here",
+      "submit": "Confirm",
+      "invalid": "This code is not valid. Check the letters and numbers.",
+      "expired": "This code ended on {{date}}."
+    },
+    "ended": "Your Mitsitsy Plus pass ended on {{date}}. All your data is kept and the free features remain available.",
+    "activated": {
+      "title": "Mitsitsy Plus is active.",
+      "ok": "Got it"
+    },
+    "features": {
+      "ocrUnlimited": "Unlimited automatic import reads"
+    },
+    "link": {
+      "title": "Activate Mitsitsy Plus?",
+      "body": "This link contains a Mitsitsy Plus activation code. Activate it on this phone?",
+      "confirm": "Activate",
+      "cancel": "Cancel"
+    }
   }
 }

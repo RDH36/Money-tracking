@@ -16,6 +16,15 @@ export const ANALYSIS_ENABLED = false;
 // modules/mitsitsy-ocr/app.plugin.js) : passer les deux ensemble en prod.
 export const OCR_IMPORT_ENABLED = __DEV__;
 
+// Mitsitsy Plus, lot 0 : licence vérifiée hors ligne (jeton long collé ou
+// lien profond), seul droit branché = lectures illimitées de l'import. Suit
+// l'import : la ligne Réglages et le lien profond n'existent que s'il existe.
+export const PLUS_ENABLED = OCR_IMPORT_ENABLED;
+
+// Clé PUBLIQUE Ed25519 (base64url) des jetons Plus. La clé privée n'est
+// jamais dans le dépôt (script local scripts/plus/sign-license.mjs).
+export const LICENSE_PUBLIC_KEY = "F7WjaRUFSYdJ4c-WVagPU0t6oToJYBwQjmX78hvoZmI";
+
 // Supabase configuration
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "";
 export const SUPABASE_ANON_KEY =

@@ -1501,8 +1501,8 @@
     "invalid_other": "{{count}} opérations cochées n'ont pas de compte valide",
     "saveFailed": "L'enregistrement a échoué, rien n'a été enregistré. Réessaie.",
     "dupReference": "Déjà enregistrée",
-    "dupSimilar": "Déjà saisie ?",
-    "dupBatch": "En double",
+    "dupSimilar": "Doublon possible",
+    "dupBatch": "En double dans cet import",
     "toCheck": "À vérifier",
     "noCategory": "Sans catégorie",
     "noAccount": "Choisis un compte",
@@ -1545,8 +1545,8 @@
       "withdrawals_other": "{{count}} retraits",
       "known_one": "{{count}} déjà enregistrée",
       "known_other": "{{count}} déjà enregistrées",
-      "maybeKnown_one": "{{count}} peut-être déjà saisie",
-      "maybeKnown_other": "{{count}} peut-être déjà saisies"
+      "maybeKnown_one": "{{count}} doublon possible",
+      "maybeKnown_other": "{{count}} doublons possibles"
     },
     "dupSelected_one": "{{count}} doublon coché : il sera enregistré une deuxième fois.",
     "dupSelected_other": "{{count}} doublons cochés : ils seront enregistrés une deuxième fois.",
@@ -1588,6 +1588,66 @@
       "flat": "Posé à plat, en entier dans le cadre",
       "light": "Bien éclairé, sans reflet ni ombre"
     },
-    "pickGallery": "Choisir dans la galerie"
+    "pickGallery": "Choisir dans la galerie",
+    "quota": {
+      "counter": "Lectures ce cycle : {{used}} sur {{limit}}",
+      "unlimited": "Lectures illimitées",
+      "reachedTitle": "Lectures du cycle utilisées",
+      "reachedBody": "Tu as utilisé tes {{count}} lectures de ce cycle. Elles reviennent le {{date}}.",
+      "manual": "Saisir à la main",
+      "truncated_one": "{{count}} image lue sur {{total}} : il te restait {{count}} lecture ce cycle.",
+      "truncated_other": "{{count}} images lues sur {{total}} : il te restait {{count}} lectures ce cycle."
+    },
+    "bulk": {
+      "all": "Tout cocher",
+      "duplicates_one": "Cocher aussi le doublon",
+      "duplicates_other": "Cocher aussi les {{count}} doublons",
+      "clear": "Tout décocher"
+    },
+    "hint": {
+      "similar": "Ressemble à : {{what}} · saisi le {{date}}",
+      "batch": "Même montant et même date qu'une autre ligne de cet import",
+      "reference": "Déjà importée (même référence)"
+    }
+  },
+  "plus": {
+    "name": "Mitsitsy Plus",
+    "enterCode": "Saisir un code",
+    "close": "Fermer",
+    "status": {
+      "free": "Gratuit",
+      "activeUntil": "Actif jusqu'au {{date}}",
+      "lifetime": "À vie"
+    },
+    "plans": {
+      "month": "Pass 1 mois",
+      "year": "Pass 1 an",
+      "lifetime": "Pass à vie",
+      "beta": "Pass bêta"
+    },
+    "until": "{{plan}} jusqu'au {{date}}.",
+    "lifetimeLine": "{{plan}}.",
+    "redeem": {
+      "title": "Code d'activation",
+      "body": "Saisis ton code d'activation pour débloquer les fonctions Plus.",
+      "placeholder": "Colle ton code ici",
+      "submit": "Valider",
+      "invalid": "Ce code n'est pas valide. Vérifie les lettres et les chiffres.",
+      "expired": "Ce code a pris fin le {{date}}."
+    },
+    "ended": "Ton pass Mitsitsy Plus a pris fin le {{date}}. Toutes tes données sont conservées et les fonctions gratuites restent disponibles.",
+    "activated": {
+      "title": "Mitsitsy Plus est actif.",
+      "ok": "Compris"
+    },
+    "features": {
+      "ocrUnlimited": "Lectures illimitées de l'import automatique"
+    },
+    "link": {
+      "title": "Activer Mitsitsy Plus ?",
+      "body": "Ce lien contient un code d'activation Mitsitsy Plus. Veux-tu l'activer sur ce téléphone ?",
+      "confirm": "Activer",
+      "cancel": "Annuler"
+    }
   }
 }

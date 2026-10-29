@@ -1458,8 +1458,8 @@
     "saveFailed": "Tsy nety ny fitehirizana, tsy nisy voatahiry. Andramo indray.",
     "dupReference": "Efa voatahiry",
     "lockedA11y": "Efa voatahiry, tsy azo hofidiana : {{label}}",
-    "dupSimilar": "Efa nampidirina?",
-    "dupBatch": "Miverina",
+    "dupSimilar": "Mety ho indroa",
+    "dupBatch": "Indroa ato amin’ity fampidirana ity",
     "toCheck": "Hamarino",
     "noCategory": "Tsy misy sokajy",
     "noAccount": "Misafidiana kaonty",
@@ -1502,8 +1502,8 @@
       "withdrawals_other": "fisintomana {{count}}",
       "known_one": "{{count}} efa voatahiry",
       "known_other": "{{count}} efa voatahiry",
-      "maybeKnown_one": "{{count}} angamba efa voasoratra",
-      "maybeKnown_other": "{{count}} angamba efa voasoratra"
+      "maybeKnown_one": "{{count}} mety ho indroa",
+      "maybeKnown_other": "{{count}} mety ho indroa"
     },
     "dupSelected_one": "Miverina {{count}} voafidy: hotahirizina indroa izy.",
     "dupSelected_other": "Miverina {{count}} voafidy: hotahirizina indroa izy ireo.",
@@ -1524,9 +1524,86 @@
       "title": "Hampiditra avy amin'ny sary",
       "body": "Makà sarin'ny efijery Transactions an'ny MCB Juice, dia safidio eto. Vakian'i Mitsitsy ao amin'ny finday ny fifanakalozanao, tsy mila internet, ary hamarininao aloha vao tahirizina.",
       "pick": "Hisafidy sary",
-      "later": "Avy eo"
+      "later": "Avy eo",
+      "takePhoto": "Alaivo ny sary"
     },
     "editButton": "Ovay",
-    "editA11y": "Ovay ny fifanakalozana {{label}}"
+    "editA11y": "Ovay ny fifanakalozana {{label}}",
+    "quota": {
+      "counter": "Famakiana amin’ity tsingerina ity : {{used}} amin’ny {{limit}}",
+      "unlimited": "Famakiana tsy voafetra",
+      "reachedTitle": "Lany ny famakiana amin’ity tsingerina ity",
+      "reachedBody": "Nampiasainao avokoa ireo famakiana {{count}} amin’ity tsingerina ity. Miverina izy ireo ny {{date}}.",
+      "manual": "Soraty amin’ny tanana",
+      "truncated_one": "Sary {{count}} no voavaky tamin’ny {{total}} : famakiana {{count}} sisa no nananao.",
+      "truncated_other": "Sary {{count}} no voavaky tamin’ny {{total}} : famakiana {{count}} sisa no nananao."
+    },
+    "bulk": {
+      "all": "Fidio daholo",
+      "duplicates_one": "Fidio koa ilay indroa",
+      "duplicates_other": "Fidio koa ireo indroa {{count}}",
+      "clear": "Esory daholo"
+    },
+    "hint": {
+      "similar": "Mitovy amin’ny : {{what}} · voasoratra ny {{date}}",
+      "batch": "Mitovy vola sy daty amin’ny andalana hafa ato amin’ity fampidirana ity",
+      "reference": "Efa nampidirina (laharana mitovy)"
+    },
+    "takePhoto": "Maka sary",
+    "cameraError": "Tsy mety misokatra ny fakan-tsary.",
+    "cameraDenied": "Avelao hampiasa ny fakan-tsary ao amin’ny fikirakirana ny finday mba haka sary tapakila.",
+    "sources": {
+      "mcb": "MCB Juice",
+      "boa-gab": "Tapakila fanalana vola BOA",
+      "bmoi-tpe": "Tapakila karatra BMOI",
+      "receipt": "Tapakila fividianana"
+    },
+    "tips": {
+      "title": "Ho an’ny tapakila taratasy",
+      "one": "Tapakila iray isaky ny sary",
+      "flat": "Apetraka fisaka, tafiditra manontolo ao anaty sary",
+      "light": "Mazava tsara, tsy misy taratra na aloka"
+    },
+    "pickGallery": "Misafidy ao amin’ny galerie"
+  },
+  "plus": {
+    "name": "Mitsitsy Plus",
+    "enterCode": "Hampiditra kaody",
+    "close": "Hidio",
+    "status": {
+      "free": "Maimaimpoana",
+      "activeUntil": "Mandeha hatramin’ny {{date}}",
+      "lifetime": "Mandrakizay"
+    },
+    "plans": {
+      "month": "Pass 1 volana",
+      "year": "Pass 1 taona",
+      "lifetime": "Pass mandrakizay",
+      "beta": "Pass bêta"
+    },
+    "until": "{{plan}} hatramin’ny {{date}}.",
+    "lifetimeLine": "{{plan}}.",
+    "redeem": {
+      "title": "Kaody fampandehanana",
+      "body": "Ampidiro ny kaody fampandehananao hanokafana ireo asa Plus.",
+      "placeholder": "Apetaho eto ny kaodinao",
+      "submit": "Hamafiso",
+      "invalid": "Tsy mety ity kaody ity. Hamarino ireo litera sy isa.",
+      "expired": "Nifarana ny {{date}} ity kaody ity."
+    },
+    "ended": "Nifarana ny {{date}} ny pass Mitsitsy Plus-nao. Voatahiry avokoa ny angonao ary mbola azo ampiasaina ireo asa maimaimpoana.",
+    "activated": {
+      "title": "Mandeha ny Mitsitsy Plus.",
+      "ok": "Azoko"
+    },
+    "features": {
+      "ocrUnlimited": "Famakiana tsy voafetra amin’ny fampidirana mandeha ho azy"
+    },
+    "link": {
+      "title": "Hampandeha ny Mitsitsy Plus ?",
+      "body": "Misy kaody fampandehanana Mitsitsy Plus ity rohy ity. Hampandehanina amin’ity finday ity ve ?",
+      "confirm": "Ampandehano",
+      "cancel": "Aoka ihany"
+    }
   }
 }
