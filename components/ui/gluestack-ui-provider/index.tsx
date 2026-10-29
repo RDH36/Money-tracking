@@ -23,7 +23,8 @@ export function GluestackUIProvider({
 
   const effectiveColorScheme = useMemo(() => {
     if (colorMode === 'system') {
-      return systemColorScheme ?? 'light';
+      // RN 0.83 can report 'unspecified': treat it like null (light).
+      return systemColorScheme === 'dark' ? 'dark' : 'light';
     }
     return colorMode;
   }, [colorMode, systemColorScheme]);
