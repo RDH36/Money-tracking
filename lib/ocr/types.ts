@@ -57,6 +57,8 @@ export interface ParsedOperation {
    * `card` → compte bancaire. Absent pour les relevés bancaires.
    */
   payment?: 'card' | 'cash' | null;
+  /** Index de l'image d'origine dans l'import (quota de lectures). */
+  image?: number;
 }
 
 export interface ParseResult {

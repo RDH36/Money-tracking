@@ -15,10 +15,11 @@ interface TxRow {
   created_at: string;
   external_ref: string | null;
   transfer_id: string | null;
+  category_id: string | null;
 }
 
 const TX_COLUMNS =
-  'id, type, amount, note, transaction_date, created_at, external_ref, transfer_id';
+  'id, type, amount, note, transaction_date, created_at, external_ref, transfer_id, category_id';
 
 function shiftDay(ymd: string, days: number): string {
   const d = new Date(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10) + days);
@@ -60,6 +61,7 @@ export async function loadExistingForDedupe(
     note: r.note,
     externalRef: r.external_ref,
     isTransfer: !!r.transfer_id,
+    categoryId: r.category_id,
   }));
 }
 

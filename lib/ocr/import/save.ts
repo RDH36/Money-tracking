@@ -32,11 +32,15 @@ const INSERT_SQL = `INSERT INTO transactions
  * une transaction active n'est JAMAIS réinsérée, même avec `forceDuplicate`.
  * Une référence déjà enregistrée dans ce lot n'est ignorée que sans
  * `forceDuplicate` (doublon du lot coché exprès).
- * Retourne le nombre d'opérations réellement enregistrées.
+ * Retourne le nombre d'opérations réellement enregistrées ; `onInserted`
+ * reçoit chacune d'elles une fois la transaction validée (quota de lectures).
  */
-export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportDraft[]): Promise<number> {
+export async function saveImportedOperations<D extends ImportDraft>(
+  db: SQLiteDatabase, drafts: D[], onInserted?: (inserted: D[]) => void | Promise<void>
+): Promise<number> {
   const now = new Date().toISOString();
   let saved = 0;
+  const inserted: D[] = [];
   await db.withExclusiveTransactionAsync(async (txn) => {
     const rows = await txn.getAllAsync<{ external_ref: string }>(
       'SELECT external_ref FROM transactions WHERE deleted_at IS NULL AND external_ref IS NOT NULL'
@@ -49,6 +53,7 @@ export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportD
       if (ref && inBatch.has(ref) && !d.forceDuplicate) continue;
       if (ref) inBatch.add(ref);
       saved++;
+      inserted.push(d);
       const txDate = draftDateToIso(d.date);
       const note = d.note.trim() || null;
       if (d.kind === 'transfer') {
@@ -73,6 +78,7 @@ export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportD
       }
     }
   });
+  await onInserted?.(inserted);
   useDataRefreshStore.getState().bumpAll();
   return saved;
 }

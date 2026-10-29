@@ -7,20 +7,26 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { OCR_IMPORT_ENABLED } from '@/constants/app';
 import { isOcrAvailable } from '@/modules/mitsitsy-ocr';
+import { usePostHog } from 'posthog-react-native';
 import { useCaptureIntro } from '@/hooks/ocr/useCaptureIntro';
+import { useOcrQuota } from '@/hooks/premium/useOcrQuota';
+import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
+import type { License } from '@/lib/premium';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
+import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
 import { takeTicketPhoto } from './entry/takePhoto';
 
 type EntryAction = 'gallery' | 'camera';
+export type ImportSource = EntryAction | 'share';
 
 /**
  * Ouvre l'écran de vérification de l'import pour ces captures. `replace` :
  * l'écran d'import est déjà affiché (nouveau partage, « Importer d'autres
  * captures ») → on le remplace au lieu d'en empiler un second.
  */
-export function openCaptureImport(uris: string[], replace = false) {
+export function openCaptureImport(uris: string[], replace = false, source: ImportSource = 'gallery') {
   if (uris.length === 0) return;
-  const route = { pathname: '/import/capture' as const, params: { uris: JSON.stringify(uris) } };
+  const route = { pathname: '/import/capture' as const, params: { uris: JSON.stringify(uris), source } };
   if (replace) router.replace(route);
   else router.push(route);
 }
@@ -43,6 +49,11 @@ export function ImportCaptureEntry() {
   const [error, setError] = useState<'pick' | 'camera' | 'cameraDenied' | null>(null);
   const [pending, setPending] = useState<EntryAction | null>(null);
   const intro = useCaptureIntro();
+  const quota = useOcrQuota();
+  const posthog = usePostHog();
+  const [quotaOpen, setQuotaOpen] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [activated, setActivated] = useState<License | null>(null);
 
   if (!OCR_IMPORT_ENABLED || !isOcrAvailable) return null;
 
@@ -50,12 +61,12 @@ export function ImportCaptureEntry() {
     setError(null);
     try {
       if (action === 'gallery') {
-        openCaptureImport(await pickCaptures());
+        openCaptureImport(await pickCaptures(), false, 'gallery');
         return;
       }
       const photo = await takeTicketPhoto();
       if ('denied' in photo) setError('cameraDenied');
-      else openCaptureImport(photo.uris);
+      else openCaptureImport(photo.uris, false, 'camera');
     } catch (err) {
       console.warn('Image picker failed:', err);
       setError(action === 'gallery' ? 'pick' : 'camera');
@@ -63,7 +74,10 @@ export function ImportCaptureEntry() {
   };
 
   const onPress = (action: EntryAction) => {
-    if (intro.seen) run(action);
+    if (quota.loaded && quota.remaining <= 0) {
+      posthog.capture('ocr_quota_reached', { plan: 'free' });
+      setQuotaOpen(true);
+    } else if (intro.seen) run(action);
     else setPending(action);
   };
 
@@ -103,6 +117,13 @@ export function ImportCaptureEntry() {
             <Text style={{ marginTop: 1, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkMuted }}>
               {t('ocrImport.entrySub')}
             </Text>
+            {quota.loaded ? (
+              <Text style={{ marginTop: 3, fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.brand }}>
+                {quota.unlimited
+                  ? t('ocrImport.quota.unlimited')
+                  : t('ocrImport.quota.counter', { used: Math.min(quota.used, quota.limit), limit: quota.limit })}
+              </Text>
+            ) : null}
           </View>
         </View>
         <View style={{ marginTop: 10, flexDirection: 'row', gap: 8 }}>
@@ -137,6 +158,29 @@ export function ImportCaptureEntry() {
         onContinue={continueFromIntro}
         continueLabel={t(pending === 'camera' ? 'ocrImport.intro.takePhoto' : 'ocrImport.intro.pick')}
       />
+      <QuotaReachedSheet
+        isOpen={quotaOpen}
+        limit={quota.limit}
+        resetsOn={quota.resetsOn}
+        onManual={() => {
+          posthog.capture('ocr_manual_fallback');
+          setQuotaOpen(false);
+        }}
+        onEnterCode={() => {
+          setQuotaOpen(false);
+          setCodeOpen(true);
+        }}
+        onClose={() => setQuotaOpen(false)}
+      />
+      <RedeemCodeSheet
+        isOpen={codeOpen}
+        onClose={() => setCodeOpen(false)}
+        onActivated={(l) => {
+          setCodeOpen(false);
+          setActivated(l);
+        }}
+      />
+      <PlusActivatedDialog license={activated} onClose={() => setActivated(null)} />
     </View>
   );
 }

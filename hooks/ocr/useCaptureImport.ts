@@ -5,7 +5,7 @@ import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
-import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, isPaidCash, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
+import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, isPaidCash, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
 import { saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
@@ -28,7 +28,7 @@ const EMPTY_STATS: ImportStats = {
  * Parcours complet de l'import par capture : lecture OCR → analyse →
  * anti-doublon → brouillons modifiables → enregistrement.
  */
-export function useCaptureImport(uris: string[]) {
+export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem[]) => void | Promise<void>) {
   const db = useSQLiteContext();
   const [phase, setPhase] = useState<ImportPhase>('reading');
   const [progress, setProgress] = useState({ done: 0, total: uris.length });
@@ -87,6 +87,12 @@ export function useCaptureImport(uris: string[]) {
     setItems((prev) => prev.map((i) => (i.key === key ? toggleItem(i) : i)));
   }, []);
 
+  /** Interrupteur « Tout cocher » de ces lignes (liste entière ou groupe de date). */
+  const toggleMany = useCallback((keys: string[]) => {
+    const set = new Set(keys);
+    setItems((prev) => applyBulk(prev, set));
+  }, []);
+
   const update = useCallback((key: string, patch: Partial<ReviewItem>) => {
     setItems((prev) => prev.map((i) => (i.key === key ? applyPatch(i, patch) : i)));
   }, []);
@@ -110,9 +116,7 @@ export function useCaptureImport(uris: string[]) {
     setPhase('saving');
     setSaveFailed(false);
     try {
-      setSavedCount(await saveImportedOperations(
-        db, toSave
-      ));
+      setSavedCount(await saveImportedOperations(db, toSave, onSaved));
       setPhase('done');
     } catch (err) {
       console.error('Saving imported operations failed:', err);
@@ -120,7 +124,7 @@ export function useCaptureImport(uris: string[]) {
       setSaveFailed(true);
       setPhase('review');
     }
-  }, [db, toSave]);
+  }, [db, toSave, onSaved]);
 
   // Capture en cours de lecture (miniature de l'écran de chargement).
   const currentUri = uris[Math.min(progress.done, uris.length - 1)] ?? null;
@@ -128,6 +132,6 @@ export function useCaptureImport(uris: string[]) {
   return {
     phase, progress, currentUri, items, stats, savedCount, saveFailed,
     selectedCount: toSave.length, invalidSelected,
-    toggle, update, setAccountForAll, save,
+    toggle, toggleMany, update, setAccountForAll, save,
   };
 }

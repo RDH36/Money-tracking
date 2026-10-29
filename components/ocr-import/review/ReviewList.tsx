@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import type { ReviewItem } from '@/lib/ocr/import/review';
+import { BulkToggle } from './BulkToggle';
 
 interface ReviewListProps {
   items: ReviewItem[];
@@ -16,6 +17,8 @@ interface ReviewListProps {
   /** Message sous le bouton : erreur d'enregistrement, opérations invalides, doublon coché. */
   notice: { text: string; tone: 'warn' | 'bad' } | null;
   onSave: () => void;
+  /** Interrupteur « Tout cocher » de ces lignes. */
+  onToggleMany: (keys: string[]) => void;
 }
 
 function dateHeader(ymd: string, locale: string): string {
@@ -25,7 +28,7 @@ function dateHeader(ymd: string, locale: string): string {
 
 /** Opérations groupées par date (comme l'appli de la banque), bouton collant en bas. */
 export function ReviewList({
-  items, header, renderItem, locale, selectedCount, saving, notice, onSave,
+  items, header, renderItem, locale, selectedCount, saving, notice, onSave, onToggleMany,
 }: ReviewListProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -53,16 +56,34 @@ export function ReviewList({
         keyExtractor={(i) => i.key}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
-        ListHeaderComponent={<View style={{ marginBottom: 4 }}>{header}</View>}
+        ListHeaderComponent={
+          <View style={{ marginBottom: 4 }}>
+            {header}
+            {/* Une seule date : l'interrupteur du groupe suffit. */}
+            {sections.length > 1 ? (
+              <View style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <BulkToggle items={items} onPress={onToggleMany} />
+              </View>
+            ) : null}
+          </View>
+        }
         renderSectionHeader={({ section }) => (
-          <Text
+          <View
             style={{
-              marginTop: 18, marginBottom: 8, fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700',
-              letterSpacing: 1, textTransform: 'uppercase', color: v2.inkSubtle,
+              marginTop: 18, marginBottom: 8, flexDirection: 'row', alignItems: 'center',
+              justifyContent: 'space-between', gap: 8,
             }}
           >
-            {dateHeader(section.date, locale)}
-          </Text>
+            <Text
+              style={{
+                fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700',
+                letterSpacing: 1, textTransform: 'uppercase', color: v2.inkSubtle,
+              }}
+            >
+              {dateHeader(section.date, locale)}
+            </Text>
+            <BulkToggle items={section.data} onPress={onToggleMany} scope={dateHeader(section.date, locale)} />
+          </View>
         )}
         renderItem={({ item }) => <View style={{ marginBottom: 8 }}>{renderItem(item)}</View>}
       />

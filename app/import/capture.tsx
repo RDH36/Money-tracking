@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Text, View } from 'react-native';
+import { usePostHog } from 'posthog-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,12 @@ import { ReviewList } from '@/components/ocr-import/review/ReviewList';
 import { ReadingView } from '@/components/ocr-import/states/ReadingView';
 import { DoneView } from '@/components/ocr-import/states/DoneView';
 import { EmptyView } from '@/components/ocr-import/states/EmptyView';
+import { useOcrQuota } from '@/hooks/premium/useOcrQuota';
+import { consumedReads, planReads, type ReadPlan } from '@/lib/premium';
+import { importSavedProps, readCompletedProps } from '@/lib/ocr/import/analytics';
+import { duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
+import { getCategoryDisplayName } from '@/constants/categories';
+import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
 import type { AccountWithBalance } from '@/types';
 
 function parseUris(raw: string | undefined): string[] {
@@ -31,22 +38,84 @@ function parseUris(raw: string | undefined): string[] {
 /** Nouvelle sélection dans la galerie : remplace l'import affiché. */
 async function importMore() {
   try {
-    openCaptureImport(await pickCaptures(), true);
+    openCaptureImport(await pickCaptures(), true, 'gallery');
   } catch (err) {
     console.warn('Image picker failed:', err);
   }
 }
 
+/**
+ * Quota de lectures : décidé UNE fois par liste reçue (le compteur qui monte
+ * après l'enregistrement ne relance pas la lecture). Au-delà du solde, seules
+ * les N premières images sont lues ; solde nul → E4.
+ */
 export default function ImportCaptureScreen() {
+  const params = useLocalSearchParams<{ uris?: string; source?: string }>();
+  const quota = useOcrQuota();
+  const plans = useRef(new Map<string, ReadPlan>());
+  const [, rerender] = useState(0);
+  const key = params.uris ?? '';
+  const all = useMemo(() => parseUris(params.uris), [params.uris]);
+  let plan = plans.current.get(key);
+  if (!plan && quota.loaded) {
+    plan = planReads(all.length, quota.remaining, quota.unlimited);
+    plans.current.set(key, plan);
+  }
+  if (!plan) return <View style={{ flex: 1 }} />;
+  if (plan.blocked && !quota.unlimited) {
+    return (
+      <QuotaBlockedView
+        limit={quota.limit} resetsOn={quota.resetsOn}
+        onUnlocked={() => {
+          plans.current.set(key, planReads(all.length, Infinity, true));
+          rerender((n) => n + 1);
+        }}
+      />
+    );
+  }
+  return (
+    <ImportCaptureFlow
+      key={key} uris={all.slice(0, plan.allowed)} truncatedFrom={plan.truncatedFrom}
+      source={params.source ?? 'gallery'} consume={quota.unlimited ? null : quota.consume}
+    />
+  );
+}
+
+interface FlowProps {
+  uris: string[];
+  truncatedFrom: number | null;
+  source: string;
+  consume: ((reads: number) => Promise<void>) | null;
+}
+
+function ImportCaptureFlow({ uris, truncatedFrom, source, consume }: FlowProps) {
   const insets = useSafeAreaInsets();
   const v2 = useV2();
   const { t, i18n } = useTranslation();
   const currency = useCurrency();
-  const params = useLocalSearchParams<{ uris?: string }>();
-  const uris = useMemo(() => parseUris(params.uris), [params.uris]);
-  const imp = useCaptureImport(uris);
+  const posthog = usePostHog();
+  const onSaved = useCallback(async (inserted: ReviewItem[]) => {
+    posthog.capture('ocr_import_saved', importSavedProps(inserted));
+    try {
+      await consume?.(consumedReads(inserted.map((i) => ({ image: i.op.image, forceDuplicate: i.forceDuplicate }))));
+    } catch (err) {
+      // Les opérations sont enregistrées : un compteur raté ne doit pas l'annuler.
+      console.error('Counting OCR reads failed:', err);
+    }
+  }, [posthog, consume]);
+  const imp = useCaptureImport(uris, onSaved);
+  const reported = useRef(false);
+  useEffect(() => {
+    posthog.capture('ocr_import_started', { source });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (imp.phase !== 'review' || reported.current) return;
+    reported.current = true;
+    posthog.capture('ocr_read_completed', readCompletedProps(imp.items, imp.stats.sources));
+  }, [imp.phase, imp.items, imp.stats.sources, posthog]);
   const { accounts } = useAccounts();
-  const { expenseCategories } = useCategories();
+  const { categories, expenseCategories } = useCategories();
   const [editingKey, setEditingKey] = useState<string | null>(null);
 
   const formatMoney = (cents: number) => formatCurrency(cents, currency.code);
@@ -60,6 +129,19 @@ export default function ImportCaptureScreen() {
     .map((id) => t(`ocrImport.sources.${id}`, { defaultValue: SOURCE_PARSERS.find((p) => p.id === id)?.label ?? '' }))
     .filter(Boolean)
     .join(' · ') || null;
+  const hintFormatters = {
+    money: formatMoney,
+    date: (ymd: string) => new Date(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10))
+      .toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' }),
+    category: (id: string | null | undefined) => {
+      const c = categories.find((x) => x.id === id);
+      return c ? getCategoryDisplayName(c.id, c.name, t) || null : null;
+    },
+  };
+  const hintOf = (item: ReviewItem) => {
+    const h = duplicateHint(item, hintFormatters);
+    return h ? t(h.key, h.params) : null;
+  };
   const editing = imp.items.find((i) => i.key === editingKey) ?? null;
   const close = () => router.back();
 
@@ -100,6 +182,7 @@ export default function ImportCaptureScreen() {
         saving={imp.phase === 'saving'}
         notice={notice}
         onSave={imp.save}
+        onToggleMany={imp.toggleMany}
         header={
           <ReviewSummary
             items={imp.items} stats={imp.stats} sourceLabel={sourceLabel} appCurrency={currency.code}
@@ -113,6 +196,7 @@ export default function ImportCaptureScreen() {
             category={expenseCategories.find((c) => c.id === item.categoryId) ?? null}
             counterAccountName={accountName(item.counterAccountId)}
             formatMoney={formatMoney}
+            hint={hintOf(item)}
             onToggle={() => imp.toggle(item.key)}
             onPress={() => setEditingKey(item.key)}
           />
@@ -126,6 +210,11 @@ export default function ImportCaptureScreen() {
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
         <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={close} />
       </View>
+      {truncatedFrom !== null && imp.phase !== 'done' ? (
+        <Text style={{ paddingHorizontal: 20, paddingBottom: 8, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
+          {t('ocrImport.quota.truncated', { count: uris.length, total: truncatedFrom })}
+        </Text>
+      ) : null}
       {body}
       <EditOperationSheet
         item={editing}

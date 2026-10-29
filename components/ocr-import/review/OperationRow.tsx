@@ -19,12 +19,14 @@ interface OperationRowProps {
   category: Category | null;
   counterAccountName: string | null;
   formatMoney: (cents: number) => string;
+  /** Explication du doublon (transaction qui ressemble, même référence…). */
+  hint?: string | null;
   onToggle: () => void;
   onPress: () => void;
 }
 
 export function OperationRow({
-  item, category, counterAccountName, formatMoney, onToggle, onPress,
+  item, category, counterAccountName, formatMoney, hint, onToggle, onPress,
 }: OperationRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -118,6 +120,11 @@ export function OperationRow({
           >
             {item.note || item.op.label}
           </Text>
+          {hint ? (
+            <Text numberOfLines={2} style={{ marginTop: 2, fontFamily: v2.fontUI, fontSize: 11, color: locked ? v2.inkMuted : v2.warn }}>
+              {hint}
+            </Text>
+          ) : null}
           <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
             {tagText}
           </Text>

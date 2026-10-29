@@ -31,7 +31,7 @@ export async function readCaptures(
         continue;
       }
       if (!result.sources.includes(parsed.source)) result.sources.push(parsed.source);
-      result.operations.push(...parsed.operations);
+      result.operations.push(...parsed.operations.map((op) => ({ ...op, image: i })));
       result.partial += parsed.partial;
     } catch (err) {
       console.warn('OCR failed for capture', i, err);

@@ -22,7 +22,7 @@ export function CaptureShareListener() {
     if (!OCR_IMPORT_ENABLED) return;
     const check = () => {
       getSharedImages()
-        .then((uris) => openCaptureImport(uris, onImportScreen.current))
+        .then((uris) => openCaptureImport(uris, onImportScreen.current, 'share'))
         .catch((err) => console.warn('Reading shared images failed:', err));
     };
     check();

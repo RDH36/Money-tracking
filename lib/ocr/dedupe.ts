@@ -18,6 +18,8 @@ export interface ExistingTransaction {
   note: string | null;
   externalRef: string | null;
   isTransfer: boolean;
+  /** Catégorie affichée quand la note est vide (« Ressemble à : … »). */
+  categoryId?: string | null;
 }
 
 /** reference : même réf. bancaire en base ; similar : saisie proche en base ; batch : déjà dans le lot. */
@@ -26,6 +28,10 @@ export type DuplicateReason = 'reference' | 'similar' | 'batch';
 export interface DedupedOperation {
   op: ParsedOperation;
   duplicate: DuplicateReason | null;
+  /** Id de la transaction en base trouvée (`reference` / `similar`), sinon null. */
+  matchId: string | null;
+  /** Cette transaction, pour la montrer sous le libellé. */
+  match: ExistingTransaction | null;
 }
 
 /** Valeur stockée dans transactions.external_ref, ex. `mcb:FT26301QW7K2`. */
@@ -108,19 +114,22 @@ export function dedupeOperations(
     }
 
     let duplicate: DuplicateReason | null = null;
+    let match: ExistingTransaction | null = null;
     const byRef = ref ? existing.find((tx) => sameRef(tx.externalRef, ref)) : undefined;
     if (byRef) {
       duplicate = 'reference';
+      match = byRef;
     } else {
       const similar = existing.find((tx) => !usedExisting.has(tx.id) && matchesExisting(op, tx));
       if (similar) {
         duplicate = 'similar';
+        match = similar;
         usedExisting.add(similar.id);
       } else if (items.some((i) => looksLikeSameBatchOp(i.op, op))) {
         duplicate = 'batch';
       }
     }
-    items.push({ op, duplicate });
+    items.push({ op, duplicate, matchId: match?.id ?? null, match });
   }
   return { items, merged };
 }
