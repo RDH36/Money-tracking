@@ -9,7 +9,7 @@
     },
     "development": {
       "extends": "base",
-      "developmentClient": true,
+      "developmentClient": false,
       "distribution": "internal",
       "android": {
         "gradleCommand": ":app:assembleDebug"
