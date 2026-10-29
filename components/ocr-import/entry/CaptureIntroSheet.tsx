@@ -4,15 +4,18 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { DialogButtonRow, DialogGhostBtn, DialogPrimaryBtn } from '@/components/ui/DialogButtons';
 import { useV2 } from '@/constants/designTokensV2';
 import { CaptureExample } from './CaptureExample';
+import { TicketTips } from './TicketTips';
 
 interface CaptureIntroSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onContinue: () => void;
+  /** Libellé du bouton principal (galerie ou appareil photo). */
+  continueLabel?: string;
 }
 
-/** Première utilisation : quelle capture faire, en deux phrases et un exemple. */
-export function CaptureIntroSheet({ isOpen, onClose, onContinue }: CaptureIntroSheetProps) {
+/** Première utilisation : quelle capture ou quelle photo de ticket faire, avec un exemple. */
+export function CaptureIntroSheet({ isOpen, onClose, onContinue, continueLabel }: CaptureIntroSheetProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   return (
@@ -25,7 +28,7 @@ export function CaptureIntroSheet({ isOpen, onClose, onContinue }: CaptureIntroS
       footer={
         <DialogButtonRow>
           <DialogGhostBtn label={t('ocrImport.intro.later')} onPress={onClose} />
-          <DialogPrimaryBtn label={t('ocrImport.intro.pick')} onPress={onContinue} />
+          <DialogPrimaryBtn label={continueLabel ?? t('ocrImport.intro.pick')} onPress={onContinue} />
         </DialogButtonRow>
       }
     >
@@ -35,6 +38,7 @@ export function CaptureIntroSheet({ isOpen, onClose, onContinue }: CaptureIntroS
       <View style={{ marginTop: 16 }}>
         <CaptureExample />
       </View>
+      <TicketTips />
     </BottomSheet>
   );
 }

@@ -52,6 +52,11 @@ export interface ParsedOperation {
   /** Id de catégorie par défaut proposé par mots-clés (`food`, `bills`…). */
   categoryHint: string | null;
   uncertain: UncertainField[];
+  /**
+   * Moyen de paiement lu sur un ticket : `cash` → compte espèces proposé,
+   * `card` → compte bancaire. Absent pour les relevés bancaires.
+   */
+  payment?: 'card' | 'cash' | null;
 }
 
 export interface ParseResult {
@@ -71,4 +76,6 @@ export interface SourceParser {
   /** Confiance (0 à 1) que la page vient de cette source. */
   detect(page: OcrPage): number;
   parse(page: OcrPage): ParseResult;
+  /** Ticket papier photographié (une opération par photo, peut être pivoté). */
+  ticket?: boolean;
 }

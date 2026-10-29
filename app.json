@@ -60,7 +60,7 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": false,
+          "cameraPermission": "Mitsitsy utilise l'appareil photo pour lire tes tickets de caisse, de carte et de retrait.",
           "microphonePermission": false
         }
       ],

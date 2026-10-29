@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { AccountPickerV2 } from '@/components/add';
 import type { ImportStats } from '@/hooks/ocr/useCaptureImport';
-import type { ReviewItem } from '@/lib/ocr/import/review';
+import { isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
 import type { AccountWithBalance } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -28,7 +28,8 @@ export function ReviewSummary({
   const v2 = useV2();
   const { t } = useTranslation();
   const fresh = items.filter((i) => !i.duplicate);
-  const sharedAccount = items.every((i) => i.accountId === items[0]?.accountId) ? items[0]?.accountId ?? null : null;
+  const banked = items.filter((i) => !isPaidCash(i));
+  const sharedAccount = banked.every((i) => i.accountId === banked[0]?.accountId) ? banked[0]?.accountId ?? null : null;
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
 
   const parts = [

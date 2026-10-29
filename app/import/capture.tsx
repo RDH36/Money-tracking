@@ -56,7 +56,10 @@ export default function ImportCaptureScreen() {
     const a = accounts.find((acc) => acc.id === id);
     return a ? getAccountName(a) : null;
   };
-  const sourceLabel = SOURCE_PARSERS.find((p) => p.id === imp.stats.sources[0])?.label ?? null;
+  const sourceLabel = imp.stats.sources
+    .map((id) => t(`ocrImport.sources.${id}`, { defaultValue: SOURCE_PARSERS.find((p) => p.id === id)?.label ?? '' }))
+    .filter(Boolean)
+    .join(' · ') || null;
   const editing = imp.items.find((i) => i.key === editingKey) ?? null;
   const close = () => router.back();
 

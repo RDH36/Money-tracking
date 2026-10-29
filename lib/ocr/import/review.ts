@@ -55,10 +55,16 @@ export function buildReviewItems(items: DedupedOperation[], ctx: ReviewContext):
     categoryId: suggestCategory(op, ctx.history, ctx.validCategoryIds)
       // Sans suggestion : « Autre », le bac où l'appli range déjà les dépenses sans catégorie.
       ?? (op.kind === 'expense' && ctx.validCategoryIds.has(FALLBACK_CATEGORY_ID) ? FALLBACK_CATEGORY_ID : null),
-    accountId: ctx.bankId,
+    // Ticket payé en espèces : la dépense sort du compte espèces.
+    accountId: op.payment === 'cash' && op.kind === 'expense' ? ctx.cashId ?? ctx.bankId : ctx.bankId,
     counterAccountId: op.kind === 'transfer' ? ctx.cashId : null,
     externalRef: externalRefOf(op),
   }));
+}
+
+/** Dépense d'un ticket payé en espèces : hors du choix du « Compte bancaire ». */
+export function isPaidCash(i: ReviewItem): boolean {
+  return i.op.payment === 'cash' && i.kind === 'expense';
 }
 
 /** Une opération cochée est enregistrable si ses comptes sont cohérents. */

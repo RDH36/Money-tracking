@@ -1474,11 +1474,11 @@
     }
   },
   "ocrImport": {
-    "entryTitle": "Importer depuis une capture",
-    "entrySub": "Tes opérations MCB Juice lues en une fois",
+    "entryTitle": "Importer automatiquement",
+    "entrySub": "Captures d'appli, tickets, factures",
     "pickError": "Impossible d'ouvrir la galerie.",
     "title": "Importer des captures",
-    "overline": "MCB Juice",
+    "overline": "Captures et tickets",
     "readingHint": "Tout se passe sur ton téléphone, sans internet.",
     "detected_one": "{{count}} opération à ajouter",
     "detected_other": "{{count}} opérations à ajouter",
@@ -1486,8 +1486,8 @@
     "merged_other": "{{count}} opérations présentes sur plusieurs captures, comptées une fois",
     "partial_one": "{{count}} opération coupée au bord d'une capture, ignorée : fais une capture où elle apparaît en entier",
     "partial_other": "{{count}} opérations coupées au bord d'une capture, ignorées : fais une capture où elles apparaissent en entier",
-    "unrecognized_one": "{{count}} capture sans opération reconnue (seul MCB Juice est lu pour l'instant)",
-    "unrecognized_other": "{{count}} captures sans opération reconnue (seul MCB Juice est lu pour l'instant)",
+    "unrecognized_one": "{{count}} image sans opération reconnue (captures MCB Juice, tickets de retrait BOA, tickets de carte BMOI et tickets de caisse)",
+    "unrecognized_other": "{{count}} images sans opération reconnue (captures MCB Juice, tickets de retrait BOA, tickets de carte BMOI et tickets de caisse)",
     "failed_one": "{{count}} image illisible",
     "failed_other": "{{count}} images illisibles",
     "currencyMismatch": "Montants lus en {{read}}, ta devise est {{app}} : vérifie-les avant d'enregistrer.",
@@ -1552,10 +1552,10 @@
     "importMore": "Importer d'autres captures",
     "pickOther": "Choisir d'autres captures",
     "empty": {
-      "notMcbTitle": "Ce n'est pas une capture MCB Juice",
-      "notMcbBody": "Pour l'instant, Mitsitsy lit l'écran Transactions de l'appli MCB Juice. Ouvre ton compte à vue, puis fais une capture comme celle-ci.",
+      "notMcbTitle": "Capture ou ticket non reconnu",
+      "notMcbBody": "Mitsitsy lit l'écran Transactions de MCB Juice, les tickets de retrait BOA, les tickets de carte BMOI et les tickets de caisse. Reprends la photo avec un seul ticket, à plat et bien éclairé, ou fais une capture comme celle-ci.",
       "noOpsTitle": "Aucune opération complète",
-      "noOpsBody": "Fais défiler jusqu'aux transactions avant la capture : la date, le libellé et le montant de chaque opération doivent être visibles."
+      "noOpsBody": "La date et le montant doivent être lisibles. Capture MCB : fais défiler jusqu'aux transactions avant la capture. Ticket : reprends la photo à plat, en entier et bien éclairée."
     },
     "example": {
       "caption": "Compte à vue › Transactions récentes"
@@ -1563,11 +1563,28 @@
     "intro": {
       "overline": "Nouveau",
       "title": "Importer depuis une capture",
-      "body": "Fais une capture de l'écran Transactions de MCB Juice, puis choisis-la ici. Mitsitsy lit tes opérations sur le téléphone, sans internet, et tu vérifies tout avant d'enregistrer.",
+      "body": "Choisis une capture de l'écran Transactions de MCB Juice, ou photographie un ticket de retrait, de carte ou de caisse. Mitsitsy lit tes opérations sur le téléphone, sans internet, et tu vérifies tout avant d'enregistrer.",
       "pick": "Choisir mes captures",
-      "later": "Plus tard"
+      "later": "Plus tard",
+      "takePhoto": "Prendre la photo"
     },
     "editButton": "Modifier",
-    "editA11y": "Modifier l'opération {{label}}"
+    "editA11y": "Modifier l'opération {{label}}",
+    "takePhoto": "Prendre une photo",
+    "cameraError": "Impossible d'ouvrir l'appareil photo.",
+    "cameraDenied": "Autorise l'appareil photo dans les réglages du téléphone pour photographier un ticket.",
+    "sources": {
+      "mcb": "MCB Juice",
+      "boa-gab": "Ticket de retrait BOA",
+      "bmoi-tpe": "Ticket de carte BMOI",
+      "receipt": "Ticket de caisse"
+    },
+    "tips": {
+      "title": "Pour un ticket papier",
+      "one": "Un seul ticket par photo",
+      "flat": "Posé à plat, en entier dans le cadre",
+      "light": "Bien éclairé, sans reflet ni ombre"
+    },
+    "pickGallery": "Choisir dans la galerie"
   }
 }

@@ -5,7 +5,7 @@ import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
-import { buildReviewItems, isDraftValid, type ReviewItem } from '@/lib/ocr/import/review';
+import { buildReviewItems, isDraftValid, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
 import { saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
@@ -98,10 +98,10 @@ export function useCaptureImport(uris: string[]) {
     );
   }, []);
 
-  /** Change le compte bancaire de toutes les opérations. */
+  /** Change le compte bancaire de toutes les opérations (sauf tickets payés en espèces). */
   const setAccountForAll = useCallback((accountId: string) => {
     setItems((prev) =>
-      prev.map((i) => ({
+      prev.map((i) => isPaidCash(i) ? i : ({
         ...i,
         accountId,
         counterAccountId: i.counterAccountId === accountId ? null : i.counterAccountId,

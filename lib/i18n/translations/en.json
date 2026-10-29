@@ -1474,11 +1474,11 @@
     }
   },
   "ocrImport": {
-    "entryTitle": "Import from a screenshot",
-    "entrySub": "Read your MCB Juice transactions in one go",
+    "entryTitle": "Import automatically",
+    "entrySub": "App screenshots, receipts, bills",
     "pickError": "Couldn't open the gallery.",
     "title": "Import screenshots",
-    "overline": "MCB Juice",
+    "overline": "Screenshots and receipts",
     "readingHint": "Everything happens on your phone, offline.",
     "detected_one": "{{count}} transaction to add",
     "detected_other": "{{count}} transactions to add",
@@ -1486,8 +1486,8 @@
     "merged_other": "{{count}} transactions appear on several screenshots, counted once",
     "partial_one": "{{count}} transaction cut off at the edge of a screenshot, skipped: take a screenshot showing it in full",
     "partial_other": "{{count}} transactions cut off at the edge of a screenshot, skipped: take a screenshot showing them in full",
-    "unrecognized_one": "{{count}} screenshot with no recognised transaction (only MCB Juice is supported for now)",
-    "unrecognized_other": "{{count}} screenshots with no recognised transaction (only MCB Juice is supported for now)",
+    "unrecognized_one": "{{count}} image with no recognised transaction (MCB Juice screenshots, BOA ATM receipts, BMOI card receipts and till receipts)",
+    "unrecognized_other": "{{count}} images with no recognised transaction (MCB Juice screenshots, BOA ATM receipts, BMOI card receipts and till receipts)",
     "failed_one": "{{count}} unreadable image",
     "failed_other": "{{count}} unreadable images",
     "currencyMismatch": "Amounts read in {{read}}, your currency is {{app}}: check them before saving.",
@@ -1552,10 +1552,10 @@
     "importMore": "Import more screenshots",
     "pickOther": "Choose other screenshots",
     "empty": {
-      "notMcbTitle": "This is not an MCB Juice screenshot",
-      "notMcbBody": "For now, Mitsitsy reads the Transactions screen of the MCB Juice app. Open your current account, then take a screenshot like this one.",
+      "notMcbTitle": "Screenshot or receipt not recognised",
+      "notMcbBody": "Mitsitsy reads the MCB Juice Transactions screen, BOA ATM receipts, BMOI card receipts and till receipts. Retake the photo with a single receipt, flat and well lit, or take a screenshot like this one.",
       "noOpsTitle": "No complete transaction",
-      "noOpsBody": "Scroll down to the transactions before taking the screenshot: each transaction's date, label and amount must be visible."
+      "noOpsBody": "The date and amount must be readable. MCB screenshot: scroll to the transactions before taking it. Receipt: retake the photo flat, whole and well lit."
     },
     "example": {
       "caption": "Compte à vue › Transactions récentes"
@@ -1563,11 +1563,28 @@
     "intro": {
       "overline": "New",
       "title": "Import from a screenshot",
-      "body": "Take a screenshot of the MCB Juice Transactions screen, then pick it here. Mitsitsy reads your transactions on the phone, offline, and you check everything before saving.",
+      "body": "Pick a screenshot of the MCB Juice Transactions screen, or photograph an ATM, card or till receipt. Mitsitsy reads your transactions on the phone, offline, and you check everything before saving.",
       "pick": "Choose my screenshots",
-      "later": "Later"
+      "later": "Later",
+      "takePhoto": "Take the photo"
     },
     "editButton": "Edit",
-    "editA11y": "Edit transaction {{label}}"
+    "editA11y": "Edit transaction {{label}}",
+    "takePhoto": "Take a photo",
+    "cameraError": "Could not open the camera.",
+    "cameraDenied": "Allow the camera in the phone settings to photograph a receipt.",
+    "sources": {
+      "mcb": "MCB Juice",
+      "boa-gab": "BOA ATM receipt",
+      "bmoi-tpe": "BMOI card receipt",
+      "receipt": "Till receipt"
+    },
+    "tips": {
+      "title": "For a paper receipt",
+      "one": "One receipt per photo",
+      "flat": "Lying flat, fully in the frame",
+      "light": "Well lit, no glare or shadow"
+    },
+    "pickGallery": "Choose from gallery"
   }
 }

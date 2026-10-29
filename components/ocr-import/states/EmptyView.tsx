@@ -3,9 +3,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { CaptureExample } from '../entry/CaptureExample';
+import { TicketTips } from '../entry/TicketTips';
 
 interface EmptyViewProps {
-  /** notMcb : aucune capture reconnue ; noOps : écran MCB sans opération complète. */
+  /** notMcb : aucune capture ni aucun ticket reconnu ; noOps : source reconnue sans opération complète. */
   reason: 'notMcb' | 'noOps';
   onPickOther: () => void;
   onClose: () => void;
@@ -47,6 +48,7 @@ export function EmptyView({ reason, onPickOther, onClose }: EmptyViewProps) {
 
       <View style={{ marginTop: 20 }}>
         <CaptureExample />
+        {reason === 'notMcb' ? <TicketTips /> : null}
       </View>
 
       <Pressable

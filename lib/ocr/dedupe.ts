@@ -1,6 +1,7 @@
 /**
  * Anti-doublon de l'import : d'abord la référence bancaire, sinon montant +
- * date (± 1 jour) + libellé proche. Contrôle le lot importé (captures qui se
+ * date (± 1 jour) + libellé proche. Entre deux sources différentes (ticket ↔
+ * ligne MCB, ticket de caisse ↔ ticket carte), montant + sens + date ± 1 jour. Contrôle le lot importé (captures qui se
  * chevauchent) et les transactions déjà en base.
  */
 import type { ParsedOperation } from './types';
@@ -48,7 +49,23 @@ function sameRef(a: string | null, b: string | null): boolean {
   return !!a && !!b && canonicalRef(a) === canonicalRef(b);
 }
 
+/** Source d'une référence stockée (`mcb:FT…` → `mcb`), null sans préfixe. */
+function refSource(externalRef: string): string | null {
+  const i = externalRef.indexOf(':');
+  return i > 0 ? externalRef.slice(0, i) : null;
+}
+
+/** Même sens d'argent : dépense ↔ dépense, retrait ↔ retrait. */
+function sameDirection(op: ParsedOperation, tx: ExistingTransaction): boolean {
+  if (op.kind === 'transfer') return tx.isTransfer && tx.type === (op.amount < 0 ? 'expense' : 'income');
+  return !tx.isTransfer && tx.type === op.kind;
+}
+
 function looksLikeSameBatchOp(a: ParsedOperation, b: ParsedOperation): boolean {
+  if (a.source !== b.source) {
+    // Deux pièces du même achat (ticket de caisse + ticket carte, ticket + relevé).
+    return a.amount === b.amount && a.kind === b.kind && daysBetween(a.date, b.date) <= 1;
+  }
   return (
     a.amount === b.amount &&
     a.date === b.date &&
@@ -58,10 +75,18 @@ function looksLikeSameBatchOp(a: ParsedOperation, b: ParsedOperation): boolean {
 }
 
 function matchesExisting(op: ParsedOperation, tx: ExistingTransaction): boolean {
-  if (tx.externalRef) return false; // déjà importée avec une autre référence
   if (Math.abs(op.amount) !== tx.amount || daysBetween(op.date, tx.date) > 1) return false;
-  if (op.kind === 'transfer') return tx.isTransfer && tx.type === (op.amount < 0 ? 'expense' : 'income');
-  if (tx.isTransfer || tx.type !== op.kind) return false;
+  if (tx.externalRef) {
+    // Déjà importée d'une autre source (ligne MCB face au ticket) : même
+    // montant, même sens, ± 1 jour suffisent. Même source : autre référence.
+    // Ticket de caisse : sa réf. dépend du nom d'émetteur lu, deux photos du
+    // même ticket peuvent différer ; il se compare donc aussi à lui-même.
+    const from = refSource(tx.externalRef);
+    const comparable = from !== null && (from !== op.source || op.source === 'receipt');
+    return comparable && sameDirection(op, tx);
+  }
+  if (!sameDirection(op, tx)) return false;
+  if (op.kind === 'transfer') return true;
   const note = tx.note?.trim() ?? '';
   return note === '' || labelOverlap(`${op.note} ${op.label}`, note) >= 0.5;
 }
