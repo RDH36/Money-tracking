@@ -11,10 +11,10 @@ export const PROJECT_NAME = "mitsitsy";
 export const ANALYSIS_ENABLED = false;
 
 // Import d'opérations depuis une capture d'écran (OCR hors ligne, MCB Juice
-// pour l'instant) : future feature Mitsitsy Plus, activée en debug seulement.
-// La cible de partage Android suit la même règle (manifeste debug, voir
-// modules/mitsitsy-ocr/app.plugin.js) : passer les deux ensemble en prod.
-export const OCR_IMPORT_ENABLED = __DEV__;
+// pour l'instant) : activée en prod depuis la 2.1.0. La cible de partage
+// Android suit la même règle (shareTarget 'all' dans app.json, voir
+// modules/mitsitsy-ocr/app.plugin.js) : les deux vont ensemble.
+export const OCR_IMPORT_ENABLED = true;
 
 // Mitsitsy Plus, lot 0 : licence vérifiée hors ligne (jeton long collé ou
 // lien profond), seul droit branché = lectures illimitées de l'import. Suit
