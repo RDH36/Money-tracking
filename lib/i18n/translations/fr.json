@@ -1544,7 +1544,9 @@
       "withdrawals_one": "{{count}} retrait",
       "withdrawals_other": "{{count}} retraits",
       "known_one": "{{count}} déjà enregistrée",
-      "known_other": "{{count}} déjà enregistrées"
+      "known_other": "{{count}} déjà enregistrées",
+      "maybeKnown_one": "{{count}} peut-être déjà saisie",
+      "maybeKnown_other": "{{count}} peut-être déjà saisies"
     },
     "dupSelected_one": "{{count}} doublon coché : il sera enregistré une deuxième fois.",
     "dupSelected_other": "{{count}} doublons cochés : ils seront enregistrés une deuxième fois.",
@@ -1570,6 +1572,7 @@
     },
     "editButton": "Modifier",
     "editA11y": "Modifier l'opération {{label}}",
+    "lockedA11y": "Déjà enregistrée, ne peut pas être cochée : {{label}}",
     "takePhoto": "Prendre une photo",
     "cameraError": "Impossible d'ouvrir l'appareil photo.",
     "cameraDenied": "Autorise l'appareil photo dans les réglages du téléphone pour photographier un ticket.",

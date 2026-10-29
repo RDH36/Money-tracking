@@ -1544,7 +1544,9 @@
       "withdrawals_one": "{{count}} withdrawal",
       "withdrawals_other": "{{count}} withdrawals",
       "known_one": "{{count}} already saved",
-      "known_other": "{{count}} already saved"
+      "known_other": "{{count}} already saved",
+      "maybeKnown_one": "{{count}} maybe already entered",
+      "maybeKnown_other": "{{count}} maybe already entered"
     },
     "dupSelected_one": "{{count}} duplicate checked: it will be saved a second time.",
     "dupSelected_other": "{{count}} duplicates checked: they will be saved a second time.",
@@ -1570,6 +1572,7 @@
     },
     "editButton": "Edit",
     "editA11y": "Edit transaction {{label}}",
+    "lockedA11y": "Already saved, cannot be selected: {{label}}",
     "takePhoto": "Take a photo",
     "cameraError": "Could not open the camera.",
     "cameraDenied": "Allow the camera in the phone settings to photograph a receipt.",

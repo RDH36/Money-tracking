@@ -5,7 +5,7 @@ import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
-import { buildReviewItems, isDraftValid, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
+import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, isPaidCash, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
 import { saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
@@ -84,18 +84,11 @@ export function useCaptureImport(uris: string[]) {
   }, [db, urisKey]);
 
   const toggle = useCallback((key: string) => {
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, selected: !i.selected } : i)));
+    setItems((prev) => prev.map((i) => (i.key === key ? toggleItem(i) : i)));
   }, []);
 
   const update = useCallback((key: string, patch: Partial<ReviewItem>) => {
-    setItems((prev) =>
-      prev.map((i) => {
-        if (i.key !== key) return i;
-        // Montant corrigé : ce n'est plus l'opération déjà enregistrée, le badge doublon tombe.
-        const amountChanged = patch.amount !== undefined && patch.amount !== i.amount;
-        return { ...i, ...patch, duplicate: amountChanged ? null : i.duplicate };
-      })
-    );
+    setItems((prev) => prev.map((i) => (i.key === key ? applyPatch(i, patch) : i)));
   }, []);
 
   /** Change le compte bancaire de toutes les opérations (sauf tickets payés en espèces). */
@@ -109,7 +102,7 @@ export function useCaptureImport(uris: string[]) {
     );
   }, []);
 
-  const toSave = items.filter((i) => i.selected && isDraftValid(i));
+  const toSave = draftsToSave(items);
   const invalidSelected = items.filter((i) => i.selected && !isDraftValid(i)).length;
 
   const save = useCallback(async () => {
@@ -118,7 +111,7 @@ export function useCaptureImport(uris: string[]) {
     setSaveFailed(false);
     try {
       setSavedCount(await saveImportedOperations(
-        db, toSave.map((i) => ({ ...i, forceDuplicate: i.duplicate !== null }))
+        db, toSave
       ));
       setPhase('done');
     } catch (err) {

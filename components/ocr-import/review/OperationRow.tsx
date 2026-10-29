@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { getCategoryDisplayName } from '@/constants/categories';
-import type { ReviewItem } from '@/lib/ocr/import/review';
+import { isLocked, type ReviewItem } from '@/lib/ocr/import/review';
 import type { Category } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -31,6 +31,8 @@ export function OperationRow({
   const isCredit = item.direction === 'credit';
   const amountColor = isCredit && item.kind !== 'transfer' ? v2.good : item.kind === 'transfer' ? v2.inkMuted : v2.ink;
 
+  const locked = isLocked(item);
+  const label = item.note || item.op.label;
   const badge = item.duplicate
     ? { text: t(`ocrImport.${item.duplicate === 'reference' ? 'dupReference' : item.duplicate === 'similar' ? 'dupSimilar' : 'dupBatch'}`), fg: v2.warn, bg: v2.warnSoft }
     : item.op.uncertain.some((f) => f === 'amount' || f === 'sign' || f === 'date')
@@ -62,25 +64,29 @@ export function OperationRow({
         borderColor: item.selected ? v2.hairlineStrong : v2.hairline,
         paddingVertical: 12, paddingRight: 14, paddingLeft: 4,
         // Décochée (doublon ou choix) : grisée.
-        opacity: item.selected ? 1 : 0.55,
+        opacity: item.selected ? 1 : locked ? 0.45 : 0.55,
       }}
     >
       <Pressable
         onPress={onToggle}
+        disabled={locked}
         hitSlop={8}
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: item.selected }}
+        accessibilityState={{ checked: item.selected, disabled: locked }}
+        accessibilityLabel={locked ? t('ocrImport.lockedA11y', { label }) : label}
         style={{ paddingHorizontal: 8, paddingVertical: 6 }}
       >
         <View
           style={{
             width: 22, height: 22, borderRadius: 7, borderWidth: 1.5,
             borderColor: item.selected ? v2.brand : v2.hairlineStrong,
-            backgroundColor: item.selected ? v2.brand : 'transparent',
+            // Bloquée : case pleine grise avec cadenas, impossible à cocher.
+            backgroundColor: item.selected ? v2.brand : locked ? v2.hairline : 'transparent',
             alignItems: 'center', justifyContent: 'center',
           }}
         >
-          {item.selected ? <Ionicons name="checkmark" size={15} color={v2.inkOnDark} /> : null}
+          {item.selected ? <Ionicons name="checkmark" size={15} color={v2.inkOnDark} />
+            : locked ? <Ionicons name="lock-closed" size={12} color={v2.inkSubtle} /> : null}
         </View>
       </Pressable>
 
@@ -130,7 +136,7 @@ export function OperationRow({
             onPress={onPress}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={t('ocrImport.editA11y', { label: item.note || item.op.label })}
+            accessibilityLabel={t('ocrImport.editA11y', { label })}
             style={{
               flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 10,
               borderRadius: 15, borderWidth: 1, borderColor: v2.hairlineStrong, backgroundColor: v2.bgBase,

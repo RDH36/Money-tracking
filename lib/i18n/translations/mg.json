@@ -1457,6 +1457,7 @@
     "invalid_other": "Fifanakalozana voamarika {{count}} tsy manana kaonty mety",
     "saveFailed": "Tsy nety ny fitehirizana, tsy nisy voatahiry. Andramo indray.",
     "dupReference": "Efa voatahiry",
+    "lockedA11y": "Efa voatahiry, tsy azo hofidiana : {{label}}",
     "dupSimilar": "Efa nampidirina?",
     "dupBatch": "Miverina",
     "toCheck": "Hamarino",
@@ -1500,7 +1501,9 @@
       "withdrawals_one": "fisintomana {{count}}",
       "withdrawals_other": "fisintomana {{count}}",
       "known_one": "{{count}} efa voatahiry",
-      "known_other": "{{count}} efa voatahiry"
+      "known_other": "{{count}} efa voatahiry",
+      "maybeKnown_one": "{{count}} angamba efa voasoratra",
+      "maybeKnown_other": "{{count}} angamba efa voasoratra"
     },
     "dupSelected_one": "Miverina {{count}} voafidy: hotahirizina indroa izy.",
     "dupSelected_other": "Miverina {{count}} voafidy: hotahirizina indroa izy ireo.",

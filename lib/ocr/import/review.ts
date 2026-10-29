@@ -22,7 +22,10 @@ export interface ImportDraft {
   /** Contrepartie d'un transfert (espèces pour un retrait au distributeur). */
   counterAccountId: string | null;
   externalRef: string | null;
-  /** Doublon signalé coché exprès : enregistré malgré la référence connue. */
+  /**
+   * Doublon probable ou du lot coché exprès : enregistré quand même. Ne lève
+   * jamais le blocage d'une référence déjà sur une transaction active.
+   */
   forceDuplicate?: boolean;
 }
 
@@ -60,6 +63,34 @@ export function buildReviewItems(items: DedupedOperation[], ctx: ReviewContext):
     counterAccountId: op.kind === 'transfer' ? ctx.cashId : null,
     externalRef: externalRefOf(op),
   }));
+}
+
+/** « Déjà enregistrée » (même référence qu'une transaction active) : non cochable. */
+export function isLocked(i: ReviewItem): boolean {
+  return i.duplicate === 'reference';
+}
+
+/** Coche/décoche une ligne ; sans effet sur une ligne bloquée. */
+export function toggleItem(i: ReviewItem): ReviewItem {
+  return isLocked(i) ? i : { ...i, selected: !i.selected };
+}
+
+/**
+ * Modification depuis la fiche. Montant corrigé : le badge « Déjà saisie ? » ou
+ * « En double » tombe ; une ligne bloquée (référence connue) le reste, comme à
+ * l'enregistrement (décision de Raymond).
+ */
+export function applyPatch(i: ReviewItem, patch: Partial<ReviewItem>): ReviewItem {
+  const amountChanged = patch.amount !== undefined && patch.amount !== i.amount;
+  const duplicate = amountChanged && !isLocked(i) ? null : i.duplicate;
+  return { ...i, ...patch, duplicate, selected: duplicate === 'reference' ? false : patch.selected ?? i.selected };
+}
+
+/** Brouillons envoyés à l'enregistrement : seuls les doublons non bloqués sont forcés. */
+export function draftsToSave(items: ReviewItem[]): ReviewItem[] {
+  return items
+    .filter((i) => i.selected && !isLocked(i) && isDraftValid(i))
+    .map((i) => ({ ...i, forceDuplicate: i.duplicate !== null }));
 }
 
 /** Dépense d'un ticket payé en espèces : hors du choix du « Compte bancaire ». */

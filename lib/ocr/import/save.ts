@@ -29,8 +29,9 @@ const INSERT_SQL = `INSERT INTO transactions
 
 /**
  * Filet de sécurité : une opération dont la référence bancaire est déjà sur
- * une transaction active (ou déjà enregistrée dans ce lot) n'est pas réinsérée,
- * sauf doublon signalé que l'utilisateur a coché exprès (`forceDuplicate`).
+ * une transaction active n'est JAMAIS réinsérée, même avec `forceDuplicate`.
+ * Une référence déjà enregistrée dans ce lot n'est ignorée que sans
+ * `forceDuplicate` (doublon du lot coché exprès).
  * Retourne le nombre d'opérations réellement enregistrées.
  */
 export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportDraft[]): Promise<number> {
@@ -40,11 +41,13 @@ export async function saveImportedOperations(db: SQLiteDatabase, drafts: ImportD
     const rows = await txn.getAllAsync<{ external_ref: string }>(
       'SELECT external_ref FROM transactions WHERE deleted_at IS NULL AND external_ref IS NOT NULL'
     );
-    const known = new Set(rows.map((r) => canonicalRef(r.external_ref)));
+    const stored = new Set(rows.map((r) => canonicalRef(r.external_ref)));
+    const inBatch = new Set<string>();
     for (const d of drafts) {
       const ref = d.externalRef ? canonicalRef(d.externalRef) : null;
-      if (ref && known.has(ref) && !d.forceDuplicate) continue;
-      if (ref) known.add(ref);
+      if (ref && stored.has(ref)) continue;
+      if (ref && inBatch.has(ref) && !d.forceDuplicate) continue;
+      if (ref) inBatch.add(ref);
       saved++;
       const txDate = draftDateToIso(d.date);
       const note = d.note.trim() || null;

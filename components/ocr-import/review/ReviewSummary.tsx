@@ -36,7 +36,8 @@ export function ReviewSummary({
     { key: 'expenses', count: fresh.filter((i) => i.kind === 'expense').length },
     { key: 'incomes', count: fresh.filter((i) => i.kind === 'income').length },
     { key: 'withdrawals', count: fresh.filter((i) => i.kind === 'transfer').length },
-    { key: 'known', count: items.length - fresh.length },
+    { key: 'known', count: items.filter((i) => i.duplicate === 'reference').length },
+    { key: 'maybeKnown', count: items.filter((i) => i.duplicate === 'similar' || i.duplicate === 'batch').length },
   ].filter((p) => p.count > 0);
 
   const notices: { icon: IoniconName; text: string; tone: 'info' | 'warn' }[] = [];
