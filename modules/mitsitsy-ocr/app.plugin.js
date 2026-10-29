@@ -61,6 +61,18 @@ function withDebugManifestShare(config) {
   ]);
 }
 
+// CAMERA makes Play require a camera; it is optional here (gallery, share).
+function withOptionalCamera(config) {
+  return withAndroidManifest(config, (cfg) => {
+    const m = cfg.modResults.manifest;
+    const names = ['android.hardware.camera', 'android.hardware.camera.autofocus'];
+    const kept = (m['uses-feature'] || []).filter((f) => !names.includes(f.$['android:name']));
+    m['uses-feature'] = [...kept, ...names.map((n) => ({ $: { 'android:name': n, 'android:required': 'false' } }))];
+    return cfg;
+  });
+}
+
 module.exports = function withMitsitsyOcr(config, { shareTarget = 'debug' } = {}) {
-  return shareTarget === 'all' ? withMainManifestShare(config) : withDebugManifestShare(config);
+  const share = shareTarget === 'all' ? withMainManifestShare(config) : withDebugManifestShare(config);
+  return withOptionalCamera(share);
 };

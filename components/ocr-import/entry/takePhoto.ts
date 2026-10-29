@@ -9,11 +9,16 @@ export type PhotoResult = { uris: string[] } | { denied: true };
 export async function takeTicketPhoto(): Promise<PhotoResult> {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
   if (!perm.granted) return { denied: true };
-  const res = await ImagePicker.launchCameraAsync({
-    mediaTypes: ['images'],
-    allowsEditing: true,
-    quality: 1,
-    exif: false,
-  });
-  return { uris: res.canceled ? [] : res.assets.map((a) => a.uri) };
+  try {
+    const res = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 1,
+      exif: false,
+    });
+    return { uris: res.canceled ? [] : res.assets.map((a) => a.uri) };
+  } catch {
+    // Appareil sans caméra (tablette, Chromebook) : la caméra est optionnelle.
+    return { uris: [] };
+  }
 }
