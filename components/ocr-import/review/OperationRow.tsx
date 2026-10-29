@@ -63,8 +63,8 @@ export function OperationRow({
         backgroundColor: v2.bgSurface, borderRadius: 16, borderWidth: 1,
         borderColor: item.selected ? v2.hairlineStrong : v2.hairline,
         paddingVertical: 12, paddingRight: 14, paddingLeft: 4,
-        // Décochée (doublon ou choix) : grisée.
-        opacity: item.selected ? 1 : locked ? 0.45 : 0.55,
+        // Décochée : grisée. Bloquée : pas d'opacité (contraste ≥ 4.5:1), textes en inkMuted.
+        opacity: item.selected || locked ? 1 : 0.55,
       }}
     >
       <Pressable
@@ -94,7 +94,7 @@ export function OperationRow({
         <View
           style={{
             width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-            backgroundColor: tint(tagColor),
+            backgroundColor: tint(tagColor), opacity: locked ? 0.5 : 1,
           }}
         >
           <Ionicons name={tagIcon} size={16} color={tagColor} />
@@ -114,7 +114,7 @@ export function OperationRow({
           ) : null}
           <Text
             numberOfLines={2}
-            style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: v2.ink }}
+            style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: locked ? v2.inkMuted : v2.ink }}
           >
             {item.note || item.op.label}
           </Text>
@@ -125,7 +125,7 @@ export function OperationRow({
         <View style={{ alignItems: 'flex-end', gap: 8 }}>
           <Text
             style={{
-              fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: amountColor,
+              fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: locked ? v2.inkMuted : amountColor,
               fontVariant: ['tabular-nums'], letterSpacing: -0.2,
             }}
           >

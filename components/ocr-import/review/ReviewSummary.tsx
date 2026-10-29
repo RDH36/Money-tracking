@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { AccountPickerV2 } from '@/components/add';
 import type { ImportStats } from '@/hooks/ocr/useCaptureImport';
-import { isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
+import { countToSave, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
 import type { AccountWithBalance } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -28,6 +28,7 @@ export function ReviewSummary({
   const v2 = useV2();
   const { t } = useTranslation();
   const fresh = items.filter((i) => !i.duplicate);
+  const toSave = countToSave(items);
   const banked = items.filter((i) => !isPaidCash(i));
   const sharedAccount = banked.every((i) => i.accountId === banked[0]?.accountId) ? banked[0]?.accountId ?? null : null;
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
@@ -61,7 +62,7 @@ export function ReviewSummary({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: v2.fontDisplay, fontSize: 17, fontWeight: '700', color: v2.inkOnDark }}>
-              {fresh.length > 0 ? t('ocrImport.detected', { count: fresh.length }) : t('ocrImport.nothingNew')}
+              {toSave > 0 ? t('ocrImport.detected', { count: toSave }) : t('ocrImport.nothingNew')}
             </Text>
             <Text style={{ marginTop: 2, fontFamily: v2.fontUIRegular, fontSize: 12, color: v2.inkOnDarkM }}>
               {t('ocrImport.fromCaptures', { source: sourceLabel ?? '', count: stats.captures })}

@@ -82,8 +82,16 @@ export function toggleItem(i: ReviewItem): ReviewItem {
  */
 export function applyPatch(i: ReviewItem, patch: Partial<ReviewItem>): ReviewItem {
   const amountChanged = patch.amount !== undefined && patch.amount !== i.amount;
-  const duplicate = amountChanged && !isLocked(i) ? null : i.duplicate;
-  return { ...i, ...patch, duplicate, selected: duplicate === 'reference' ? false : patch.selected ?? i.selected };
+  const unflagged = amountChanged && !isLocked(i) && i.duplicate !== null;
+  const duplicate = unflagged ? null : i.duplicate;
+  // Badge tombé (montant différent) : la ligne se coche, ce n'est plus la même opération.
+  const selected = duplicate === 'reference' ? false : patch.selected ?? (unflagged ? true : i.selected);
+  return { ...i, ...patch, duplicate, selected };
+}
+
+/** Nombre d'opérations réellement enregistrées (titre de l'en-tête). */
+export function countToSave(items: ReviewItem[]): number {
+  return draftsToSave(items).length;
 }
 
 /** Brouillons envoyés à l'enregistrement : seuls les doublons non bloqués sont forcés. */
