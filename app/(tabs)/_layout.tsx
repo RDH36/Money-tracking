@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { CaptureShareListener } from '@/components/ocr-import';
+import { EveningReminderTapListener } from '@/components/habit/EveningReminderTapListener';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -14,6 +15,7 @@ export default function TabsLayout() {
   return (
     <>
     <CaptureShareListener />
+    <EveningReminderTapListener />
     <Tabs
       screenOptions={{
         headerShown: false,

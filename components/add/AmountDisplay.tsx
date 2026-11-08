@@ -8,6 +8,8 @@ interface AmountDisplayProps {
   value: string;
   onChangeText: (s: string) => void;
   currencyCode?: string;
+  /** Clavier ouvert à l'arrivée (défaut). Fermé pour la 1re dépense guidée. */
+  autoFocus?: boolean;
 }
 
 
@@ -15,6 +17,7 @@ export function AmountDisplay({
   value,
   onChangeText,
   currencyCode = 'Ar',
+  autoFocus = true,
 }: AmountDisplayProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -80,7 +83,7 @@ export function AmountDisplay({
         value={value}
         onChangeText={onChangeText}
         keyboardType="decimal-pad"
-        autoFocus
+        autoFocus={autoFocus}
         style={{
           position: 'absolute',
           opacity: 0,

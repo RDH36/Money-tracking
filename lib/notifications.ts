@@ -1,8 +1,14 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import i18n, { LANGUAGES } from './i18n';
+import {
+  cancelEveningDailyReminder,
+  isEveningMode,
+  scheduleEveningDailyReminder,
+  setEveningMode,
+} from './habit/eveningReminder';
 
-export type ReminderFrequency = 'off' | '1h' | '2h' | '4h';
+export type ReminderFrequency = 'off' | 'evening' | '1h' | '2h' | '4h';
 
 // Notification identifiers
 const EXPENSE_REMINDER_ID = 'expense-reminder';
@@ -124,7 +130,18 @@ function getIntervalHours(frequency: ReminderFrequency): number {
 export async function scheduleReminders(frequency: ReminderFrequency): Promise<void> {
   // Always cancel any existing expense reminder (identifier-based cancel alone
   // is unreliable on Android for TIME_INTERVAL triggers — see helper comment).
+  setEveningMode(frequency === 'evening');
   await cancelExistingExpenseReminders();
+  // Mode « le soir » : un seul rappel quotidien à 19 h, qui remplace les
+  // rappels de série, de défi et de quête. Les autres modes : inchangés.
+  await cancelEveningDailyReminder();
+  if (frequency === 'evening') {
+    await cancelStreakReminder();
+    await cancelDailyChallengeReminder();
+    await cancelQuestProgressReminder();
+    if (await requestNotificationPermissions()) await scheduleEveningDailyReminder();
+    return;
+  }
 
   if (frequency === 'off') return;
 
@@ -227,8 +244,9 @@ export async function sendExpiredPlanificationNotification(
 
 export async function scheduleStreakReminder(title: string, body: string): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(STREAK_REMINDER_ID); } catch {}
+  if (isEveningMode()) return;
   const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return;
+  if (!hasPermission || isEveningMode()) return;
 
   const now = new Date();
   const target = new Date();
@@ -295,8 +313,9 @@ export async function scheduleAnalysisReadyReminder(payDay?: number | null): Pro
 
 export async function scheduleDailyChallengeReminder(title: string, body: string): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(CHALLENGE_REMINDER_ID); } catch {}
+  if (isEveningMode()) return;
   const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return;
+  if (!hasPermission || isEveningMode()) return;
 
   const now = new Date();
   const target = new Date();
@@ -323,8 +342,9 @@ export async function scheduleQuestProgressReminder(
   body: string
 ): Promise<void> {
   try { await Notifications.cancelScheduledNotificationAsync(QUEST_PROGRESS_ID); } catch {}
+  if (isEveningMode()) return;
   const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return;
+  if (!hasPermission || isEveningMode()) return;
 
   const target = new Date();
   target.setDate(target.getDate() + 1);

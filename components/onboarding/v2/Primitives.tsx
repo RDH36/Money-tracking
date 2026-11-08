@@ -7,7 +7,7 @@ interface ProgressDotsProps {
   total?: number;
 }
 
-export function ProgressDots({ step, total = 8 }: ProgressDotsProps) {
+export function ProgressDots({ step, total = 7 }: ProgressDotsProps) {
   const v2 = useV2();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 18 }}>

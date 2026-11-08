@@ -16,6 +16,9 @@ export default function NotificationsSettingsPage() {
         reminderFrequency={reminderFrequency}
         onReminderChange={(freq: ReminderFrequency) => {
           posthog.capture('notification_frequency_changed', { frequency: freq });
+          if (freq !== reminderFrequency) {
+            posthog.capture('reminder_frequency_changed', { from: reminderFrequency, to: freq, source: 'settings' });
+          }
           setReminderFrequency(freq);
         }}
       />

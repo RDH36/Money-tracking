@@ -8,7 +8,7 @@ import { getCurrentCycle } from '../analysis/cycle';
 import type { CycleSettings } from '../analysis/types';
 
 /** Constante de build ; un paramètre distant ne pourra que la monter. */
-export const OCR_FREE_READS_PER_CYCLE = 5;
+export const OCR_FREE_READS_PER_CYCLE = 3;
 
 /** Limite effective : jamais sous la constante de build. */
 export function readsLimit(remote?: number | null): number {

@@ -17,8 +17,12 @@ interface NotificationsSectionProps {
   onReminderChange: (value: ReminderFrequency) => void;
 }
 
-const FREQUENCIES: { id: ReminderFrequency; tk: string; descKey: string }[] = [
+const FREQUENCIES: { id: ReminderFrequency; tk: string; descKey: string; badgeKey?: string }[] = [
   { id: 'off', tk: 'notificationsV2.freqOff', descKey: 'notificationsV2.freqOffDesc' },
+  {
+    id: 'evening', tk: 'notificationsV2.freqEvening', descKey: 'notificationsV2.freqEveningDesc',
+    badgeKey: 'notificationsV2.freqEveningBadge',
+  },
   { id: '1h', tk: 'notificationsV2.freq1h', descKey: 'notificationsV2.freq1hDesc' },
   { id: '2h', tk: 'notificationsV2.freq2h', descKey: 'notificationsV2.freq2hDesc' },
   { id: '4h', tk: 'notificationsV2.freq4h', descKey: 'notificationsV2.freq4hDesc' },
@@ -100,14 +104,23 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
               }}
             >
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text
-                  style={{
-                    fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700',
-                    color: isActive ? v2.brandDeep : v2.ink,
-                  }}
-                >
-                  {t(f.tk)}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text
+                    style={{
+                      fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700',
+                      color: isActive ? v2.brandDeep : v2.ink,
+                    }}
+                  >
+                    {t(f.tk)}
+                  </Text>
+                  {f.badgeKey ? (
+                    <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: v2.brandSoft }}>
+                      <Text style={{ fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700', color: v2.brandDeep }}>
+                        {t(f.badgeKey)}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text style={{ fontFamily: v2.fontUI, fontSize: 12, color: v2.inkSubtle, marginTop: 3 }}>
                   {t(f.descKey)}
                 </Text>

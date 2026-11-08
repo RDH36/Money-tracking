@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -9,104 +9,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useV2 } from '@/constants/designTokensV2';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, getNumericValue } from '@/lib/amountInput';
-import { ProgressDots, EyebrowLabel, PrimaryBtn } from '@/components/onboarding/v2';
-
-interface AccountInputProps {
-  label: string;
-  hint: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  iconBg: string;
-  iconColor: string;
-  currencyCode: string;
-  amount: string;
-  onChange: (s: string) => void;
-  italicEmpty?: boolean;
-}
-
-function AccountInput({
-  label, hint, iconName, iconBg, iconColor,
-  currencyCode, amount, onChange, italicEmpty,
-}: AccountInputProps) {
-  const v2 = useV2();
-  const isEmpty = !amount;
-  return (
-    <View
-      style={{
-        padding: 16, backgroundColor: v2.bgSurface,
-        borderWidth: 1, borderColor: v2.hairline,
-        borderRadius: 16,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <View
-          style={{
-            width: 40, height: 40, borderRadius: 12,
-            backgroundColor: iconBg,
-            alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <Ionicons name={iconName} size={18} color={iconColor} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontFamily: v2.fontDisplay, fontWeight: '700',
-              fontSize: 16, color: v2.ink, letterSpacing: -0.2,
-            }}
-          >
-            {label}
-          </Text>
-          <Text
-            style={{
-              fontFamily: v2.fontUI, fontSize: 11, color: v2.inkSubtle, marginTop: 1,
-            }}
-          >
-            {hint}
-          </Text>
-        </View>
-        <Text
-          style={{
-            fontFamily: v2.fontUI, fontSize: 10, fontWeight: '700',
-            letterSpacing: 0.6, color: v2.inkSubtle,
-          }}
-        >
-          {currencyCode}
-        </Text>
-      </View>
-      <View
-        style={{
-          paddingVertical: 14, paddingHorizontal: 14,
-          backgroundColor: v2.bgRaised, borderRadius: 12,
-          flexDirection: 'row', alignItems: 'baseline', gap: 8,
-        }}
-      >
-        <TextInput
-          placeholder="0"
-          placeholderTextColor={v2.inkSubtle}
-          keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={onChange}
-          style={{
-            flex: 1,
-            fontFamily: v2.fontDisplay, fontWeight: '700',
-            fontStyle: italicEmpty && isEmpty ? 'italic' : 'normal',
-            fontSize: 28, color: isEmpty ? v2.inkSubtle : v2.ink,
-            letterSpacing: -0.5, padding: 0,
-            fontVariant: ['tabular-nums'],
-          }}
-        />
-        <Text
-          style={{
-            fontFamily: v2.fontUI, fontSize: 13,
-            color: v2.inkSubtle, fontWeight: '600',
-          }}
-        >
-          {currencyCode}
-        </Text>
-      </View>
-    </View>
-  );
-}
+import { usePostHog } from 'posthog-react-native';
+import { useOnboarding } from '@/hooks';
+import { getDefaultOnboardingCategoryIds } from '@/constants/categories';
+import { ProgressDots, EyebrowLabel } from '@/components/onboarding/v2';
+import { AccountInput } from '@/components/onboarding/v2/AccountInput';
+import { BalanceFooter } from '@/components/onboarding/v2/BalanceFooter';
 
 export default function BalanceScreen() {
   const router = useRouter();
@@ -118,6 +26,32 @@ export default function BalanceScreen() {
   const [cashBalance, setCashBalance] = useState('');
   const [error, setError] = useState('');
 
+  const { saveOnboardingData, isLoading } = useOnboarding();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    posthog.capture('onboarding_balance_viewed');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Dernière étape : enregistre comptes + catégories cochées d'office
+  // (ex-écran catégories) puis ouvre la 1re dépense.
+  const finish = async (skipped: boolean) => {
+    const selectedCategories = getDefaultOnboardingCategoryIds();
+    const ok = await saveOnboardingData({
+      bankBalance: skipped ? '0' : bankBalance || '0',
+      cashBalance: skipped ? '0' : cashBalance || '0',
+      selectedCategories,
+    });
+    if (ok) {
+      posthog.capture('onboarding_completed', {
+        categories_selected: selectedCategories.size,
+        balance_skipped: skipped,
+      });
+      router.replace('/add?source=onboarding');
+    }
+  };
+
   const handleNext = () => {
     const numericBank = getNumericValue(bankBalance);
     const numericCash = getNumericValue(cashBalance);
@@ -128,11 +62,15 @@ export default function BalanceScreen() {
       setError(t('onboarding.balanceRequired')); return;
     }
     setError('');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    finish(false);
+  };
+
+  const handleLater = () => {
+    setError('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
-      pathname: '/onboarding/categories' as const,
-      params: { bankBalance: bankBalance || '0', cashBalance: cashBalance || '0' },
-    });
+    posthog.capture('onboarding_balance_skipped');
+    finish(true);
   };
 
   return (
@@ -144,7 +82,7 @@ export default function BalanceScreen() {
       >
         <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
           <ProgressDots step={7} />
-          <EyebrowLabel>{t('onboarding.configureAccounts')}</EyebrowLabel>
+          <EyebrowLabel>{t('onboarding.lastStep')}</EyebrowLabel>
           <Text
             style={{
               marginTop: 4,
@@ -218,9 +156,7 @@ export default function BalanceScreen() {
           ) : null}
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
-          <PrimaryBtn label={t('onboarding.next')} onPress={handleNext} />
-        </View>
+        <BalanceFooter loading={isLoading} onFinish={handleNext} onLater={handleLater} />
       </KeyboardAwareScrollView>
     </View>
   );

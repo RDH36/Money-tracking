@@ -42,3 +42,14 @@ export function getCategoryDisplayName(
   }
   return storedName ?? '';
 }
+
+/**
+ * Catégories cochées d'office à l'onboarding : toutes les catégories par
+ * défaut, « Autre » toujours incluse. Enregistrées par « Terminer » (et par
+ * « Je le ferai plus tard ») sur l'écran des soldes.
+ */
+export function getDefaultOnboardingCategoryIds(): Set<string> {
+  const ids = new Set(DEFAULT_CATEGORIES.map((c) => c.id));
+  ids.add('other');
+  return ids;
+}

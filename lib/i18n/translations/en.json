@@ -571,7 +571,7 @@
     "configureAccounts": "Configure your accounts",
     "enterBalances": "Enter your current balances for each account",
     "negativeError": "Amounts cannot be negative",
-    "balanceRequired": "Please enter at least one balance",
+    "balanceRequired": "Enter at least one amount, or tap “I'll do it later”.",
     "skip": "Skip",
     "next": "Next",
     "finish": "Finish",
@@ -601,7 +601,8 @@
     "balanceInCash": "Cash balance",
     "balanceChangeHint": "You can change these amounts later",
     "bankAccount": "Bank account",
-    "cashAccount": "Cash"
+    "cashAccount": "Cash",
+    "balanceLater": "I'll do it later"
   },
   "welcome": {
     "greeting": "Hey there!",
@@ -771,7 +772,9 @@
     "planExpired": "has passed its deadline!",
     "planReminderTitle": "Plan reminder",
     "deadlineToday": "Deadline today",
-    "planExpiredTitle": "Plan expired"
+    "planExpiredTitle": "Plan expired",
+    "eveningTitle": "What did you spend today?",
+    "eveningBody": "Log it in 10 seconds, before you forget."
   },
   "categories": {
     "food": "Food",
@@ -1306,7 +1309,10 @@
     "threshold80Sub": "Warning · close to overspending",
     "thresholdLimit": "100% limit",
     "thresholdLimitSub": "Alert · budget exceeded",
-    "perCategoryHint": "You can also set thresholds per category from a category screen."
+    "perCategoryHint": "You can also set thresholds per category from a category screen.",
+    "freqEvening": "In the evening",
+    "freqEveningDesc": "One reminder a day at 7 pm",
+    "freqEveningBadge": "Recommended"
   },
   "privacyV2": {
     "previewLabel": "Preview · today's balance",
@@ -1608,6 +1614,12 @@
       "similar": "Looks like: {{what}} · entered on {{date}}",
       "batch": "Same amount and date as another line in this import",
       "reference": "Already imported (same reference)"
+    },
+    "limit": {
+      "eyebrow": "Reads this cycle",
+      "title": "Your {{count}} reads for this cycle are done",
+      "body": "They come back on {{date}}. Until then, log your expenses by hand: it takes 10 seconds.",
+      "close": "Close"
     }
   },
   "plus": {
@@ -1648,6 +1660,48 @@
       "body": "This link contains a Mitsitsy Plus activation code. Activate it on this phone?",
       "confirm": "Activate",
       "cancel": "Cancel"
+    }
+  },
+  "habit": {
+    "first": {
+      "eyebrow": "Your first expense",
+      "titleStart": "What did you spend",
+      "titleAccent": "today?",
+      "subtitle": "A coffee, a taxi, phone credit… Log it, it takes 10 seconds.",
+      "deferCard": "Nothing to log right now? I'll remind you tonight, just once.",
+      "deferTonight": "Remind me tonight",
+      "deferTomorrow": "Remind me tomorrow evening"
+    },
+    "confirm": {
+      "title": "See you tonight!",
+      "at19": "I'll remind you at 7 pm",
+      "at21": "I'll remind you at 9 pm",
+      "tomorrow19": "I'll remind you tomorrow at 7 pm",
+      "body": "Just one reminder a day, in the evening: “What did you spend today?”. You can change it in Settings, Notifications.",
+      "ok": "OK",
+      "blockedTitle": "No reminder for now",
+      "blockedBody": "Notifications are blocked. Without them, no reminder.",
+      "openSettings": "Open settings",
+      "later": "Later"
+    },
+    "evening": {
+      "today": "Today",
+      "summary_one": "{{count}} expense · {{amount}}",
+      "summary_other": "{{count}} expenses · {{amount}}",
+      "nothing": "Nothing logged today yet",
+      "streak": "{{count}}-day streak",
+      "eyebrow": "Before you forget",
+      "titleStart": "And tonight,",
+      "titleAccent": "anything else?"
+    },
+    "prompt": {
+      "overline": "3 days of logging",
+      "title": "You're getting the hang of it.",
+      "question": "A reminder more often?",
+      "body": "Some people prefer logging throughout the day. You can keep the evening one.",
+      "keep": "Keep the evening",
+      "keepDesc": "One reminder at 7 pm",
+      "validate": "Confirm"
     }
   }
 }

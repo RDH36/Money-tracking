@@ -8,7 +8,9 @@ import { usePremiumStore } from '@/stores/premiumStore';
  * Tous les autres liens passent inchangés.
  */
 export function redirectSystemPath({ path }: { path: string; initial: boolean }): string {
-  if (!PLUS_ENABLED || !/(^|\/)plus\/activate\/?(\?|#|$)/.test(path.replace(/^[a-z]+:\/\//i, '/'))) return path;
+  if (!/(^|\/)plus\/activate\/?(\?|#|$)/.test(path.replace(/^[a-z]+:\/\//i, '/'))) return path;
+  // Plus masqué : le lien ouvre l'accueil, sans rien afficher ni garder le jeton.
+  if (!PLUS_ENABLED) return '/';
   const raw = /[?&]l=([^&#]*)/.exec(path)?.[1] ?? '';
   let token = raw;
   try {

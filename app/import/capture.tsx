@@ -61,11 +61,21 @@ export default function ImportCaptureScreen() {
     plan = planReads(all.length, quota.remaining, quota.unlimited);
     plans.current.set(key, plan);
   }
+  // Limite atteinte en cours de route (images au-delà du solde) : signal de demande.
+  const posthog = usePostHog();
+  const truncReported = useRef(new Set<string>());
+  const truncated = !!plan && plan.truncatedFrom !== null;
+  useEffect(() => {
+    if (!truncated || truncReported.current.has(key)) return;
+    truncReported.current.add(key);
+    posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'truncated' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truncated, key]);
   if (!plan) return <View style={{ flex: 1 }} />;
   if (plan.blocked && !quota.unlimited) {
     return (
       <QuotaBlockedView
-        limit={quota.limit} resetsOn={quota.resetsOn}
+        limit={quota.limit} used={quota.used} resetsOn={quota.resetsOn}
         onUnlocked={() => {
           plans.current.set(key, planReads(all.length, Infinity, true));
           rerender((n) => n + 1);

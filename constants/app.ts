@@ -17,9 +17,11 @@ export const ANALYSIS_ENABLED = false;
 export const OCR_IMPORT_ENABLED = true;
 
 // Mitsitsy Plus, lot 0 : licence vérifiée hors ligne (jeton long collé ou
-// lien profond), seul droit branché = lectures illimitées de l'import. Suit
-// l'import : la ligne Réglages et le lien profond n'existent que s'il existe.
-export const PLUS_ENABLED = OCR_IMPORT_ENABLED;
+// lien profond), seul droit branché = lectures illimitées de l'import.
+// Masqué depuis le lot « habitude d'abord » (2026-11-08) : aucune ligne
+// Réglages, aucun bouton « code », lien profond plus/activate → accueil.
+// Les licences déjà activées restent valides, en silence (droits inchangés).
+export const PLUS_ENABLED: boolean = false;
 
 // Clé PUBLIQUE Ed25519 (base64url) des jetons Plus. La clé privée n'est
 // jamais dans le dépôt (script local scripts/plus/sign-license.mjs).

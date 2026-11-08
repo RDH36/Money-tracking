@@ -30,8 +30,9 @@ import {
   ADD_EXTERNAL_REF_TO_TRANSACTIONS,
   CREATE_EXTERNAL_REF_INDEX,
 } from './schema';
+import { migrateToV27 } from './migrationV27';
 
-const DATABASE_VERSION = 26;
+const DATABASE_VERSION = 27;
 
 interface VersionResult {
   user_version: number;
@@ -42,6 +43,8 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
 
   const result = await db.getFirstAsync<VersionResult>('PRAGMA user_version');
   let currentVersion = result?.user_version ?? 0;
+  // Version de départ : 0 = installation neuve (V27 s'en sert).
+  const startVersion = currentVersion;
 
   if (currentVersion < 1) {
     await migrateToV1(db);
@@ -171,6 +174,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 26) {
     await migrateToV26(db);
     currentVersion = 26;
+  }
+
+  if (currentVersion < 27) {
+    await migrateToV27(db, startVersion);
+    currentVersion = 27;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
-import { OCR_IMPORT_ENABLED } from '@/constants/app';
+import { OCR_IMPORT_ENABLED, PLUS_ENABLED } from '@/constants/app';
 import { isOcrAvailable } from '@/modules/mitsitsy-ocr';
 import { usePostHog } from 'posthog-react-native';
 import { useCaptureIntro } from '@/hooks/ocr/useCaptureIntro';
@@ -75,7 +75,7 @@ export function ImportCaptureEntry() {
 
   const onPress = (action: EntryAction) => {
     if (quota.loaded && quota.remaining <= 0) {
-      posthog.capture('ocr_quota_reached', { plan: 'free' });
+      posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'entry' });
       setQuotaOpen(true);
     } else if (intro.seen) run(action);
     else setPending(action);
@@ -117,7 +117,7 @@ export function ImportCaptureEntry() {
             <Text style={{ marginTop: 1, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkMuted }}>
               {t('ocrImport.entrySub')}
             </Text>
-            {quota.loaded ? (
+            {quota.loaded && (PLUS_ENABLED || !quota.unlimited) ? (
               <Text style={{ marginTop: 3, fontFamily: v2.fontUI, fontSize: 11, fontWeight: '700', color: v2.brand }}>
                 {quota.unlimited
                   ? t('ocrImport.quota.unlimited')
@@ -172,15 +172,19 @@ export function ImportCaptureEntry() {
         }}
         onClose={() => setQuotaOpen(false)}
       />
-      <RedeemCodeSheet
-        isOpen={codeOpen}
-        onClose={() => setCodeOpen(false)}
-        onActivated={(l) => {
-          setCodeOpen(false);
-          setActivated(l);
-        }}
-      />
-      <PlusActivatedDialog license={activated} onClose={() => setActivated(null)} />
+      {PLUS_ENABLED ? (
+        <>
+          <RedeemCodeSheet
+            isOpen={codeOpen}
+            onClose={() => setCodeOpen(false)}
+            onActivated={(l) => {
+              setCodeOpen(false);
+              setActivated(l);
+            }}
+          />
+          <PlusActivatedDialog license={activated} onClose={() => setActivated(null)} />
+        </>
+      ) : null}
     </View>
   );
 }

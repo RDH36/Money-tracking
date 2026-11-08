@@ -33,6 +33,7 @@ import {
   pickOverspend,
   accountDisplayName,
 } from '@/components/dashboard';
+import { HabitPromptSheet } from '@/components/habit/HabitPromptSheet';
 import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
 import { AnalysisEntryCard } from '@/components/analysis';
 import { CycleConfirmCard, sumCycleTotals } from '@/components/cycle';
@@ -242,6 +243,7 @@ export default function DashboardScreen() {
         lockedFeature={lockedFeature}
         onCloseLocked={() => setLockedFeature(null)}
       />
+      <HabitPromptSheet blocked={!!(deleteTarget || showAddAccount || levelUp || unlockQueue.length || lockedFeature)} />
     </View>
   );
 }

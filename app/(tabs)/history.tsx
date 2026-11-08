@@ -17,17 +17,7 @@ import {
   type ActivityBudgetItem,
 } from '@/components/activity';
 import { formatMonthLabelFr } from '@/components/dashboard';
-
-function isSameDay(iso: string, ref: Date): boolean {
-  try {
-    const d = new Date(iso);
-    return d.getFullYear() === ref.getFullYear()
-      && d.getMonth() === ref.getMonth()
-      && d.getDate() === ref.getDate();
-  } catch {
-    return false;
-  }
-}
+import { computeTodayStats } from '@/lib/habit/todayStats';
 
 function startOfMonth(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
@@ -52,18 +42,9 @@ export default function HistoryScreen() {
 
   const now = new Date();
 
-  const today = useMemo(() => {
-    let income = 0, expense = 0, count = 0;
-    for (const tx of transactions) {
-      if (tx.transfer_id) continue;
-      if (!isSameDay(tx.created_at, now)) continue;
-      count++;
-      if (tx.type === 'income') income += tx.amount;
-      else if (tx.type === 'expense') expense += tx.amount;
-    }
-    return { income, expense, count, net: income - expense };
+  const today = useMemo(() => computeTodayStats(transactions, now),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactions]);
+    [transactions]);
 
   const activityBudgets: ActivityBudgetItem[] = useMemo(() => {
     const monthStart = startOfMonth(now);

@@ -1,9 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useCategories, useAccounts, useTips } from '@/hooks';
 import { useBudgetPreview } from '@/hooks/useBudgetPreview';
@@ -15,9 +14,15 @@ import { BudgetWarningDialog } from '@/components/BudgetWarningDialog';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, getNumericValue } from '@/lib/amountInput';
 import { useV2 } from '@/constants/designTokensV2';
-import { ImportCaptureEntry } from '@/components/ocr-import';
+import { AddScreenTop } from '@/components/habit/AddScreenTop';
+import { DeferConfirmSheet } from '@/components/habit/DeferConfirmSheet';
+import { useAddEntryMode } from '@/hooks/habit/useAddEntryMode';
+import { useDeferReminder } from '@/hooks/habit/useDeferReminder';
+import { AddTipCard } from '@/components/add/feedback/AddTipCard';
+import { AddSaveFeedback } from '@/components/add/feedback/AddSaveFeedback';
+import { AddSaveButton } from '@/components/add/feedback/AddSaveButton';
 import {
-  AddTransactionHeader, ModeToggle, TypePills, AmountDisplay,
+  ModeToggle, TypePills, AmountDisplay,
   ThresholdPreviewCard, AccountPickerV2, CategoryQuickGrid,
   CategorySelectSheet, TransferFormV2, IncomeCategoryCard, NoteField, DateField,
   type TxMode, type TxType,
@@ -29,8 +34,9 @@ export default function AddTransactionScreen() {
   const { t, i18n } = useTranslation();
   const v2 = useV2();
   const currency = useCurrency();
-  // Source de l'écran (ex. 'onboarding') pour mesurer et segmenter l'activation.
-  const { source } = useLocalSearchParams<{ source?: string }>();
+  // Source d'arrivée (onboarding, rappel du soir) : mode de l'écran + mesure.
+  const { mode: entryMode, source } = useAddEntryMode();
+  const deferral = useDeferReminder();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { accounts, refresh: refreshAccounts } = useAccounts();
   const { currentTip, showTip } = useTips('add');
@@ -122,8 +128,8 @@ export default function AddTransactionScreen() {
         bottomOffset={20}
       >
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-          <AddTransactionHeader title={t('add.newTransaction')} />
-          <ImportCaptureEntry />
+          <AddScreenTop mode={entryMode} formatMoney={save.formatMoney}
+            deferBusy={deferral.busy} onDefer={deferral.defer} />
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
@@ -142,18 +148,10 @@ export default function AddTransactionScreen() {
             value={amount}
             onChangeText={handleAmountChange}
             currencyCode={currency.code}
+            autoFocus={entryMode !== 'onboarding'}
           />
 
-          {showTip && currentTip && (
-            <View style={{ marginTop: 4, padding: 12, borderRadius: 12, backgroundColor: v2.bgSurface,
-                            borderWidth: 1, borderColor: v2.hairline, flexDirection: 'row',
-                            alignItems: 'center', gap: 8 }}>
-              <Ionicons name="bulb-outline" size={14} color={v2.brand} />
-              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
-                {t(currentTip)}
-              </Text>
-            </View>
-          )}
+          {showTip && currentTip && entryMode !== 'onboarding' && <AddTipCard text={t(currentTip)} />}
 
           {mode === 'transaction' ? (
             <>
@@ -212,35 +210,14 @@ export default function AddTransactionScreen() {
             maxLength={100}
           />
 
-          {success && (
-            <View style={{ marginTop: 12, backgroundColor: v2.goodSoft, padding: 12, borderRadius: 12 }}>
-              <Text style={{ color: v2.good, fontFamily: v2.fontUI, textAlign: 'center' }}>
-                {mode === 'transaction' ? t('add.transactionSaved') : t('add.transferSaved')}
-              </Text>
-            </View>
-          )}
-          {error && (
-            <View style={{ marginTop: 12, backgroundColor: v2.badSoft, padding: 12, borderRadius: 12 }}>
-              <Text style={{ color: v2.bad, fontFamily: v2.fontUI, textAlign: 'center' }}>{t(error)}</Text>
-            </View>
-          )}
+          <AddSaveFeedback
+            successText={success ? t(mode === 'transaction' ? 'add.transactionSaved' : 'add.transferSaved') : null}
+            errorText={error ? t(error) : null}
+          />
 
-          <Pressable
-            onPress={handleSave}
-            disabled={!isValid || save.isLoading}
-            style={{
-              marginTop: 20, backgroundColor: v2.bgInk, borderRadius: 14, paddingVertical: 16,
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-              opacity: !isValid || save.isLoading ? 0.5 : 1,
-              shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
-            }}
-          >
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700',
-                            color: v2.inkOnDark, letterSpacing: 0.3 }}>
-              {save.isLoading ? t('add.saving') : t('common.save')}
-            </Text>
-            <Ionicons name="chevron-forward" size={14} color={v2.inkOnDark} />
-          </Pressable>
+          <AddSaveButton
+            label={save.isLoading ? t('add.saving') : t('common.save')}
+            disabled={!isValid || save.isLoading} onPress={handleSave} />
         </View>
       </KeyboardAwareScrollView>
 
@@ -250,6 +227,10 @@ export default function AddTransactionScreen() {
         selectedId={categoryId}
         onSelect={setCategoryId}
         onClose={() => setShowCategorySheet(false)}
+      />
+      <DeferConfirmSheet
+        result={deferral.result}
+        onDone={() => { deferral.clear(); router.navigate('/(tabs)'); }}
       />
       <XPToast xpAmount={xpToast} onHide={() => setXpToast(null)} />
       <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />

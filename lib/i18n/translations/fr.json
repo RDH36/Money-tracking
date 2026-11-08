@@ -571,7 +571,7 @@
     "configureAccounts": "Configurez vos comptes",
     "enterBalances": "Entrez vos soldes actuels pour chaque compte",
     "negativeError": "Les montants ne peuvent pas être négatifs",
-    "balanceRequired": "Veuillez entrer au moins un solde",
+    "balanceRequired": "Saisis au moins un montant, ou touche « Je le ferai plus tard ».",
     "skip": "Passer",
     "next": "Suivant",
     "finish": "Terminer",
@@ -601,7 +601,8 @@
     "balanceInCash": "Solde en espèce",
     "balanceChangeHint": "Vous pourrez modifier ces montants plus tard",
     "bankAccount": "Compte bancaire",
-    "cashAccount": "Argent liquide"
+    "cashAccount": "Argent liquide",
+    "balanceLater": "Je le ferai plus tard"
   },
   "welcome": {
     "greeting": "Salut !",
@@ -771,7 +772,9 @@
     "planExpired": "a dépassé sa date butoir !",
     "planReminderTitle": "Rappel planification",
     "deadlineToday": "Échéance aujourd'hui",
-    "planExpiredTitle": "Planification expirée"
+    "planExpiredTitle": "Planification expirée",
+    "eveningTitle": "Qu'as-tu dépensé aujourd'hui ?",
+    "eveningBody": "Note-le en 10 secondes, avant d'oublier."
   },
   "categories": {
     "food": "Nourriture",
@@ -1306,7 +1309,10 @@
     "threshold80Sub": "Avertissement · attention au dépassement",
     "thresholdLimit": "Limite 100%",
     "thresholdLimitSub": "Alerte · budget dépassé",
-    "perCategoryHint": "Tu peux aussi régler des seuils par catégorie depuis l'écran d'une catégorie."
+    "perCategoryHint": "Tu peux aussi régler des seuils par catégorie depuis l'écran d'une catégorie.",
+    "freqEvening": "Le soir",
+    "freqEveningDesc": "Un rappel par jour à 19 h",
+    "freqEveningBadge": "Conseillé"
   },
   "privacyV2": {
     "previewLabel": "Aperçu · solde du jour",
@@ -1608,6 +1614,12 @@
       "similar": "Ressemble à : {{what}} · saisi le {{date}}",
       "batch": "Même montant et même date qu'une autre ligne de cet import",
       "reference": "Déjà importée (même référence)"
+    },
+    "limit": {
+      "eyebrow": "Lectures du cycle",
+      "title": "Tes {{count}} lectures de ce cycle sont faites",
+      "body": "Elles reviennent le {{date}}. D'ici là, note tes dépenses à la main : ça prend 10 secondes.",
+      "close": "Fermer"
     }
   },
   "plus": {
@@ -1648,6 +1660,48 @@
       "body": "Ce lien contient un code d'activation Mitsitsy Plus. Veux-tu l'activer sur ce téléphone ?",
       "confirm": "Activer",
       "cancel": "Annuler"
+    }
+  },
+  "habit": {
+    "first": {
+      "eyebrow": "Ta première dépense",
+      "titleStart": "Qu'as-tu dépensé",
+      "titleAccent": "aujourd'hui ?",
+      "subtitle": "Un café, un taxi, du crédit… Note-la, ça prend 10 secondes.",
+      "deferCard": "Rien à noter pour l'instant ? Je te le rappelle ce soir, une seule fois.",
+      "deferTonight": "Rappelle-moi ce soir",
+      "deferTomorrow": "Rappelle-moi demain soir"
+    },
+    "confirm": {
+      "title": "À ce soir !",
+      "at19": "Je te rappelle à 19 h",
+      "at21": "Je te rappelle à 21 h",
+      "tomorrow19": "Je te rappelle demain à 19 h",
+      "body": "Un seul rappel par jour, le soir : « Qu'as-tu dépensé aujourd'hui ? ». Tu peux le changer dans Réglages, Notifications.",
+      "ok": "D'accord",
+      "blockedTitle": "Pas de rappel pour l'instant",
+      "blockedBody": "Les notifications sont bloquées. Sans elles, pas de rappel.",
+      "openSettings": "Ouvrir les réglages",
+      "later": "Plus tard"
+    },
+    "evening": {
+      "today": "Aujourd'hui",
+      "summary_one": "{{count}} dépense · {{amount}}",
+      "summary_other": "{{count}} dépenses · {{amount}}",
+      "nothing": "Rien noté aujourd'hui pour l'instant",
+      "streak": "Série {{count}} j",
+      "eyebrow": "Avant d'oublier",
+      "titleStart": "Et ce soir,",
+      "titleAccent": "quoi d'autre ?"
+    },
+    "prompt": {
+      "overline": "3 jours de saisie",
+      "title": "Tu prends le pli.",
+      "question": "Un rappel plus souvent ?",
+      "body": "Certains préfèrent noter au fil de la journée. Tu peux garder le soir.",
+      "keep": "Garder le soir",
+      "keepDesc": "Un rappel à 19 h",
+      "validate": "Valider"
     }
   }
 }
