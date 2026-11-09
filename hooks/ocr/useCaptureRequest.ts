@@ -45,7 +45,8 @@ export function useCaptureRequest(params: CaptureParams) {
   useEffect(() => {
     if (started.current || state.status !== 'picking') return;
     started.current = true;
-    pick(state.action, true);
+    // Laisse l'écran d'import se peindre avant que le sélecteur ne le recouvre.
+    requestAnimationFrame(() => requestAnimationFrame(() => pick(state.action, true)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
