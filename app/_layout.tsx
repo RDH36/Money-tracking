@@ -45,6 +45,8 @@ function AppContent() {
         <Stack.Screen name="planification/[id]" />
         <Stack.Screen name="whats-new" />
         <Stack.Screen name="other-apps" />
+        {/* Au retour du sélecteur d'images : l'écran d'import s'affiche d'un coup, sans glisser sur l'écran d'ajout. */}
+        <Stack.Screen name="import/capture" options={{ animation: 'none' }} />
       </Stack>
     </>
   );

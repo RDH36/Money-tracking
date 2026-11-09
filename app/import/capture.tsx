@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { usePostHog } from 'posthog-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
@@ -10,7 +9,6 @@ import { useCaptureImport } from '@/hooks/ocr/useCaptureImport';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/currency';
 import { SOURCE_PARSERS } from '@/lib/ocr';
-import { SettingsHeader } from '@/components/settings/v2/SettingsHeader';
 import {
   EditOperationSheet, ImportStateView, OperationRow, ReviewSummary, openCaptureImport, pickCaptures,
 } from '@/components/ocr-import';
@@ -23,6 +21,7 @@ import { consumedReads, planReads, type ReadPlan } from '@/lib/premium';
 import { importSavedProps, readCompletedProps } from '@/lib/ocr/import/analytics';
 import { duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
 import { getCategoryDisplayName } from '@/constants/categories';
+import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
 import type { AccountWithBalance } from '@/types';
 
@@ -71,7 +70,14 @@ export default function ImportCaptureScreen() {
     posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'truncated' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [truncated, key]);
-  if (!plan) return <View style={{ flex: 1 }} />;
+  // Quota en cours de chargement : même cadre et même lecture que la 1re image du flux.
+  if (!plan) {
+    return (
+      <CaptureFrame>
+        <ReadingView uri={all[0] ?? null} done={0} total={all.length} />
+      </CaptureFrame>
+    );
+  }
   if (plan.blocked && !quota.unlimited) {
     return (
       <QuotaBlockedView
@@ -99,7 +105,6 @@ interface FlowProps {
 }
 
 function ImportCaptureFlow({ uris, truncatedFrom, source, consume }: FlowProps) {
-  const insets = useSafeAreaInsets();
   const v2 = useV2();
   const { t, i18n } = useTranslation();
   const currency = useCurrency();
@@ -216,10 +221,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, consume }: FlowProps) 
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
-      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
-        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={close} />
-      </View>
+    <CaptureFrame>
       {truncatedFrom !== null && imp.phase !== 'done' ? (
         <Text style={{ paddingHorizontal: 20, paddingBottom: 8, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
           {t('ocrImport.quota.truncated', { count: uris.length, total: truncatedFrom })}
@@ -237,6 +239,6 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, consume }: FlowProps) 
         formatMoney={formatMoney}
         getAccountName={getAccountName}
       />
-    </View>
+    </CaptureFrame>
   );
 }
