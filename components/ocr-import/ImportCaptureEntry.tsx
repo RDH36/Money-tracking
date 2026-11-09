@@ -14,7 +14,6 @@ import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import type { License } from '@/lib/premium';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
 import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
-import { takeTicketPhoto } from './entry/takePhoto';
 
 type EntryAction = 'gallery' | 'camera';
 export type ImportSource = EntryAction | 'share';
@@ -46,7 +45,6 @@ export async function pickCaptures(): Promise<string[]> {
 export function ImportCaptureEntry() {
   const v2 = useV2();
   const { t } = useTranslation();
-  const [error, setError] = useState<'pick' | 'camera' | 'cameraDenied' | null>(null);
   const [pending, setPending] = useState<EntryAction | null>(null);
   const intro = useCaptureIntro();
   const quota = useOcrQuota();
@@ -57,20 +55,9 @@ export function ImportCaptureEntry() {
 
   if (!OCR_IMPORT_ENABLED || !isOcrAvailable) return null;
 
-  const run = async (action: EntryAction) => {
-    setError(null);
-    try {
-      if (action === 'gallery') {
-        openCaptureImport(await pickCaptures(), false, 'gallery');
-        return;
-      }
-      const photo = await takeTicketPhoto();
-      if ('denied' in photo) setError('cameraDenied');
-      else openCaptureImport(photo.uris, false, 'camera');
-    } catch (err) {
-      console.warn('Image picker failed:', err);
-      setError(action === 'gallery' ? 'pick' : 'camera');
-    }
+  // L'écran d'import s'ouvre d'abord (cadre stable) et lance lui-même le sélecteur.
+  const run = (action: EntryAction) => {
+    router.push({ pathname: '/import/capture', params: { pick: action } });
   };
 
   const onPress = (action: EntryAction) => {
@@ -147,11 +134,6 @@ export function ImportCaptureEntry() {
           ))}
         </View>
       </View>
-      {error ? (
-        <Text style={{ marginTop: 6, fontFamily: v2.fontUI, fontSize: 11, color: v2.bad }}>
-          {t(error === 'pick' ? 'ocrImport.pickError' : error === 'camera' ? 'ocrImport.cameraError' : 'ocrImport.cameraDenied')}
-        </Text>
-      ) : null}
       <CaptureIntroSheet
         isOpen={pending !== null}
         onClose={() => setPending(null)}

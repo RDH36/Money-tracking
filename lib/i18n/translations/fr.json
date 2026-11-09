@@ -1483,6 +1483,7 @@
     "entryTitle": "Importer automatiquement",
     "entrySub": "Captures d'appli, tickets, factures",
     "pickError": "Impossible d'ouvrir la galerie.",
+    "picking": "Choix de la capture…",
     "title": "Importer des captures",
     "overline": "Captures et tickets",
     "readingHint": "Tout se passe sur ton téléphone, sans internet.",

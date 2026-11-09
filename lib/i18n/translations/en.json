@@ -1483,6 +1483,7 @@
     "entryTitle": "Import automatically",
     "entrySub": "App screenshots, receipts, bills",
     "pickError": "Couldn't open the gallery.",
+    "picking": "Choosing a capture…",
     "title": "Import screenshots",
     "overline": "Screenshots and receipts",
     "readingHint": "Everything happens on your phone, offline.",

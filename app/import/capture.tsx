@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import { usePostHog } from 'posthog-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useCaptureRequest } from '@/hooks/ocr/useCaptureRequest';
+import { PickingView } from '@/components/ocr-import/states/PickingView';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { useAccounts, useCategories } from '@/hooks';
@@ -10,7 +12,7 @@ import { useCurrency } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/currency';
 import { SOURCE_PARSERS } from '@/lib/ocr';
 import {
-  EditOperationSheet, ImportStateView, OperationRow, ReviewSummary, openCaptureImport, pickCaptures,
+  EditOperationSheet, ImportStateView, OperationRow, ReviewSummary,
 } from '@/components/ocr-import';
 import { ReviewList } from '@/components/ocr-import/review/ReviewList';
 import { ReadingView } from '@/components/ocr-import/states/ReadingView';
@@ -25,38 +27,22 @@ import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
 import type { AccountWithBalance } from '@/types';
 
-function parseUris(raw: string | undefined): string[] {
-  try {
-    const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list.filter((u): u is string => typeof u === 'string') : [];
-  } catch {
-    return [];
-  }
-}
-
-/** Nouvelle sélection dans la galerie : remplace l'import affiché. */
-async function importMore() {
-  try {
-    openCaptureImport(await pickCaptures(), true, 'gallery');
-  } catch (err) {
-    console.warn('Image picker failed:', err);
-  }
-}
-
 /**
  * Quota de lectures : décidé UNE fois par liste reçue (le compteur qui monte
  * après l'enregistrement ne relance pas la lecture). Au-delà du solde, seules
  * les N premières images sont lues ; solde nul → E4.
  */
 export default function ImportCaptureScreen() {
-  const params = useLocalSearchParams<{ uris?: string; source?: string }>();
+  const params = useLocalSearchParams<{ uris?: string; source?: string; pick?: string }>();
+  const { state, importMore } = useCaptureRequest(params);
   const quota = useOcrQuota();
   const plans = useRef(new Map<string, ReadPlan>());
   const [, rerender] = useState(0);
-  const key = params.uris ?? '';
-  const all = useMemo(() => parseUris(params.uris), [params.uris]);
-  let plan = plans.current.get(key);
-  if (!plan && quota.loaded) {
+  const ready = state.status === 'ready' ? state : null;
+  const key = ready?.key ?? '';
+  const all = useMemo(() => ready?.uris ?? [], [ready]);
+  let plan = ready ? plans.current.get(key) : undefined;
+  if (ready && !plan && quota.loaded) {
     plan = planReads(all.length, quota.remaining, quota.unlimited);
     plans.current.set(key, plan);
   }
@@ -70,6 +56,7 @@ export default function ImportCaptureScreen() {
     posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'truncated' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [truncated, key]);
+  if (state.status !== 'ready') return <PickingView error={state.status === 'error' ? state.error : null} />;
   // Quota en cours de chargement : même cadre et même lecture que la 1re image du flux.
   if (!plan) {
     return (
@@ -92,7 +79,7 @@ export default function ImportCaptureScreen() {
   return (
     <ImportCaptureFlow
       key={key} uris={all.slice(0, plan.allowed)} truncatedFrom={plan.truncatedFrom}
-      source={params.source ?? 'gallery'} consume={quota.unlimited ? null : quota.consume}
+      source={state.source} onImportMore={importMore} consume={quota.unlimited ? null : quota.consume}
     />
   );
 }
@@ -101,10 +88,11 @@ interface FlowProps {
   uris: string[];
   truncatedFrom: number | null;
   source: string;
+  onImportMore: () => void;
   consume: ((reads: number) => Promise<void>) | null;
 }
 
-function ImportCaptureFlow({ uris, truncatedFrom, source, consume }: FlowProps) {
+function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMore, consume }: FlowProps) {
   const v2 = useV2();
   const { t, i18n } = useTranslation();
   const currency = useCurrency();
