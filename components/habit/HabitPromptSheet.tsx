@@ -16,10 +16,11 @@ const OPTIONS: { id: ReminderFrequency; tk: string; descKey?: string }[] = [
 ];
 
 /** « 3 jours de saisie » : proposition unique d'un rappel plus fréquent. */
-export function HabitPromptSheet({ blocked }: { blocked: boolean }) {
+export function HabitPromptSheet({ blocked, onOpenChange }: { blocked: boolean; onOpenChange?: (open: boolean) => void }) {
   const v2 = useV2();
   const { t } = useTranslation();
   const { open, submit } = useHabitPrompt(blocked);
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
   const [choice, setChoice] = useState<ReminderFrequency>('evening');
   useEffect(() => { if (open) setChoice('evening'); }, [open]);
 

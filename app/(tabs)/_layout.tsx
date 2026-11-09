@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { CaptureShareListener } from '@/components/ocr-import';
 import { EveningReminderTapListener } from '@/components/habit/EveningReminderTapListener';
+import { AppUpdateHost } from '@/components/app-update';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -16,6 +17,7 @@ export default function TabsLayout() {
     <>
     <CaptureShareListener />
     <EveningReminderTapListener />
+    <AppUpdateHost />
     <Tabs
       screenOptions={{
         headerShown: false,

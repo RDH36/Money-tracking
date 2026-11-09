@@ -1606,5 +1606,21 @@
       "confirm": "Ampandehano",
       "cancel": "Aoka ihany"
     }
+  },
+  "appUpdate": {
+    "checkRow": "Hijery fanavaozana",
+    "checking": "Mijery…",
+    "latest": "Ny dikan-teny farany no anananao",
+    "unavailable": "Tsy azo jerena amin'ity fametrahana ity",
+    "statusAvailable": "Misy dikan-teny vaovao",
+    "downloading": "Eo am-pakana…",
+    "statusReady": "Vonona : avereno alefa hametrahana azy",
+    "availableTitle": "Misy fanavaozana",
+    "availableBody": "Vonona ny dikan-teny vaovaon'i Mitsitsy. Alaina ao ambadika izy : afaka manohy mampiasa ny app ianao.",
+    "update": "Havaozina",
+    "later": "Afaka kelikely",
+    "readyTitle": "Vonona ny fanavaozana",
+    "readyBody": "Voaray ny dikan-teny vaovao. Avereno alefa ny app hametrahana azy ; mijanona ao amin'ny findainao ny angon-drakitrao.",
+    "restart": "Avereno alefa"
   }
 }

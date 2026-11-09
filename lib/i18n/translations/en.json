@@ -1704,5 +1704,21 @@
       "keepDesc": "One reminder at 7 pm",
       "validate": "Confirm"
     }
+  },
+  "appUpdate": {
+    "checkRow": "Check for updates",
+    "checking": "Checking…",
+    "latest": "You have the latest version",
+    "unavailable": "Checking isn't available on this installation",
+    "statusAvailable": "New version available",
+    "downloading": "Downloading…",
+    "statusReady": "Ready: restart to install",
+    "availableTitle": "Update available",
+    "availableBody": "A new version of Mitsitsy is ready. It downloads in the background, so you can keep using the app.",
+    "update": "Update",
+    "later": "Later",
+    "readyTitle": "Update ready",
+    "readyBody": "The new version has been downloaded. Restart the app to install it; your data stays on your phone.",
+    "restart": "Restart to install"
   }
 }

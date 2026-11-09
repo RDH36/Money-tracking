@@ -1704,5 +1704,21 @@
       "keepDesc": "Un rappel à 19 h",
       "validate": "Valider"
     }
+  },
+  "appUpdate": {
+    "checkRow": "Vérifier les mises à jour",
+    "checking": "Vérification…",
+    "latest": "Tu as la dernière version",
+    "unavailable": "Vérification indisponible sur cette installation",
+    "statusAvailable": "Nouvelle version disponible",
+    "downloading": "Téléchargement en cours…",
+    "statusReady": "Prête : redémarre pour installer",
+    "availableTitle": "Mise à jour disponible",
+    "availableBody": "Une nouvelle version de Mitsitsy est prête. Elle se télécharge en arrière-plan : tu peux continuer à utiliser l'app.",
+    "update": "Mettre à jour",
+    "later": "Plus tard",
+    "readyTitle": "Mise à jour prête",
+    "readyBody": "La nouvelle version est téléchargée. Redémarre l'app pour l'installer, tes données restent sur ton téléphone.",
+    "restart": "Redémarrer pour installer"
   }
 }

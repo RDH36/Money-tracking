@@ -1,0 +1,21 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.mitsitsyupdate'
+version = '0.1.0'
+
+android {
+  namespace "expo.modules.mitsitsyupdate"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
+}
+
+dependencies {
+  // Google Play In-App Updates (flexible flow only). Only answers for apps
+  // installed from Google Play (internal testing included).
+  implementation 'com.google.android.play:app-update:2.1.0'
+}

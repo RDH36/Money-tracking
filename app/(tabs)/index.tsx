@@ -34,6 +34,7 @@ import {
   accountDisplayName,
 } from '@/components/dashboard';
 import { HabitPromptSheet } from '@/components/habit/HabitPromptSheet';
+import { useAutoUpdateCheck } from '@/components/app-update';
 import { CloudBackupSurveyPrompt } from '@/components/cloud-backup-survey/CloudBackupSurveyPrompt';
 import { AnalysisEntryCard } from '@/components/analysis';
 import { CycleConfirmCard, sumCycleTotals } from '@/components/cycle';
@@ -100,17 +101,13 @@ export default function DashboardScreen() {
   const overspendBudget = useMemo(() => pickOverspend(overspentBudgets), [overspentBudgets]);
 
   useDashboardFocus({
-    refreshAccounts,
-    refreshTransactions,
-    refreshBudgets,
-    checkNew,
-    gamification,
-    weekly,
-    monthly,
-    quests,
-    onUnlocks: setUnlockQueue,
-    onLevelUp: setLevelUp,
+    refreshAccounts, refreshTransactions, refreshBudgets, checkNew, gamification, weekly, monthly, quests,
+    onUnlocks: setUnlockQueue, onLevelUp: setLevelUp,
   });
+  const [habitOpen, setHabitOpen] = useState(false);
+  const sheetBlocked = !!(deleteTarget || showAddAccount || levelUp || unlockQueue.length || lockedFeature);
+  // Fenêtre « Mise à jour disponible » : jamais par-dessus une feuille de l'accueil.
+  useAutoUpdateCheck(sheetBlocked || habitOpen);
 
   const handleCreateAccount = async (params: Parameters<typeof createAccount>[0]) => {
     const result = await createAccount(params);
@@ -243,7 +240,7 @@ export default function DashboardScreen() {
         lockedFeature={lockedFeature}
         onCloseLocked={() => setLockedFeature(null)}
       />
-      <HabitPromptSheet blocked={!!(deleteTarget || showAddAccount || levelUp || unlockQueue.length || lockedFeature)} />
+      <HabitPromptSheet blocked={sheetBlocked} onOpenChange={setHabitOpen} />
     </View>
   );
 }
