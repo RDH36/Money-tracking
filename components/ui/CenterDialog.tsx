@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Modal, Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, Easing,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming,
 } from 'react-native-reanimated';
 import { useV2 } from '@/constants/designTokensV2';
 
@@ -45,13 +45,9 @@ export function CenterDialog({
         scale.value = withSpring(1, { damping: 14, stiffness: 220 });
       });
     } else if (mounted) {
-      backdrop.value = withTiming(0, { duration: 180 });
-      opacity.value = withTiming(0, { duration: 180 });
-      scale.value = withTiming(0.94, {
-        duration: 180, easing: Easing.in(Easing.cubic),
-      }, (finished) => {
-        if (finished) runOnJS(setMounted)(false);
-      });
+      // Fermeture immédiate : sur Android la Modal est une fenêtre à part qui
+      // absorbe tous les taps tant qu'elle est visible (fondu de sortie = tap perdu).
+      setMounted(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
