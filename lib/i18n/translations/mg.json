@@ -1430,6 +1430,7 @@
     }
   },
   "ocrImport": {
+    "belowZero": "Le compte {{account}} passera à {{amount}}. Son solde de départ est peut-être trop bas, ou choisis un autre compte.",
     "beta": "Bêta",
     "entryTitle": "Hampiditra avy amin'ny sary efijery",
     "entrySub": "Vakiana indray mandeha ny fifanakalozanao MCB Juice",

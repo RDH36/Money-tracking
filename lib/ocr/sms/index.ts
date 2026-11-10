@@ -12,7 +12,7 @@ import { toYmd } from '../text';
 import { categoryHintFor } from '../mcb/classify';
 import { dateInText } from '../generic/dates';
 import {
-  amountsOf, counterpartyOf, dateOfReference, directionOf, isNotOperation, offerNameOf, operatorOf, referenceOf, type SmsOperator,
+  amountsOf, cleanParty, counterpartyOf, dateOfReference, directionOf, fixDigitConfusions, isNotOperation, offerNameOf, operatorOf, referenceOf, type SmsOperator,
 } from './fields';
 
 export interface SmsReading {
@@ -64,6 +64,7 @@ export function parseSms(
   // « 1/2 » en tête d'un SMS en deux parties : pas un montant.
   // « envoyea Angelo » : l'OCR colle le « a » au verbe.
   sms = sms.replace(/^\s*\d\/\d\s+/, '').replace(/\benvoyea\b/gi, 'envoye a');
+  sms = fixDigitConfusions(sms);
   if (isNotOperation(sms)) return [];
   const direction = directionOf(sms);
   const { main, fee } = amountsOf(sms);
@@ -77,7 +78,7 @@ export function parseSms(
   // celle de la Trans id Orange (« MP260623… »), sinon aujourd'hui.
   const textDate = dateInText(sms, today) ?? dayDate ?? dateOfReference(reference) ?? null;
   const date = textDate ?? today;
-  const party = offerNameOf(sms) ?? counterpartyOf(sms);
+  const party = cleanParty(offerNameOf(sms)) ?? cleanParty(counterpartyOf(sms));
   const debit = direction === 'out';
   const uncertain: UncertainField[] = [];
   if (main.uncertain) uncertain.push('amount');

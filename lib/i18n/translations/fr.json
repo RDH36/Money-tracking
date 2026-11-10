@@ -1480,6 +1480,7 @@
     }
   },
   "ocrImport": {
+    "belowZero": "Le compte {{account}} passera à {{amount}}. Son solde de départ est peut-être trop bas, ou choisis un autre compte.",
     "beta": "Bêta",
     "entryTitle": "Importer automatiquement",
     "entrySub": "Captures d'appli, tickets, factures",

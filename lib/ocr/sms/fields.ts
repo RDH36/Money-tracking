@@ -138,3 +138,22 @@ export function dateOfReference(reference: string | null): string | null {
   if (date.getUTCMonth() !== mo - 1 || date.getUTCDate() !== d) return null;
   return `${y}-${m[2]}-${m[3]}`;
 }
+
+// Confusions de police (OCR) dans un nombre : O→0, S→5, B→8, I/l/|→1. Seulement sur un mot
+// fait de chiffres et de ces lettres, avec au moins 2 vrais chiffres (« 5O0 », « 8983B309 »).
+const DIGITISH = /(^|[\s:#(])([\dOoSBIl|]*\d[\dOoSBIl|]*\d[\dOoSBIl|]*)(?=$|[\s.,;)])/g;
+const DIGIT_OF: Record<string, string> = { O: '0', o: '0', S: '5', B: '8', I: '1', l: '1', '|': '1' };
+
+/** Remplace les lettres lues à la place de chiffres dans les nombres du SMS. */
+export function fixDigitConfusions(text: string): string {
+  return text.replace(DIGITISH, (_m, lead: string, word: string) => lead + word.replace(/[OoSBIl|]/g, (c) => DIGIT_OF[c]));
+}
+
+// Fin de phrase collée au nom (« RELIA est reussi », « Rabe a ete effectue ») : coupée.
+const PARTY_TAIL = /\s+(?:est|a\s+[eé]t[eé]|ont|has|was|is|r[eé]ussie?|effectu[eé]e?)(?![A-Za-zÀ-ÿ0-9]).*$/i;
+
+/** Libellé de contrepartie/offre propre, null s'il ne reste pas au moins 2 lettres de suite. */
+export function cleanParty(name: string | null): string | null {
+  const cut = (name ?? '').replace(PARTY_TAIL, '').trim();
+  return /[A-Za-zÀ-ÿ]{2}/.test(cut) ? cut : null;
+}

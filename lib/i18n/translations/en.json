@@ -1480,6 +1480,7 @@
     }
   },
   "ocrImport": {
+    "belowZero": "The {{account}} account will go to {{amount}}. Its starting balance may be too low, or pick another account.",
     "beta": "Beta",
     "entryTitle": "Import automatically",
     "entrySub": "App screenshots, receipts, bills",
