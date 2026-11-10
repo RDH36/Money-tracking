@@ -1480,6 +1480,7 @@
     }
   },
   "ocrImport": {
+    "beta": "Bêta",
     "entryTitle": "Importer automatiquement",
     "entrySub": "Captures d'appli, tickets, factures",
     "pickError": "Impossible d'ouvrir la galerie.",

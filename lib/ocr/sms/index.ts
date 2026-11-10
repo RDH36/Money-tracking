@@ -62,7 +62,8 @@ export function parseSms(
   sms: string, today = toYmd(new Date()), dayDate?: string | null, operatorHint?: SmsOperator,
 ): ParsedOperation[] {
   // « 1/2 » en tête d'un SMS en deux parties : pas un montant.
-  sms = sms.replace(/^\s*\d\/\d\s+/, '');
+  // « envoyea Angelo » : l'OCR colle le « a » au verbe.
+  sms = sms.replace(/^\s*\d\/\d\s+/, '').replace(/\benvoyea\b/gi, 'envoye a');
   if (isNotOperation(sms)) return [];
   const direction = directionOf(sms);
   const { main, fee } = amountsOf(sms);
@@ -76,7 +77,7 @@ export function parseSms(
   // celle de la Trans id Orange (« MP260623… »), sinon aujourd'hui.
   const textDate = dateInText(sms, today) ?? dayDate ?? dateOfReference(reference) ?? null;
   const date = textDate ?? today;
-  const party = counterpartyOf(sms) ?? offerNameOf(sms);
+  const party = offerNameOf(sms) ?? counterpartyOf(sms);
   const debit = direction === 'out';
   const uncertain: UncertainField[] = [];
   if (main.uncertain) uncertain.push('amount');

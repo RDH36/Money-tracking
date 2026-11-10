@@ -1480,6 +1480,7 @@
     }
   },
   "ocrImport": {
+    "beta": "Beta",
     "entryTitle": "Import automatically",
     "entrySub": "App screenshots, receipts, bills",
     "pickError": "Couldn't open the gallery.",

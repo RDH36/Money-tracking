@@ -86,12 +86,16 @@ function offerPrice(text: string): FoundAmount | null {
   return cents > 0 ? { cents, sign: 0, currency: null, uncertain: false, start, end: start + m[1].length } : null;
 }
 
-const REF_RE = /\b(?:ref(?:erence)?|trans(?:action)?\.?\s*[il1|]d|txn\s*id|tid|id)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{5,})/i;
+const REF_RE = /\b(?:ref(?:erence)?|trans(?:action)?\.?\s*[il1|]d|txn\s*id|tid|id)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{5,})(?:\s(\d{1,4})(?![\d\-/:]|[.,]\d))?/i;
 
 /** Référence opérateur (anti-doublon), null si absente. */
 export function referenceOf(text: string): string | null {
   const m = REF_RE.exec(text);
-  return m ? m[1].replace(/[.\-]+$/, '').toUpperCase() : null;
+  if (!m) return null;
+  const ref = m[1].replace(/[.\-]+$/, '');
+  // Réf MVola tout en chiffres coupée par l'OCR (« Ref: 89837309 70 ») : recollée.
+  const glued = m[2] && /^\d{6,9}$/.test(ref) && (ref + m[2]).length <= 10 ? ref + m[2] : ref;
+  return glued.toUpperCase();
 }
 
 // Contrepartie : après « à / de / vers / tamin'i / avy amin'i / to / from », jusqu'au numéro, à « le » ou à la ponctuation.
@@ -103,17 +107,20 @@ export function counterpartyOf(text: string): string | null {
   const noPhones = text.replace(/\+?\d[\d\s]{7,}\d/g, ' # ');
   const m = PARTY_RE.exec(noPhones);
   if (!m) return null;
-  const words = m[1].trim().replace(/^[ld]['’]/i, '').split(/\s+/).filter((w) => !/^(le|la|ny|ianao|on|at)$/i.test(w));
+  const words = m[1].trim().replace(/^[ld]['’]/i, '').split(/\s+/).filter((w) => !/^([Il1]?le|la|ny|ianao|on|at)$/i.test(w));
   const name = words.join(' ').trim();
   if (!name || NOT_PARTY.test(words[0] ?? '')) return null;
   return name.slice(0, 40);
 }
 
 // « Votre achat d'offre Orange Be connect 1,2Go de 5000Ar », « offre NET MONTH 15 000 avec MVola ».
-const OFFER_NAME_RE = /\boffre\s+(?:orange\s+)?(.+?)\s+(?:de\s+)?\d[\d\s]*(?:ar\b|avec\b)/i;
+const OFFER_NAME_RE = /\boffre\s+(?:orange\s+)?(.+?)\s+(?:de\s+)?\d[\dOo\s.,]*(?:ar\b|avec\b)/i;
+const CREDIT_RE = /\bachat de credit\s+([A-Za-z]+)/i;
 
-/** Nom de l'offre achetée (forfait), null sinon. */
+/** Nom de l'offre achetée (forfait, « Crédit YAS »), null sinon. */
 export function offerNameOf(text: string): string | null {
+  const credit = CREDIT_RE.exec(text);
+  if (credit) return `Crédit ${credit[1].toUpperCase()}`;
   const m = OFFER_NAME_RE.exec(text);
   const name = m?.[1].trim() ?? '';
   return name && name.length <= 30 ? name : null;

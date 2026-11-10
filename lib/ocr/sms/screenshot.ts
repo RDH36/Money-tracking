@@ -9,7 +9,7 @@ import type { OcrLine, OcrPage, ParsedOperation, ParseResult, SourceParser } fro
 import { normalizeText, toYmd } from '../text';
 import { parseDayHeader } from '../generic/dates';
 import { parseSms } from './index';
-import { operatorOf, referenceOf } from './fields';
+import { amountsOf, directionOf, isNotOperation, operatorOf, referenceOf } from './fields';
 
 export const SMS_SCREENSHOT_SOURCE = 'sms-screenshot';
 
@@ -30,6 +30,9 @@ interface Bubble {
   timed: boolean;
 }
 
+// Textes de l'appli Messages sous les bulles (bandeau, zone de saisie) : jamais la suite d'un SMS.
+const APP_TEXT = /^(l.?exp[ée]diteur|contactez|texte du message|message texte|sms\b|rcs\b|\+\s)/i;
+
 // Ligne de fin d'un SMS Orange Money, lue parfois comme un bloc à part.
 const CONTINUATION = /^(date|trans\.?\s*[il1|]d)\s*:/i;
 
@@ -45,6 +48,12 @@ function dayHeader(text: string, today: string): string | null {
   if (!HEADER_TIME.test(t) && !/^[A-Za-zÀ-ÿ]/.test(t)) return null;
   const day = t.replace(HEADER_TIME, '');
   return parseDayHeader(WEEKDAY_RELATIVE.test(day) ? day.replace(/^\S+\s+/, '') : day, today);
+}
+
+/** Début d'opération (sens + montant) dont la référence n'est pas encore lue. */
+function isOpenOperation(lines: OcrLine[]): boolean {
+  const text = lines.map((l) => l.text.trim()).join(' ');
+  return !referenceOf(text) && directionOf(text) !== null && amountsOf(text).main !== null;
 }
 
 /** Bulles de la capture, dans l'ordre, avec la date de l'en-tête de jour au-dessus. */
@@ -75,7 +84,10 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
       const sameBlock = prev.block !== undefined && prev.block === line.block;
       // Écart vertical supérieur à ~0,9 ligne : nouvelle bulle (sauf même bloc OCR).
       // « Date : … » / « Trans Id : … » sur sa ligne : suite de la bulle, jamais une nouvelle.
-      if (!sameBlock && line.top - prev.bottom > height * 0.9 && !CONTINUATION.test(text)) close();
+      // Opération commencée sans référence lue (grande police, souligné : ML Kit coupe la bulle
+      // en blocs) : la suite qui n'ouvre pas un autre SMS lui revient.
+      if (!sameBlock && line.top - prev.bottom > height * 0.9 && !CONTINUATION.test(text)
+        && !(isOpenOperation(current) && !APP_TEXT.test(text) && !isNotOperation(text) && (!SMS_OPENER.test(text) || /^(votre|nouveau) solde/i.test(text)))) close();
       // Bulles collées (même minute) : une phrase finie suivie d'un début de SMS.
       // Seulement si la bulle en cours est déjà complète (sa référence est lue) : un retour
       // à la ligne avant « Votre solde… » dans une même bulle ne coupe rien.
@@ -92,8 +104,8 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
   const operations: ParsedOperation[] = [];
   const operator = operatorOf(page.lines.map((l) => l.text).join(' '));
   const bubbles = bubblesOf(page, today);
-  // Heure sous chaque bulle (Huawei) : une bulle sans heure après la dernière heure est
-  // coupée par le bas de l'écran (référence non lue) → lue sur la capture suivante.
+  // Heure sous chaque bulle (Huawei) : une bulle sans heure après la dernière heure touche
+  // le bas de l'écran → écartée si sa fin n'est pas lue (lue sur la capture suivante).
   const lastTimed = bubbles.map((b) => b.timed).lastIndexOf(true);
   const timedLayout = bubbles.filter((b) => b.timed).length >= 2;
   const read = bubbles.map((b) => parseSms(b.text, today, b.date, operator));
@@ -103,7 +115,7 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
     if (ops.length === 0) return;
     // Bulle coupée au bord (« coupées au bord », comme MCB) : sa référence tronquée
     // casserait l'anti-doublon → lue sur la capture suivante.
-    if ((timedLayout && i > lastTimed) || (i === last && !isComplete(bubbles[i].text))) {
+    if (((timedLayout && i > lastTimed) || i === last) && !isComplete(bubbles[i].text)) {
       partial++;
       return;
     }

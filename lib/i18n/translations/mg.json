@@ -1430,6 +1430,7 @@
     }
   },
   "ocrImport": {
+    "beta": "Bêta",
     "entryTitle": "Hampiditra avy amin'ny sary efijery",
     "entrySub": "Vakiana indray mandeha ny fifanakalozanao MCB Juice",
     "pickError": "Tsy voasokatra ny galerie.",
