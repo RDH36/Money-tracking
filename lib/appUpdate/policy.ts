@@ -84,9 +84,12 @@ export function selectUpdateModule<T>(native: T | null, isDev: boolean, fakeMode
   return native;
 }
 
-/** Pastille au-dessus des onglets : téléchargement en cours, ou « prête » après « Plus tard ». */
-export function pillState(phase: UpdatePhase, readyDismissed: boolean, promptOpen: boolean): 'downloading' | 'ready' | null {
-  if (promptOpen) return null;
+/**
+ * Pastille au-dessus des onglets : téléchargement en cours, ou « prête » après « Plus tard ».
+ * Jamais sur l'écran d'ajout (elle y couvrirait les catégories).
+ */
+export function pillState(phase: UpdatePhase, readyDismissed: boolean, promptOpen: boolean, onAddScreen = false): 'downloading' | 'ready' | null {
+  if (promptOpen || onAddScreen) return null;
   if (phase === 'downloading') return 'downloading';
   if (phase === 'downloaded' && readyDismissed) return 'ready';
   return null;

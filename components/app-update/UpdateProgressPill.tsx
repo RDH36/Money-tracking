@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Keyboard, Pressable, Text, View } from 'react-native';
 import { EaseView } from 'react-native-ease';
+import { usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,8 @@ export function UpdateProgressPill() {
   const { t } = useTranslation();
   const v2 = useV2();
   const insets = useSafeAreaInsets();
-  const state = useAppUpdateStore((s) => pillState(s.phase, s.readyDismissed, s.promptOpen));
+  const onAddScreen = usePathname() === '/add';
+  const state = useAppUpdateStore((s) => pillState(s.phase, s.readyDismissed, s.promptOpen, onAddScreen));
   const progress = useAppUpdateStore((s) => s.progress);
   const [keyboard, setKeyboard] = useState(false);
   // Garde le dernier contenu pendant l'animation de disparition.
