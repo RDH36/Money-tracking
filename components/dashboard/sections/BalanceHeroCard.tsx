@@ -37,7 +37,7 @@ export function BalanceHeroCard({
 }: BalanceHeroCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
-  const balanceText = balanceHidden ? '••••••' : formatMoneyFr(totalBalance);
+  const balanceText = balanceHidden ? '••••••' : `${totalBalance < 0 ? '−' : ''}${formatMoneyFr(totalBalance)}`;
 
   return (
     <View style={{ borderRadius: 22, overflow: 'hidden', position: 'relative' }}>
