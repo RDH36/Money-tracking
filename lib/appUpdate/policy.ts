@@ -83,3 +83,11 @@ export function selectUpdateModule<T>(native: T | null, isDev: boolean, fakeMode
   if (isDev && (fakeMode === 'available' || fakeMode === 'latest')) return makeFake(fakeMode);
   return native;
 }
+
+/** Pastille au-dessus des onglets : téléchargement en cours, ou « prête » après « Plus tard ». */
+export function pillState(phase: UpdatePhase, readyDismissed: boolean, promptOpen: boolean): 'downloading' | 'ready' | null {
+  if (promptOpen) return null;
+  if (phase === 'downloading') return 'downloading';
+  if (phase === 'downloaded' && readyDismissed) return 'ready';
+  return null;
+}

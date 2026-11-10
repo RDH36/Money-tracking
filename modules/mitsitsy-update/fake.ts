@@ -26,12 +26,14 @@ export function createFakeUpdateModule(mode: 'available' | 'latest'): UpdateModu
     async startFlexibleUpdate() {
       if (installed) return false;
       setTimeout(() => emit('onFlowResult', { accepted: true }), 300);
-      setTimeout(() => emit('onState', state('downloading', 30)), 800);
-      setTimeout(() => emit('onState', state('downloading', 70)), 1800);
+      // ~8 s en paliers : laisse le temps de voir la pastille de progression.
+      [0, 12, 25, 40, 55, 70, 85, 95].forEach((pct, i) => {
+        setTimeout(() => emit('onState', state('downloading', pct)), 800 + i * 900);
+      });
       setTimeout(() => {
         downloaded = true;
         emit('onState', state('downloaded', 100));
-      }, 3000);
+      }, 8000);
       return true;
     },
     async completeUpdate() {

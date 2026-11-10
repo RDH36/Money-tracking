@@ -1621,6 +1621,9 @@
     "later": "Afaka kelikely",
     "readyTitle": "Vonona ny fanavaozana",
     "readyBody": "Voaray ny dikan-teny vaovao. Avereno alefa ny app hametrahana azy ; mijanona ao amin'ny findainao ny angon-drakitrao.",
-    "restart": "Avereno alefa"
+    "restart": "Avereno alefa",
+    "pillDownloading": "Mampidina ny fanavaozana…",
+    "pillDownloadingPct": "Mampidina ny fanavaozana… {{pct}} %",
+    "pillReady": "Vonona ny fanavaozana · Avereno alefa"
   }
 }

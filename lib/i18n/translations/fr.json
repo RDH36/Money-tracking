@@ -1719,6 +1719,9 @@
     "later": "Plus tard",
     "readyTitle": "Mise à jour prête",
     "readyBody": "La nouvelle version est téléchargée. Redémarre l'app pour l'installer, tes données restent sur ton téléphone.",
-    "restart": "Redémarrer pour installer"
+    "restart": "Redémarrer pour installer",
+    "pillDownloading": "Téléchargement de la mise à jour…",
+    "pillDownloadingPct": "Téléchargement de la mise à jour… {{pct}} %",
+    "pillReady": "Mise à jour prête · Redémarrer"
   }
 }

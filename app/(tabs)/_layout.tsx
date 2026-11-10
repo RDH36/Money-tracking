@@ -17,7 +17,6 @@ export default function TabsLayout() {
     <>
     <CaptureShareListener />
     <EveningReminderTapListener />
-    <AppUpdateHost />
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -121,6 +120,8 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    {/* Après les onglets : la pastille de mise à jour passe au-dessus. */}
+    <AppUpdateHost />
     </>
   );
 }

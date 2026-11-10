@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { CenterDialog } from '@/components/ui/CenterDialog';
 import { DialogButtonRow, DialogGhostBtn, DialogPrimaryBtn } from '@/components/ui/DialogButtons';
 import { useAppUpdateStore } from '@/stores/appUpdateStore';
+import { UpdateProgressPill } from './UpdateProgressPill';
 
 /**
  * Fenêtres de la mise à jour flexible (montées dans les onglets) :
@@ -15,6 +16,7 @@ export function AppUpdateHost() {
 
   return (
     <>
+      <UpdateProgressPill />
       <CenterDialog
         isOpen={promptOpen}
         onClose={dismiss}
