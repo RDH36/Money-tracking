@@ -23,7 +23,7 @@ import { consumedReads, planReads, type ReadPlan } from '@/lib/premium';
 import {
   correctedFields, genericReadProps, importSavedProps, readCompletedProps,
 } from '@/lib/ocr/import/analytics';
-import { duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
+import { accountsBelowZero, duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
 import { getCategoryDisplayName } from '@/constants/categories';
 import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
@@ -175,7 +175,10 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     );
   } else {
     const dupSelected = imp.items.filter((i) => i.selected && i.duplicate).length;
-    const notice = imp.saveFailed
+    const cashBlocked = accountsBelowZero(imp.items, accounts).some((b) => b.blocked);
+    const notice = cashBlocked
+      ? { text: t('ocrImport.cashBlockedSave'), tone: 'bad' as const }
+      : imp.saveFailed
       ? { text: t('ocrImport.saveFailed'), tone: 'bad' as const }
       : imp.invalidSelected > 0
         ? { text: t('ocrImport.invalid', { count: imp.invalidSelected }), tone: 'bad' as const }
@@ -190,6 +193,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
         saving={imp.phase === 'saving'}
         notice={notice}
         onSave={imp.save}
+        blocked={cashBlocked}
         onToggleMany={imp.toggleMany}
         header={
           <ReviewSummary

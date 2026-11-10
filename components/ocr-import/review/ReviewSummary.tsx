@@ -132,10 +132,12 @@ export function ReviewSummary({
           >
             <Ionicons name="warning-outline" size={14} color={v2.bad} style={{ marginTop: 1 }} />
             <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.bad }}>
-              {t('ocrImport.belowZero', {
-                account: account ? getAccountName(account) : '',
-                amount: `\u2212${formatMoney(Math.abs(b.projected))}`,
-              })}
+              {b.blocked
+                ? t('ocrImport.cashBelowZero', { missing: formatMoney(Math.abs(b.projected)) })
+                : t('ocrImport.belowZero', {
+                  account: account ? getAccountName(account) : '',
+                  amount: `\u2212${formatMoney(Math.abs(b.projected))}`,
+                })}
             </Text>
           </View>
         );

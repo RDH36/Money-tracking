@@ -1431,6 +1431,9 @@
   },
   "ocrImport": {
     "belowZero": "Le compte {{account}} passera à {{amount}}. Son solde de départ est peut-être trop bas, ou choisis un autre compte.",
+    "cashBelowZero": "Un compte Espèce ne peut pas passer sous zéro (il manque {{missing}}). Choisis un autre compte ou décoche des opérations.",
+    "cashBlockedSave": "Compte Espèce sous zéro : enregistrement impossible.",
+    "identicalGroup": "{{count}} opérations identiques ce jour-là : décoche s'il y en a une en trop.",
     "beta": "Bêta",
     "entryTitle": "Hampiditra avy amin'ny sary efijery",
     "entrySub": "Vakiana indray mandeha ny fifanakalozanao MCB Juice",

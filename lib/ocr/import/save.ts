@@ -2,13 +2,27 @@
  * Enregistrement des opérations validées en transactions normales.
  * transaction_date = vraie date de l'opération (comptabilité), created_at =
  * maintenant (engagement). Pas de contrôle de solde : la banque a déjà
- * exécuté l'opération, la refuser fausserait le compte.
+ * exécuté l'opération, la refuser fausserait le compte. Exception : un compte
+ * espèces ne passe jamais sous zéro (CashBelowZeroError, rien n'est écrit).
  */
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { SYSTEM_CATEGORY_INCOME_ID, SYSTEM_CATEGORY_TRANSFER_ID } from '@/lib/database/schema';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
 import { canonicalRef } from '../dedupe';
-import type { ImportDraft } from './review';
+import { accountsBelowZero, type ImportDraft } from './review';
+
+/** Refus : un compte espèces passerait sous zéro (le bouton aurait dû être grisé). */
+export class CashBelowZeroError extends Error {
+  constructor() {
+    super('cash account would go below zero');
+    this.name = 'CashBelowZeroError';
+  }
+}
+
+const BALANCES_SQL = `SELECT a.id, a.type, a.initial_balance
+  + COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount WHEN t.type = 'expense' THEN -t.amount ELSE 0 END), 0) AS current_balance
+  FROM accounts a LEFT JOIN transactions t ON t.account_id = a.id AND t.deleted_at IS NULL
+  WHERE a.deleted_at IS NULL GROUP BY a.id`;
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -52,8 +66,13 @@ export async function saveImportedOperations<D extends ImportDraft>(
       if (ref && stored.has(ref)) continue;
       if (ref && inBatch.has(ref) && !d.forceDuplicate) continue;
       if (ref) inBatch.add(ref);
-      saved++;
       inserted.push(d);
+    }
+    const balances = await txn.getAllAsync<{ id: string; type: string; current_balance: number }>(BALANCES_SQL);
+    const projected = accountsBelowZero(inserted.map((d) => ({ ...d, selected: true })), balances);
+    if (projected.some((b) => b.blocked)) throw new CashBelowZeroError();
+    for (const d of inserted) {
+      saved++;
       const txDate = draftDateToIso(d.date);
       const note = d.note.trim() || null;
       if (d.kind === 'transfer') {
