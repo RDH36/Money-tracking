@@ -105,7 +105,8 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
   const operator = operatorOf(page.lines.map((l) => l.text).join(' '));
   const bubbles = bubblesOf(page, today);
   // Heure sous chaque bulle (Huawei) : une bulle sans heure après la dernière heure touche
-  // le bas de l'écran → écartée si sa fin n'est pas lue (lue sur la capture suivante).
+  // le bas de l'écran → écartée sauf si elle finit par sa référence : un point ne suffit pas
+  // (« Frais: 0 Ar. » suivi du solde et de la réf hors écran) → lue sur la capture suivante.
   const lastTimed = bubbles.map((b) => b.timed).lastIndexOf(true);
   const timedLayout = bubbles.filter((b) => b.timed).length >= 2;
   const read = bubbles.map((b) => parseSms(b.text, today, b.date, operator));
@@ -115,7 +116,8 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
     if (ops.length === 0) return;
     // Bulle coupée au bord (« coupées au bord », comme MCB) : sa référence tronquée
     // casserait l'anti-doublon → lue sur la capture suivante.
-    if (((timedLayout && i > lastTimed) || i === last) && !isComplete(bubbles[i].text)) {
+    const cutAfterLastTime = timedLayout && i > lastTimed && !endsWithReference(bubbles[i].text);
+    if (cutAfterLastTime || (i === last && !isComplete(bubbles[i].text))) {
       partial++;
       return;
     }
@@ -126,9 +128,12 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
 
 /** Fin de SMS lue : phrase finie, ou référence complète (8 caractères dont un chiffre) en dernier. */
 export function isComplete(text: string): boolean {
-  const t = text.trim();
-  if (/[.!]$/.test(t)) return true;
-  const ref = /(?:ref|[il1|]d)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{7,})$/i.exec(t)?.[1];
+  return /[.!]$/.test(text.trim()) || endsWithReference(text);
+}
+
+/** Le SMS se termine par sa référence (point final toléré) : sa fin est bien à l'écran. */
+export function endsWithReference(text: string): boolean {
+  const ref = /(?:ref|[il1|]d)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{7,})$/i.exec(text.trim().replace(/\.$/, ''))?.[1];
   return !!ref && /\d/.test(ref);
 }
 

@@ -7,6 +7,7 @@ import { usePostHog } from 'posthog-react-native';
 import { useV2 } from '@/constants/designTokensV2';
 import { PLUS_ENABLED } from '@/constants/app';
 import { SettingsHeader } from '@/components/settings/v2/SettingsHeader';
+import { BetaBadge } from '../BetaBadge';
 import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import { DialogButtonStack, DialogGhostBtn, DialogPrimaryBtn } from '@/components/ui/DialogButtons';
 import { EyebrowLabel } from '@/components/onboarding/v2';
@@ -46,6 +47,9 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
         <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={close} />
+        <View style={{ position: 'absolute', top: 14, right: 20 }}>
+          <BetaBadge />
+        </View>
       </View>
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
         <EyebrowLabel>{t('ocrImport.limit.eyebrow')}</EyebrowLabel>
