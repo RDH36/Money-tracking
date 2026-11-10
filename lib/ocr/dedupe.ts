@@ -3,6 +3,12 @@
  * date (± 1 jour) + libellé proche. Entre deux sources différentes (ticket ↔
  * ligne MCB, ticket de caisse ↔ ticket carte), montant + sens + date ± 1 jour. Contrôle le lot importé (captures qui se
  * chevauchent) et les transactions déjà en base.
+ *
+ * Opérations identiques légitimes (3 retraits de 200 000 le même jour) : sur
+ * UNE même capture (ou un même texte de SMS), elles sont toutes gardées ; entre
+ * deux captures, la n-ième occurrence n'est un doublon que si une autre
+ * capture en montre déjà au moins n ; contre la base, chaque transaction ne
+ * sert qu'une fois (3 en base = 3 déjà importées).
  */
 import type { ParsedOperation } from './types';
 import { daysBetween, labelOverlap } from './text';
@@ -67,6 +73,11 @@ function sameDirection(op: ParsedOperation, tx: ExistingTransaction): boolean {
   return !tx.isTransfer && tx.type === op.kind;
 }
 
+/** Les deux opérations viennent de la même image (ou du même texte collé). */
+function sameImage(a: ParsedOperation, b: ParsedOperation): boolean {
+  return a.image !== undefined && a.image === b.image;
+}
+
 function looksLikeSameBatchOp(a: ParsedOperation, b: ParsedOperation): boolean {
   if (a.source !== b.source) {
     // Deux pièces du même achat (ticket de caisse + ticket carte, ticket + relevé).
@@ -97,6 +108,24 @@ function matchesExisting(op: ParsedOperation, tx: ExistingTransaction): boolean 
   return note === '' || labelOverlap(`${op.note} ${op.label}`, note) >= 0.5;
 }
 
+/**
+ * Doublon du lot : une opération semblable sur une AUTRE image. Les
+ * identiques d'une même image sont comptées : la n-ième n'est un doublon que
+ * si une autre image en montre déjà au moins n.
+ */
+function isBatchDuplicate(items: DedupedOperation[], op: ParsedOperation): boolean {
+  const similar = items.filter((i) => looksLikeSameBatchOp(i.op, op));
+  if (similar.length === 0) return false;
+  if (op.image === undefined) return true;
+  const rank = similar.filter((i) => sameImage(i.op, op)).length + 1;
+  const perImage = new Map<number | undefined, number>();
+  for (const i of similar) {
+    if (sameImage(i.op, op)) continue;
+    perImage.set(i.op.image, (perImage.get(i.op.image) ?? 0) + 1);
+  }
+  return [...perImage.values()].some((n) => n >= rank);
+}
+
 export function dedupeOperations(
   ops: ParsedOperation[],
   existing: ExistingTransaction[]
@@ -125,7 +154,7 @@ export function dedupeOperations(
         duplicate = 'similar';
         match = similar;
         usedExisting.add(similar.id);
-      } else if (items.some((i) => looksLikeSameBatchOp(i.op, op))) {
+      } else if (isBatchDuplicate(items, op)) {
         duplicate = 'batch';
       }
     }

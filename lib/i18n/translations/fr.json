@@ -1587,7 +1587,12 @@
       "mcb": "MCB Juice",
       "boa-gab": "Ticket de retrait BOA",
       "bmoi-tpe": "Ticket de carte BMOI",
-      "receipt": "Ticket de caisse"
+      "receipt": "Ticket de caisse",
+      "generic": "Relevé",
+      "mvola": "MVola",
+      "orange-money": "Orange Money",
+      "airtel-money": "Airtel Money",
+      "sms": "SMS Mobile Money"
     },
     "tips": {
       "title": "Pour un ticket papier",
@@ -1621,6 +1626,16 @@
       "title": "Tes {{count}} lectures de ce cycle sont faites",
       "body": "Elles reviennent le {{date}}. D'ici là, note tes dépenses à la main : ça prend 10 secondes.",
       "close": "Fermer"
+    },
+    "sms": {
+      "button": "Coller un SMS",
+      "overline": "Mobile Money",
+      "title": "Coller un SMS",
+      "hint": "Copie un ou plusieurs SMS de MVola, Orange Money ou Airtel Money, puis colle-les ici. Le solde n'est pas importé.",
+      "placeholder": "Appuie longuement ici pour coller…",
+      "read": "Lire",
+      "cancel": "Annuler",
+      "nothing": "Aucune opération reconnue. Colle le SMS complet reçu de l'opérateur (montant et sens de l'opération)."
     }
   },
   "plus": {

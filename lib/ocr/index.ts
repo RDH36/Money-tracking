@@ -4,3 +4,5 @@ export {
   dedupeOperations, externalRefOf, canonicalRef,
   type ExistingTransaction, type DuplicateReason, type DedupedOperation,
 } from './dedupe';
+export { genericParser, parseGeneric, GENERIC_SOURCE } from './generic';
+export { readSmsText, parseSms, splitMessages, type SmsReading } from './sms';

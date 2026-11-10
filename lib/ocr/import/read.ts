@@ -1,6 +1,7 @@
 /** Lecture des captures sur l'appareil : OCR natif puis parseur de la source. */
 import { recognizeImage } from '@/modules/mitsitsy-ocr';
 import { parsePage } from '../registry';
+import { readSmsText } from '../sms';
 import type { ParsedOperation } from '../types';
 
 export interface CapturesReading {
@@ -13,6 +14,14 @@ export interface CapturesReading {
   failed: number;
   /** Opérations coupées par le bord d'une capture. */
   partial: number;
+}
+
+/** SMS collés : même résultat qu'une lecture de captures (une seule lecture, image 0). */
+export function readPastedSms(text: string): CapturesReading {
+  const { operations } = readSmsText(text);
+  const sources = [...new Set(operations.map((op) => op.source))];
+  // Les textes non reconnus sont signalés dans la feuille, pas comme des captures.
+  return { operations, sources, unrecognized: 0, failed: 0, partial: 0 };
 }
 
 export async function readCaptures(

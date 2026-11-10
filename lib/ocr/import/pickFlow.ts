@@ -11,7 +11,7 @@ export type PickResult = { uris: string[] } | { denied: true } | { failed: true 
 
 export type CaptureState =
   | { status: 'picking'; action: PickAction }
-  | { status: 'ready'; key: string; uris: string[]; source: string }
+  | { status: 'ready'; key: string; uris: string[]; source: string; text?: string }
   | { status: 'error'; error: PickError };
 
 /** Suite d'un choix : nouvel état, ou retour à l'écran précédent. */
@@ -21,6 +21,8 @@ export interface CaptureParams {
   uris?: string;
   source?: string;
   pick?: string;
+  /** SMS collés (« Coller un SMS ») : lus à la place des captures. */
+  sms?: string;
 }
 
 export function parseUris(raw: string | undefined): string[] {
@@ -34,6 +36,7 @@ export function parseUris(raw: string | undefined): string[] {
 
 /** `pick` sans `uris` : l'écran ouvre lui-même le sélecteur. Sinon (partage) : lecture directe. */
 export function initialCaptureState(params: CaptureParams): CaptureState {
+  if (params.sms) return { status: 'ready', key: `sms:${params.sms}`, uris: [], source: 'sms', text: params.sms };
   if (!params.uris && (params.pick === 'gallery' || params.pick === 'camera')) {
     return { status: 'picking', action: params.pick };
   }

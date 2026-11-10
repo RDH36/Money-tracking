@@ -80,4 +80,6 @@ export interface SourceParser {
   parse(page: OcrPage): ParseResult;
   /** Ticket papier photographié (une opération par photo, peut être pivoté). */
   ticket?: boolean;
+  /** Lecteur de repli (générique) : retenu seulement si aucune autre source n'est reconnue. */
+  fallback?: boolean;
 }
