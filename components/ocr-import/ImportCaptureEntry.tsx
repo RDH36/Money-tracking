@@ -14,6 +14,7 @@ import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import type { License } from '@/lib/premium';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
 import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
+import { stashPastedSms } from '@/lib/ocr/import/pickFlow';
 import { PasteSmsSheet } from './entry/PasteSmsSheet';
 
 type EntryAction = 'gallery' | 'camera' | 'sms';
@@ -149,7 +150,7 @@ export function ImportCaptureEntry() {
         onClose={() => setSmsOpen(false)}
         onRead={(sms) => {
           setSmsOpen(false);
-          router.push({ pathname: '/import/capture', params: { sms } });
+          router.push({ pathname: '/import/capture', params: { sms: stashPastedSms(sms) } });
         }}
       />
       <QuotaReachedSheet
