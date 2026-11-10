@@ -9,7 +9,7 @@ import type { OcrLine, OcrPage, ParsedOperation, ParseResult, SourceParser } fro
 import { normalizeText, toYmd } from '../text';
 import { parseDayHeader } from '../generic/dates';
 import { parseSms } from './index';
-import { operatorOf } from './fields';
+import { operatorOf, referenceOf } from './fields';
 
 export const SMS_SCREENSHOT_SOURCE = 'sms-screenshot';
 
@@ -67,7 +67,10 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
       // Écart vertical supérieur à ~0,9 ligne : nouvelle bulle (sauf même bloc OCR).
       if (!sameBlock && line.top - prev.bottom > height * 0.9) close();
       // Bulles collées (même minute) : une phrase finie suivie d'un début de SMS.
-      else if (/[.!]$/.test(prev.text.trim()) && SMS_OPENER.test(text)) close();
+      // Seulement si la bulle en cours est déjà complète (sa référence est lue) : un retour
+      // à la ligne avant « Votre solde… » dans une même bulle ne coupe rien.
+      else if (!sameBlock && /[.!]$/.test(prev.text.trim()) && SMS_OPENER.test(text) && !/^(votre|nouveau) solde/i.test(text)
+        && referenceOf(current.map((l) => l.text).join(' '))) close();
     }
     current.push(line);
   }
