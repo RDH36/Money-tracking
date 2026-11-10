@@ -102,6 +102,7 @@ export function parseSms(
       amount: -fee.cents,
       kind: 'expense',
       categoryHint: 'bills',
+      fixedCategory: true,
       uncertain: uncertain.filter((f) => f !== 'amount'),
     });
   }
