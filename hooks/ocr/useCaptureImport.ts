@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { dedupeOperations } from '@/lib/ocr';
-import { readCaptures, readPastedSms } from '@/lib/ocr/import/read';
+import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
@@ -26,12 +26,9 @@ const EMPTY_STATS: ImportStats = {
 
 /**
  * Parcours complet de l'import par capture : lecture OCR → analyse →
- * anti-doublon → brouillons modifiables → enregistrement. `smsText` : SMS
- * collés, lus à la place des captures (même vérification, même enregistrement).
+ * anti-doublon → brouillons modifiables → enregistrement.
  */
-export function useCaptureImport(
-  uris: string[], onSaved?: (inserted: ReviewItem[]) => void | Promise<void>, smsText?: string
-) {
+export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem[]) => void | Promise<void>) {
   const db = useSQLiteContext();
   const [phase, setPhase] = useState<ImportPhase>('reading');
   const [progress, setProgress] = useState({ done: 0, total: uris.length });
@@ -39,25 +36,23 @@ export function useCaptureImport(
   const [stats, setStats] = useState<ImportStats>(EMPTY_STATS);
   const [savedCount, setSavedCount] = useState(0);
   const [saveFailed, setSaveFailed] = useState(false);
-  const urisKey = smsText ? `sms:${smsText}` : uris.join('|');
+  const urisKey = uris.join('|');
 
   // Relancé à chaque nouvelle liste de captures (« Importer d'autres captures »,
   // nouveau partage qui remplace l'écran) : l'état repart de zéro.
   useEffect(() => {
-    if (uris.length === 0 && !smsText) return;
+    if (uris.length === 0) return;
     let cancelled = false;
     setPhase('reading');
-    setProgress({ done: 0, total: smsText ? 1 : uris.length });
+    setProgress({ done: 0, total: uris.length });
     setItems([]);
     setStats(EMPTY_STATS);
     setSaveFailed(false);
     (async () => {
       try {
-        const reading = smsText
-          ? readPastedSms(smsText)
-          : await readCaptures(uris, (done, total) => {
-            if (!cancelled) setProgress({ done, total });
-          });
+        const reading = await readCaptures(uris, (done, total) => {
+          if (!cancelled) setProgress({ done, total });
+        });
         const existing = await loadExistingForDedupe(db, reading.operations);
         const { items: deduped, merged } = dedupeOperations(reading.operations, existing);
         const [history, validCategoryIds, accounts] = await Promise.all([
@@ -68,7 +63,7 @@ export function useCaptureImport(
         if (cancelled) return;
         setItems(buildReviewItems(deduped, { history, validCategoryIds, ...accounts }));
         setStats({
-          captures: smsText ? 1 : uris.length,
+          captures: uris.length,
           sources: reading.sources,
           unrecognized: reading.unrecognized,
           failed: reading.failed,

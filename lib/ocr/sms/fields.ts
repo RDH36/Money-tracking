@@ -29,6 +29,14 @@ const BALANCE_CTX = /(solde|balance|volanao|sisa|disponible|available)[^.]{0,30}
 
 export type SmsDirection = 'out' | 'in';
 
+// Pas une opération faite : échec, annulation, achat seulement initié, pubs et bonus promis.
+const NOT_OPERATION = /\b(echoue|echouee|echec|annule|annulee|initie|bonus|gagnez|partager|jusqu au|hatramin|kadoa|code de validation|code de paiement)\b/;
+
+/** SMS d'opérateur qui ne décrit pas une opération faite (pub, échec, annulation…). */
+export function isNotOperation(text: string): boolean {
+  return NOT_OPERATION.test(normalizeText(text).replace(/['’`]/g, ' '));
+}
+
 /** Sens de l'opération : le premier mot-clé du message l'emporte. */
 export function directionOf(text: string): SmsDirection | null {
   const t = normalizeText(text).replace(/['’`]/g, ' ');

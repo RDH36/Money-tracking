@@ -12,10 +12,11 @@ export function countBucket(n: number): string {
 
 const KINDS: Record<string, string> = {
   mcb: 'mcb', 'boa-gab': 'boa_gab', 'bmoi-tpe': 'bmoi_tpe', receipt: 'receipt', generic: 'generic',
-  mvola: 'sms', 'orange-money': 'sms', 'airtel-money': 'sms', sms: 'sms',
+  mvola: 'sms', 'orange-money': 'sms', 'airtel-money': 'sms', sms: 'sms', 'sms-screenshot': 'sms',
 };
-/** Sources lues par le moteur générique (relevé à l'écran, SMS collé). */
-const GENERIC_SOURCES = new Set(['generic', 'mvola', 'orange-money', 'airtel-money', 'sms']);
+/** Sources lues sans parseur dédié : relevé générique, captures de SMS d'opérateur. */
+const SMS_SOURCES = new Set(['mvola', 'orange-money', 'airtel-money', 'sms']);
+const GENERIC_SOURCES = new Set(['generic', ...SMS_SOURCES]);
 
 /** Source principale de la lecture (la première reconnue). */
 export function readKind(sources: string[]): string {
@@ -36,14 +37,15 @@ export function readCompletedProps(items: ReviewItem[], sources: string[]) {
 }
 
 /**
- * `import_generic_read` : source `screenshot` (galerie, partage), `photo`
- * (appareil photo) ou `sms`, et nombre d'opérations du moteur générique.
+ * `import_generic_read` : source `sms_screenshot` (capture de SMS d'opérateur),
+ * `screenshot` (galerie, partage) ou `photo` (appareil photo), et nombre d'opérations.
  * null si aucune opération ne vient du générique.
  */
 export function genericReadProps(items: ReviewItem[], pickSource: string) {
   const ops = items.filter((i) => GENERIC_SOURCES.has(i.op.source)).length;
   if (ops === 0) return null;
-  const source = pickSource === 'sms' ? 'sms' : pickSource === 'camera' ? 'photo' : 'screenshot';
+  const sms = items.some((i) => SMS_SOURCES.has(i.op.source));
+  const source = sms ? 'sms_screenshot' : pickSource === 'camera' ? 'photo' : 'screenshot';
   return { source, ops };
 }
 

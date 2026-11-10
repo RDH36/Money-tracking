@@ -77,8 +77,12 @@ function toOperation(row: AmountRow, today: string): ParsedOperation {
 // Mots propres aux tickets et factures papier (jamais sur un relevé à l'écran).
 const RECEIPT_MARKS = /\b(nif|stat|tva|caissier|caisse|qte|quantite|sous[- ]total|ticket|commande|sur place|a emporter)\b/;
 
-/** Un ticket de caisse (total, NIF, caissier…) reste au lecteur de tickets, même sans total lu. */
+/** Ticket de caisse (total, NIF, caissier…) ou conversation SMS : pas pour le lecteur de relevés. */
+// En-tête de bulle de l'appli Messages (« mardi 30 juin • 17:26 ») : conversation, pas un relevé.
+const MESSAGES_HEADER = /[•·∙]\s*\d{1,2}[:h]\d{2}\s*$/;
+
 function looksLikeReceipt(page: OcrPage): boolean {
+  if (page.lines.some((l) => MESSAGES_HEADER.test(l.text.trim()))) return true;
   if (page.lines.some((l) => RECEIPT_MARKS.test(kw(l.text)))) return true;
   return findTotal(byTop(page.lines)) !== null;
 }

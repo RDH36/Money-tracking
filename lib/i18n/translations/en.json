@@ -1592,6 +1592,7 @@
       "mvola": "MVola",
       "orange-money": "Orange Money",
       "airtel-money": "Airtel Money",
+      "sms-screenshot": "Mobile Money SMS",
       "sms": "Mobile Money SMS"
     },
     "tips": {
@@ -1626,16 +1627,6 @@
       "title": "Your {{count}} reads for this cycle are done",
       "body": "They come back on {{date}}. Until then, log your expenses by hand: it takes 10 seconds.",
       "close": "Close"
-    },
-    "sms": {
-      "button": "Paste an SMS",
-      "overline": "Mobile Money",
-      "title": "Paste an SMS",
-      "hint": "Copy one or more SMS from MVola, Orange Money or Airtel Money, then paste them here. The balance is not imported.",
-      "placeholder": "Long-press here to paste…",
-      "read": "Read",
-      "cancel": "Cancel",
-      "nothing": "No transaction recognized. Paste the full SMS from your operator (amount and direction of the transaction)."
     }
   },
   "plus": {

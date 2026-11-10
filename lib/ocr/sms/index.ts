@@ -11,7 +11,9 @@ import type { ParsedOperation, UncertainField } from '../types';
 import { toYmd } from '../text';
 import { categoryHintFor } from '../mcb/classify';
 import { dateInText } from '../generic/dates';
-import { amountsOf, counterpartyOf, directionOf, operatorOf, referenceOf, type SmsOperator } from './fields';
+import {
+  amountsOf, counterpartyOf, directionOf, isNotOperation, operatorOf, referenceOf, type SmsOperator,
+} from './fields';
 
 export interface SmsReading {
   operations: ParsedOperation[];
@@ -56,14 +58,20 @@ function clip(s: string): string {
 }
 
 /** Opérations d'un SMS (principale + frais), vide si ce n'est pas une opération. */
-export function parseSms(sms: string, today = toYmd(new Date())): ParsedOperation[] {
+export function parseSms(
+  sms: string, today = toYmd(new Date()), dayDate?: string | null, operatorHint?: SmsOperator,
+): ParsedOperation[] {
+  if (isNotOperation(sms)) return [];
   const direction = directionOf(sms);
   const { main, fee } = amountsOf(sms);
   if (!direction || !main) return [];
-  const operator = operatorOf(sms);
+  // Capture : le nom du contact (« OrangeMoney ») donne l'opérateur si le SMS ne le cite pas.
+  const named = operatorOf(sms);
+  const operator = named === 'sms' && operatorHint ? operatorHint : named;
   const name = OPERATOR_NAMES[operator];
   const reference = referenceOf(sms);
-  const textDate = dateInText(sms, today);
+  // Date du SMS, sinon l'en-tête de jour de l'appli Messages (capture), sinon aujourd'hui.
+  const textDate = dateInText(sms, today) ?? dayDate ?? null;
   const date = textDate ?? today;
   const party = counterpartyOf(sms);
   const debit = direction === 'out';

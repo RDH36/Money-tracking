@@ -1,6 +1,6 @@
 /**
  * Registre des parseurs par source et détection automatique. Sources :
- * captures MCB Juice, tickets GAB BOA, tickets carte BMOI, puis le lecteur
+ * captures de SMS d'opérateur (Mobile Money), captures MCB Juice, tickets GAB BOA, tickets carte BMOI, puis le lecteur
  * générique des relevés (toute banque ou appli, en repli : il ne gagne que si
  * aucune autre source n'est reconnue), puis les tickets de caisse (un total).
  */
@@ -10,9 +10,10 @@ import { boaGabParser } from './tickets/boa-gab';
 import { bmoiTpeParser } from './tickets/bmoi-tpe';
 import { receiptParser } from './tickets/receipt';
 import { genericParser } from './generic';
+import { smsScreenshotParser } from './sms/screenshot';
 import { orientations } from './tickets/geometry';
 
-export const SOURCE_PARSERS: SourceParser[] = [mcbParser, boaGabParser, bmoiTpeParser, genericParser, receiptParser];
+export const SOURCE_PARSERS: SourceParser[] = [smsScreenshotParser, mcbParser, boaGabParser, bmoiTpeParser, genericParser, receiptParser];
 
 /** Seuil de confiance minimal pour attribuer une page à une source. */
 const MIN_CONFIDENCE = 0.5;

@@ -11,7 +11,7 @@ export type PickResult = { uris: string[] } | { denied: true } | { failed: true 
 
 export type CaptureState =
   | { status: 'picking'; action: PickAction }
-  | { status: 'ready'; key: string; uris: string[]; source: string; text?: string }
+  | { status: 'ready'; key: string; uris: string[]; source: string }
   | { status: 'error'; error: PickError };
 
 /** Suite d'un choix : nouvel état, ou retour à l'écran précédent. */
@@ -21,21 +21,6 @@ export interface CaptureParams {
   uris?: string;
   source?: string;
   pick?: string;
-  /** Clé d'un collage de SMS (« Coller un SMS ») : le texte reste en mémoire, jamais dans l'URL. */
-  sms?: string;
-}
-
-// Le texte collé (noms, numéros, montants) ne passe pas par les params de route :
-// ils sont envoyés à PostHog par le suivi d'écran. On ne transmet qu'une clé.
-const pastedSms = new Map<string, string>();
-let pasteSeq = 0;
-
-/** Garde le texte collé en mémoire et rend la clé à passer en param `sms`. */
-export function stashPastedSms(text: string): string {
-  pastedSms.clear();
-  const key = `p${++pasteSeq}`;
-  pastedSms.set(key, text);
-  return key;
 }
 
 export function parseUris(raw: string | undefined): string[] {
@@ -49,8 +34,6 @@ export function parseUris(raw: string | undefined): string[] {
 
 /** `pick` sans `uris` : l'écran ouvre lui-même le sélecteur. Sinon (partage) : lecture directe. */
 export function initialCaptureState(params: CaptureParams): CaptureState {
-  const text = params.sms ? pastedSms.get(params.sms) : undefined;
-  if (text) return { status: 'ready', key: `sms:${params.sms}`, uris: [], source: 'sms', text };
   if (!params.uris && (params.pick === 'gallery' || params.pick === 'camera')) {
     return { status: 'picking', action: params.pick };
   }

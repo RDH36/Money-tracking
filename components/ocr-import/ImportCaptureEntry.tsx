@@ -14,11 +14,9 @@ import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import type { License } from '@/lib/premium';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
 import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
-import { stashPastedSms } from '@/lib/ocr/import/pickFlow';
-import { PasteSmsSheet } from './entry/PasteSmsSheet';
 
-type EntryAction = 'gallery' | 'camera' | 'sms';
-export type ImportSource = 'gallery' | 'camera' | 'share';
+type EntryAction = 'gallery' | 'camera';
+export type ImportSource = EntryAction | 'share';
 
 /**
  * Ouvre l'écran de vérification de l'import pour ces captures. `replace` :
@@ -43,7 +41,7 @@ export async function pickCaptures(): Promise<string[]> {
   return res.canceled ? [] : res.assets.map((a) => a.uri);
 }
 
-/** Carte « Importer depuis une capture » (écran d'ajout) : galerie, photo d'un ticket, ou SMS collé. */
+/** Carte « Importer depuis une capture » (écran d'ajout) : galerie, ou photo d'un ticket. */
 export function ImportCaptureEntry() {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -54,21 +52,19 @@ export function ImportCaptureEntry() {
   const [quotaOpen, setQuotaOpen] = useState(false);
   const [codeOpen, setCodeOpen] = useState(false);
   const [activated, setActivated] = useState<License | null>(null);
-  const [smsOpen, setSmsOpen] = useState(false);
 
   if (!OCR_IMPORT_ENABLED || !isOcrAvailable) return null;
 
   // L'écran d'import s'ouvre d'abord (cadre stable) et lance lui-même le sélecteur.
   const run = (action: EntryAction) => {
-    if (action === 'sms') setSmsOpen(true);
-    else router.push({ pathname: '/import/capture', params: { pick: action } });
+    router.push({ pathname: '/import/capture', params: { pick: action } });
   };
 
   const onPress = (action: EntryAction) => {
     if (quota.loaded && quota.remaining <= 0) {
       posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'entry' });
       setQuotaOpen(true);
-    } else if (intro.seen || action === 'sms') run(action);
+    } else if (intro.seen) run(action);
     else setPending(action);
   };
 
@@ -79,10 +75,9 @@ export function ImportCaptureEntry() {
     run(action);
   };
 
-  const actions: { action: EntryAction; icon: 'camera-outline' | 'images-outline' | 'chatbox-ellipses-outline'; label: string }[] = [
+  const actions: { action: EntryAction; icon: 'camera-outline' | 'images-outline'; label: string }[] = [
     { action: 'camera', icon: 'camera-outline', label: t('ocrImport.takePhoto') },
     { action: 'gallery', icon: 'images-outline', label: t('ocrImport.pickGallery') },
-    { action: 'sms', icon: 'chatbox-ellipses-outline', label: t('ocrImport.sms.button') },
   ];
 
   return (
@@ -144,14 +139,6 @@ export function ImportCaptureEntry() {
         onClose={() => setPending(null)}
         onContinue={continueFromIntro}
         continueLabel={t(pending === 'camera' ? 'ocrImport.intro.takePhoto' : 'ocrImport.intro.pick')}
-      />
-      <PasteSmsSheet
-        isOpen={smsOpen}
-        onClose={() => setSmsOpen(false)}
-        onRead={(sms) => {
-          setSmsOpen(false);
-          router.push({ pathname: '/import/capture', params: { sms: stashPastedSms(sms) } });
-        }}
       />
       <QuotaReachedSheet
         isOpen={quotaOpen}

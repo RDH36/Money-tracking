@@ -35,7 +35,7 @@ import type { AccountWithBalance } from '@/types';
  * les N premières images sont lues ; solde nul → E4.
  */
 export default function ImportCaptureScreen() {
-  const params = useLocalSearchParams<{ uris?: string; source?: string; pick?: string; sms?: string }>();
+  const params = useLocalSearchParams<{ uris?: string; source?: string; pick?: string }>();
   const { state, importMore } = useCaptureRequest(params);
   const quota = useOcrQuota();
   const plans = useRef(new Map<string, ReadPlan>());
@@ -45,7 +45,7 @@ export default function ImportCaptureScreen() {
   const all = useMemo(() => ready?.uris ?? [], [ready]);
   let plan = ready ? plans.current.get(key) : undefined;
   if (ready && !plan && quota.loaded) {
-    plan = planReads(ready.text ? 1 : all.length, quota.remaining, quota.unlimited);
+    plan = planReads(all.length, quota.remaining, quota.unlimited);
     plans.current.set(key, plan);
   }
   // Limite atteinte en cours de route (images au-delà du solde) : signal de demande.
@@ -72,7 +72,7 @@ export default function ImportCaptureScreen() {
       <QuotaBlockedView
         limit={quota.limit} used={quota.used} resetsOn={quota.resetsOn}
         onUnlocked={() => {
-          plans.current.set(key, planReads(ready?.text ? 1 : all.length, Infinity, true));
+          plans.current.set(key, planReads(all.length, Infinity, true));
           rerender((n) => n + 1);
         }}
       />
@@ -82,7 +82,6 @@ export default function ImportCaptureScreen() {
     <ImportCaptureFlow
       key={key} uris={all.slice(0, plan.allowed)} truncatedFrom={plan.truncatedFrom}
       source={state.source} onImportMore={importMore} consume={quota.unlimited ? null : quota.consume}
-      smsText={state.text}
     />
   );
 }
@@ -93,10 +92,9 @@ interface FlowProps {
   source: string;
   onImportMore: () => void;
   consume: ((reads: number) => Promise<void>) | null;
-  smsText?: string;
 }
 
-function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMore, consume, smsText }: FlowProps) {
+function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMore, consume }: FlowProps) {
   const v2 = useV2();
   const { t, i18n } = useTranslation();
   const currency = useCurrency();
@@ -111,7 +109,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
       console.error('Counting OCR reads failed:', err);
     }
   }, [posthog, consume]);
-  const imp = useCaptureImport(uris, onSaved, smsText);
+  const imp = useCaptureImport(uris, onSaved);
   const reported = useRef(false);
   useEffect(() => {
     posthog.capture('ocr_import_started', { source });
@@ -156,7 +154,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
   const close = () => router.back();
 
   let body;
-  if ((uris.length === 0 && !smsText) || imp.phase === 'error' || (imp.phase === 'review' && imp.items.length === 0 && imp.stats.failed === imp.stats.captures)) {
+  if (uris.length === 0 || imp.phase === 'error' || (imp.phase === 'review' && imp.items.length === 0 && imp.stats.failed === imp.stats.captures)) {
     body = (
       <ImportStateView
         icon="alert-circle-outline" tone="bad"
