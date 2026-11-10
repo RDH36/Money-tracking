@@ -70,7 +70,7 @@ export function AccountsCarousel({
           const name = getAccountName ? getAccountName(account) : account.name;
           const balanceText = balanceHidden
             ? '••••••'
-            : formatMoneyFr(account.current_balance);
+            : `${account.current_balance < 0 ? '−' : ''}${formatMoneyFr(account.current_balance)}`;
           const Wrapper: any = onAccountPress ? Pressable : View;
 
           return (
