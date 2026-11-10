@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +30,9 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
   const { t } = useTranslation();
   const posthog = usePostHog();
   const [codeOpen, setCodeOpen] = useState(false);
+  // Bubule « reviens au prochain cycle » : plus petit sur les écrans bas (grande police).
+  const { height } = useWindowDimensions();
+  const bubuleSize = height < 700 ? 140 : 180;
   const [activated, setActivated] = useState<License | null>(null);
 
   useEffect(() => {
@@ -51,7 +55,13 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
           <BetaBadge />
         </View>
       </View>
-      <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 24 }}>
+        <Image
+          source={require('@/assets/images/bubule-time.png')}
+          contentFit="contain"
+          accessibilityIgnoresInvertColors
+          style={{ width: bubuleSize, height: bubuleSize, alignSelf: 'center', marginBottom: 12 }}
+        />
         <EyebrowLabel>{t('ocrImport.limit.eyebrow')}</EyebrowLabel>
         <Text
           style={{
@@ -69,7 +79,7 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
             <DialogGhostBtn label={t('ocrImport.limit.close')} onPress={close} />
           </DialogButtonStack>
         </View>
-      </View>
+      </ScrollView>
       {PLUS_ENABLED ? (
         <>
           <RedeemCodeSheet
