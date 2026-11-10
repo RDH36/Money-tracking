@@ -26,7 +26,12 @@ const SMS_OPENER = /^(<#>|votre |vous |paiement |cher client|connexion |nandefa|
 interface Bubble {
   text: string;
   date: string | null;
+  /** Heure seule juste sous la bulle (Messagerie Huawei) : bulle entière à l'écran. */
+  timed: boolean;
 }
+
+// Messagerie Huawei : « mardi Aujourd'hui », « jeudi Hier » (jour de semaine devant).
+const WEEKDAY_RELATIVE = /^[A-Za-zÀ-ÿ]+\s+(aujourd.?hui|hier)$/i;
 
 function byTop(lines: OcrLine[]): OcrLine[] {
   return [...lines].sort((a, b) => a.top - b.top || a.left - b.left);
@@ -35,7 +40,8 @@ function byTop(lines: OcrLine[]): OcrLine[] {
 function dayHeader(text: string, today: string): string | null {
   const t = text.trim();
   if (!HEADER_TIME.test(t) && !/^[A-Za-zÀ-ÿ]/.test(t)) return null;
-  return parseDayHeader(t.replace(HEADER_TIME, ''), today);
+  const day = t.replace(HEADER_TIME, '');
+  return parseDayHeader(WEEKDAY_RELATIVE.test(day) ? day.replace(/^\S+\s+/, '') : day, today);
 }
 
 /** Bulles de la capture, dans l'ordre, avec la date de l'en-tête de jour au-dessus. */
@@ -43,8 +49,8 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
   const out: Bubble[] = [];
   let date: string | null = null;
   let current: OcrLine[] = [];
-  const close = () => {
-    if (current.length) out.push({ text: current.map((l) => l.text.trim()).join(' '), date });
+  const close = (timed = false) => {
+    if (current.length) out.push({ text: current.map((l) => l.text.trim()).join(' '), date, timed });
     current = [];
   };
   for (const line of byTop(page.lines)) {
@@ -57,7 +63,7 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
       continue;
     }
     if (TIME_ONLY.test(text)) {
-      close();
+      close(true);
       continue;
     }
     const prev = current[current.length - 1];
@@ -81,9 +87,15 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
 export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): ParseResult {
   const operations: ParsedOperation[] = [];
   const operator = operatorOf(page.lines.map((l) => l.text).join(' '));
-  for (const bubble of bubblesOf(page, today)) {
+  const bubbles = bubblesOf(page, today);
+  // Heure sous chaque bulle (Huawei) : une bulle sans heure après la dernière heure est
+  // coupée par le bas de l'écran (référence non lue) → lue sur la capture suivante.
+  const lastTimed = bubbles.map((b) => b.timed).lastIndexOf(true);
+  const timedLayout = bubbles.filter((b) => b.timed).length >= 2;
+  bubbles.forEach((bubble, i) => {
+    if (timedLayout && i > lastTimed) return;
     operations.push(...parseSms(bubble.text, today, bubble.date, operator));
-  }
+  });
   return { operations, partial: 0 };
 }
 

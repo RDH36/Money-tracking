@@ -21,7 +21,7 @@ export function operatorOf(text: string): SmsOperator {
 }
 
 // Sortie d'argent : envoi, paiement, retrait, achat (fr, mg, en).
-const OUT_RE = /\b(envoye|envoyee|envoi|transfere|transfert de|vous avez paye|paiement|payment|achat|retrait|retire|nandefa|nandoa|nanala|nisintona|nividy|fandoavana|fandefasana|sent|paid|withdrawn|withdrawal|purchase|debit(?:e|ee)?)\b/;
+const OUT_RE = /\b(choisi|envoye|envoyee|envoi|transfere|transfert de|vous avez paye|paiement|payment|achat|retrait|retire|nandefa|nandoa|nanala|nisintona|nividy|fandoavana|fandefasana|sent|paid|withdrawn|withdrawal|purchase|debit(?:e|ee)?)\b/;
 // Entrée d'argent : réception, dépôt (fr, mg, en).
 const IN_RE = /\b(recu|recue|reception|nahazo|voaray|noraisina|depot|versement|received|deposit|credite|creditee)\b/;
 const FEE_CTX = /(frais|sarany|fee|fees|commission|cout)\W*$/;
@@ -29,12 +29,18 @@ const BALANCE_CTX = /(solde|balance|volanao|sisa|disponible|available)[^.]{0,30}
 
 export type SmsDirection = 'out' | 'in';
 
-// Pas une opération faite : échec, annulation, achat seulement initié, pubs et bonus promis.
-const NOT_OPERATION = /\b(echoue|echouee|echec|annule|annulee|initie|bonus|gagnez|partager|jusqu au|hatramin|kadoa|code de validation|code de paiement)\b/;
+// Pas une opération faite : échec, annulation, achat seulement initié, solde insuffisant, astuces.
+const NOT_OPERATION = /\b(echoue|echouee|echec|annule|annulee|initie|insuffisant|gratuits?|astuce|code de validation|code de paiement)\b/;
+// Pubs et bonus promis : ignorés, sauf dans une opération réussie (« Achat … reussi … Bonus: 20 pourcent »).
+const PROMO = /\b(bonus|gagnez|gagner|partager|jusqu au|hatramin|kadoa)\b/;
+// Relevé de solde daté (« Le 29/10/26 a 14:03, solde MVola : … ») : pas une opération.
+const BALANCE_NOTICE = /^le \d{1,2}\/\d{1,2}\/\d{2,4} a \d{1,2}[:h]\d{2},? (votre )?solde\b/;
 
 /** SMS d'opérateur qui ne décrit pas une opération faite (pub, échec, annulation…). */
 export function isNotOperation(text: string): boolean {
-  return NOT_OPERATION.test(normalizeText(text).replace(/['’`]/g, ' '));
+  const t = normalizeText(text).replace(/['’`]/g, ' ').trim();
+  if (NOT_OPERATION.test(t) || BALANCE_NOTICE.test(t)) return true;
+  return PROMO.test(t) && !/\breussie?\b/.test(t);
 }
 
 /** Sens de l'opération : le premier mot-clé du message l'emporte. */
@@ -65,7 +71,19 @@ export function amountsOf(text: string): SmsAmounts {
     }
     if (!main && a.currency) main = a;
   }
-  return { main, fee };
+  return { main: main ?? offerPrice(text), fee };
+}
+
+// Forfait sans devise : « offre NET MONTH 15 000 avec MVola », « choisi MORA 500 Votre offre ».
+const OFFER_RE = /\b(?:offre|choisi)\s+(?:[A-Za-z'’]+\s+){1,3}?(\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d{2,6})(?![\d.,]|\s*(?:mo|go|ko|%|ar\b|j\b))/i;
+
+/** Prix d'un forfait cité sans devise (incertain), null sinon. */
+function offerPrice(text: string): FoundAmount | null {
+  const m = OFFER_RE.exec(text);
+  if (!m) return null;
+  const start = m.index + m[0].length - m[1].length;
+  const cents = Number(m[1].replace(/\D/g, '')) * 100;
+  return cents > 0 ? { cents, sign: 0, currency: null, uncertain: false, start, end: start + m[1].length } : null;
 }
 
 const REF_RE = /\b(?:ref(?:erence)?|trans(?:action)?\.?\s*id|txn\s*id|tid|id)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{5,})/i;
