@@ -11,7 +11,7 @@ import { SettingsHeader } from '@/components/settings/v2/SettingsHeader';
 import { BetaBadge } from '../BetaBadge';
 import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import { DialogButtonStack, DialogGhostBtn, DialogPrimaryBtn } from '@/components/ui/DialogButtons';
-import { EyebrowLabel } from '@/components/onboarding/v2';
+import { EyebrowLabel, SpeechBubbleV2 } from '@/components/onboarding/v2';
 import type { License } from '@/lib/premium';
 import { QuotaReachedContent } from '../entry/QuotaReachedContent';
 
@@ -32,7 +32,8 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
   const [codeOpen, setCodeOpen] = useState(false);
   // Bubule « reviens au prochain cycle » : plus petit sur les écrans bas (grande police).
   const { height } = useWindowDimensions();
-  const bubuleSize = height < 700 ? 140 : 180;
+  // bubule-time.png (661×377) a beaucoup de marge transparente : on cadre le personnage seul.
+  const s = height < 700 ? 0.45 : 0.53;
   const [activated, setActivated] = useState<License | null>(null);
 
   useEffect(() => {
@@ -50,18 +51,21 @@ export function QuotaBlockedView({ limit, used, resetsOn, onUnlocked }: QuotaBlo
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
-        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={close} />
+        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} titleLines={2} onBack={close} />
         <View style={{ position: 'absolute', top: 14, right: 20 }}>
           <BetaBadge />
         </View>
       </View>
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 24 }}>
-        <Image
-          source={require('@/assets/images/bubule-time.png')}
-          contentFit="contain"
-          accessibilityIgnoresInvertColors
-          style={{ width: bubuleSize, height: bubuleSize, alignSelf: 'center', marginBottom: 12 }}
-        />
+        <SpeechBubbleV2 tail="center" style={{ alignSelf: 'center' }}>{t('ocrImport.limit.bubble')}</SpeechBubbleV2>
+        <View style={{ width: 200 * s, height: 300 * s, overflow: 'hidden', alignSelf: 'center', marginTop: 10, marginBottom: 12 }}>
+          <Image
+            source={require('@/assets/images/bubule-time.png')}
+            contentFit="contain"
+            accessibilityIgnoresInvertColors
+            style={{ position: 'absolute', left: -228 * s, top: -30 * s, width: 661 * s, height: 377 * s }}
+          />
+        </View>
         <EyebrowLabel>{t('ocrImport.limit.eyebrow')}</EyebrowLabel>
         <Text
           style={{

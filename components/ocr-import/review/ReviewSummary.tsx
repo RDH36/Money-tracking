@@ -127,11 +127,11 @@ export function ReviewSummary({
             key={b.accountId}
             style={{
               marginTop: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderRadius: 12,
-              paddingHorizontal: 12, paddingVertical: 9, backgroundColor: v2.warnSoft,
+              paddingHorizontal: 12, paddingVertical: 9, backgroundColor: v2.badSoft,
             }}
           >
-            <Ionicons name="warning-outline" size={14} color={v2.warn} style={{ marginTop: 1 }} />
-            <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
+            <Ionicons name="warning-outline" size={14} color={v2.bad} style={{ marginTop: 1 }} />
+            <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.bad }}>
               {t('ocrImport.belowZero', {
                 account: account ? getAccountName(account) : '',
                 amount: `\u2212${formatMoney(Math.abs(b.projected))}`,

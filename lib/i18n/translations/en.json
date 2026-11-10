@@ -1626,6 +1626,7 @@
     },
     "limit": {
       "eyebrow": "Reads this cycle",
+      "bubble": "Thanks for testing!",
       "title": "Your {{count}} reads for this cycle are done",
       "body": "They come back on {{date}}. Until then, log your expenses by hand: it takes 10 seconds.",
       "close": "Close"

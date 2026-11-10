@@ -7,9 +7,11 @@ interface SettingsHeaderProps {
   subtitle?: string;
   onBack?: () => void;
   showBack?: boolean;
+  /** Lignes max du titre (2 pour les titres longs en grande police). */
+  titleLines?: number;
 }
 
-export function SettingsHeader({ title, subtitle, onBack, showBack = true }: SettingsHeaderProps) {
+export function SettingsHeader({ title, subtitle, onBack, showBack = true, titleLines = 1 }: SettingsHeaderProps) {
   const v2 = useV2();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -40,7 +42,7 @@ export function SettingsHeader({ title, subtitle, onBack, showBack = true }: Set
           </Text>
         ) : null}
         <Text
-          numberOfLines={1}
+          numberOfLines={titleLines}
           style={{
             fontFamily: v2.fontDisplay, fontWeight: '700', fontSize: 28, color: v2.ink,
             letterSpacing: -0.6, lineHeight: 30,

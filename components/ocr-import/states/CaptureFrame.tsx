@@ -18,7 +18,7 @@ export function CaptureFrame({ children }: { children: ReactNode }) {
   return (
     <View style={{ flex: 1, backgroundColor: v2.bgBase, paddingTop: insets.top }}>
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
-        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} onBack={() => router.back()} />
+        <SettingsHeader title={t('ocrImport.title')} subtitle={t('ocrImport.overline')} titleLines={2} onBack={() => router.back()} />
         <View style={{ position: 'absolute', top: 14, right: 20 }}>
           <BetaBadge />
         </View>

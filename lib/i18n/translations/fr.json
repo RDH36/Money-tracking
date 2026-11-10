@@ -1626,6 +1626,7 @@
     },
     "limit": {
       "eyebrow": "Lectures du cycle",
+      "bubble": "Merci d'avoir testé !",
       "title": "Tes {{count}} lectures de ce cycle sont faites",
       "body": "Elles reviennent le {{date}}. D'ici là, note tes dépenses à la main : ça prend 10 secondes.",
       "close": "Fermer"
