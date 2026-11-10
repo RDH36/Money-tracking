@@ -71,6 +71,11 @@ export const useAppUpdateStore = create<AppUpdateState>((set, get) => {
     readyDismissed: false,
     progress: 0,
     check: async (source) => {
+      // Déjà téléchargée : la ligne Réglages rouvre la fenêtre « Prête : redémarrer ».
+      if (source === 'manual' && get().phase === 'downloaded') {
+        set({ readyDismissed: false });
+        return 'downloaded';
+      }
       send({ type: 'check' });
       if (!updateModule) {
         send({ type: 'error' });
