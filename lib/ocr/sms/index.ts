@@ -12,7 +12,7 @@ import { toYmd } from '../text';
 import { categoryHintFor } from '../mcb/classify';
 import { dateInText } from '../generic/dates';
 import {
-  amountsOf, counterpartyOf, directionOf, isNotOperation, operatorOf, referenceOf, type SmsOperator,
+  amountsOf, counterpartyOf, dateOfReference, directionOf, isNotOperation, offerNameOf, operatorOf, referenceOf, type SmsOperator,
 } from './fields';
 
 export interface SmsReading {
@@ -72,10 +72,11 @@ export function parseSms(
   const operator = named === 'sms' && operatorHint ? operatorHint : named;
   const name = OPERATOR_NAMES[operator];
   const reference = referenceOf(sms);
-  // Date du SMS, sinon l'en-tête de jour de l'appli Messages (capture), sinon aujourd'hui.
-  const textDate = dateInText(sms, today) ?? dayDate ?? null;
+  // Date écrite dans le SMS, sinon l'en-tête de jour de l'appli Messages (capture), sinon
+  // celle de la Trans id Orange (« MP260623… »), sinon aujourd'hui.
+  const textDate = dateInText(sms, today) ?? dayDate ?? dateOfReference(reference) ?? null;
   const date = textDate ?? today;
-  const party = counterpartyOf(sms);
+  const party = counterpartyOf(sms) ?? offerNameOf(sms);
   const debit = direction === 'out';
   const uncertain: UncertainField[] = [];
   if (main.uncertain) uncertain.push('amount');

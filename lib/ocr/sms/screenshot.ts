@@ -30,6 +30,9 @@ interface Bubble {
   timed: boolean;
 }
 
+// Ligne de fin d'un SMS Orange Money, lue parfois comme un bloc à part.
+const CONTINUATION = /^(date|trans\.?\s*[il1|]d)\s*:/i;
+
 // Messagerie Huawei : « mardi Aujourd'hui », « jeudi Hier » (jour de semaine devant).
 const WEEKDAY_RELATIVE = /^[A-Za-zÀ-ÿ]+\s+(aujourd.?hui|hier)$/i;
 
@@ -71,7 +74,8 @@ export function bubblesOf(page: OcrPage, today: string): Bubble[] {
       const height = Math.max(prev.bottom - prev.top, 1);
       const sameBlock = prev.block !== undefined && prev.block === line.block;
       // Écart vertical supérieur à ~0,9 ligne : nouvelle bulle (sauf même bloc OCR).
-      if (!sameBlock && line.top - prev.bottom > height * 0.9) close();
+      // « Date : … » / « Trans Id : … » sur sa ligne : suite de la bulle, jamais une nouvelle.
+      if (!sameBlock && line.top - prev.bottom > height * 0.9 && !CONTINUATION.test(text)) close();
       // Bulles collées (même minute) : une phrase finie suivie d'un début de SMS.
       // Seulement si la bulle en cours est déjà complète (sa référence est lue) : un retour
       // à la ligne avant « Votre solde… » dans une même bulle ne coupe rien.
@@ -92,11 +96,28 @@ export function parseSmsScreenshot(page: OcrPage, today = toYmd(new Date())): Pa
   // coupée par le bas de l'écran (référence non lue) → lue sur la capture suivante.
   const lastTimed = bubbles.map((b) => b.timed).lastIndexOf(true);
   const timedLayout = bubbles.filter((b) => b.timed).length >= 2;
-  bubbles.forEach((bubble, i) => {
-    if (timedLayout && i > lastTimed) return;
-    operations.push(...parseSms(bubble.text, today, bubble.date, operator));
+  const read = bubbles.map((b) => parseSms(b.text, today, b.date, operator));
+  const last = read.map((ops) => ops.length > 0).lastIndexOf(true);
+  let partial = 0;
+  read.forEach((ops, i) => {
+    if (ops.length === 0) return;
+    // Bulle coupée au bord (« coupées au bord », comme MCB) : sa référence tronquée
+    // casserait l'anti-doublon → lue sur la capture suivante.
+    if ((timedLayout && i > lastTimed) || (i === last && !isComplete(bubbles[i].text))) {
+      partial++;
+      return;
+    }
+    operations.push(...ops);
   });
-  return { operations, partial: 0 };
+  return { operations, partial };
+}
+
+/** Fin de SMS lue : phrase finie, ou référence complète (8 caractères dont un chiffre) en dernier. */
+export function isComplete(text: string): boolean {
+  const t = text.trim();
+  if (/[.!]$/.test(t)) return true;
+  const ref = /(?:ref|[il1|]d)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{7,})$/i.exec(t)?.[1];
+  return !!ref && /\d/.test(ref);
 }
 
 /** Confiance : au moins une bulle lue comme opération d'opérateur (montant, sens, marque de SMS). */

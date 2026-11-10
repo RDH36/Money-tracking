@@ -86,7 +86,7 @@ function offerPrice(text: string): FoundAmount | null {
   return cents > 0 ? { cents, sign: 0, currency: null, uncertain: false, start, end: start + m[1].length } : null;
 }
 
-const REF_RE = /\b(?:ref(?:erence)?|trans(?:action)?\.?\s*id|txn\s*id|tid|id)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{5,})/i;
+const REF_RE = /\b(?:ref(?:erence)?|trans(?:action)?\.?\s*[il1|]d|txn\s*id|tid|id)\s*[:.#]?\s*([A-Z0-9][A-Z0-9.\-]{5,})/i;
 
 /** Référence opérateur (anti-doublon), null si absente. */
 export function referenceOf(text: string): string | null {
@@ -107,4 +107,27 @@ export function counterpartyOf(text: string): string | null {
   const name = words.join(' ').trim();
   if (!name || NOT_PARTY.test(words[0] ?? '')) return null;
   return name.slice(0, 40);
+}
+
+// « Votre achat d'offre Orange Be connect 1,2Go de 5000Ar », « offre NET MONTH 15 000 avec MVola ».
+const OFFER_NAME_RE = /\boffre\s+(?:orange\s+)?(.+?)\s+(?:de\s+)?\d[\d\s]*(?:ar\b|avec\b)/i;
+
+/** Nom de l'offre achetée (forfait), null sinon. */
+export function offerNameOf(text: string): string | null {
+  const m = OFFER_NAME_RE.exec(text);
+  const name = m?.[1].trim() ?? '';
+  return name && name.length <= 30 ? name : null;
+}
+
+// Trans id Orange Money « MP260623.1714.C02389 » / « PP261023… » : AAMMJJ après 2 lettres.
+const REF_DATE_RE = /^[A-Z]{2}(\d{2})(\d{2})(\d{2})\./;
+
+/** Date tirée de la référence Orange Money, null si elle n'en porte pas. */
+export function dateOfReference(reference: string | null): string | null {
+  const m = reference ? REF_DATE_RE.exec(reference) : null;
+  if (!m) return null;
+  const [y, mo, d] = [2000 + +m[1], +m[2], +m[3]];
+  const date = new Date(Date.UTC(y, mo - 1, d));
+  if (date.getUTCMonth() !== mo - 1 || date.getUTCDate() !== d) return null;
+  return `${y}-${m[2]}-${m[3]}`;
 }
