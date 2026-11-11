@@ -23,6 +23,8 @@ interface BottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  /** Lignes max du titre (1 par défaut ; 2 pour un titre long en grande police). */
+  titleLines?: number;
   overline?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -36,6 +38,7 @@ export function BottomSheet({
   isOpen,
   onClose,
   title,
+  titleLines = 1,
   overline,
   children,
   footer,
@@ -173,7 +176,7 @@ export function BottomSheet({
                 </Text>
               ) : null}
               <Text
-                numberOfLines={1}
+                numberOfLines={titleLines}
                 style={{
                   fontFamily: v2.fontDisplay,
                   fontWeight: '700',

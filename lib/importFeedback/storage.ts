@@ -12,6 +12,8 @@ export interface FeedbackState {
   firstReadAt: string | null;
   /** Avis en attente d'envoi (JSON brut). */
   pending: string | null;
+  /** Refus définitifs (4xx) déjà essuyés par l'avis en attente. */
+  rejects: number;
 }
 
 export async function readFeedbackState(db: SettingsDb): Promise<FeedbackState> {
@@ -27,6 +29,7 @@ export async function readFeedbackState(db: SettingsDb): Promise<FeedbackState> 
     laterAt: get(FEEDBACK_KEYS.laterAt),
     firstReadAt: get(FEEDBACK_KEYS.firstReadAt),
     pending: get(FEEDBACK_KEYS.pending),
+    rejects: Number(get(FEEDBACK_KEYS.rejects)) || 0,
   };
 }
 

@@ -24,6 +24,7 @@ export function CaptureIntroSheet({ isOpen, onClose, onContinue, continueLabel }
       onClose={onClose}
       overline={t('ocrImport.intro.overline')}
       title={t('ocrImport.intro.title')}
+      titleLines={2}
       maxHeightPct={90}
       footer={
         // Bouton principal plus large : son libellé reste entier en grande police.

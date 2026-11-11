@@ -1,4 +1,4 @@
-import { FEEDBACK_KEYS, IMPORT_SURVEY_KEY, type Feeling } from './rules';
+import { FEEDBACK_KEYS, IMPORT_SURVEY_KEY, MAX_SURVEY_REJECTS, type Feeling } from './rules';
 import { clearFeedbackSetting, readFeedbackState, writeFeedbackSetting, type SettingsDb } from './storage';
 
 /** Accès au serveur des sondages, injecté (constantes de l'app, réseau). */
@@ -47,12 +47,16 @@ export function buildSurveyPayload(i: SurveyPayloadInput): Record<string, unknow
   };
 }
 
-export type SendResult = 'sent' | 'kept' | 'none';
+/** `dropped` : refusé pour de bon par le serveur, l'envoi est abandonné. */
+export type SendResult = 'sent' | 'kept' | 'dropped' | 'none';
+
+/** 4xx = l'avis lui-même est refusé (sauf attente 408 / débit 429, passagers). */
+const isFinalRefusal = (status: number) => status >= 400 && status < 500 && status !== 408 && status !== 429;
 
 let inFlight: Promise<SendResult> | null = null;
 
 async function sendOnce(db: SettingsDb, transport: SurveyTransport): Promise<SendResult> {
-  const { pending } = await readFeedbackState(db);
+  const { pending, rejects } = await readFeedbackState(db);
   if (!pending) return 'none';
   if (!transport.url || !(await transport.isOnline())) return 'kept';
   try {
@@ -65,17 +69,30 @@ async function sendOnce(db: SettingsDb, transport: SurveyTransport): Promise<Sen
       },
       body: pending,
     });
-    if (!res.ok) return 'kept';
+    if (!res.ok) {
+      if (!isFinalRefusal(res.status)) return 'kept';
+      // Refus définitif : on réessaie quelques lancements, puis on abandonne
+      // (l'avis reste compté sur le téléphone, rien ne repart indéfiniment).
+      if (rejects + 1 < MAX_SURVEY_REJECTS) {
+        await writeFeedbackSetting(db, FEEDBACK_KEYS.rejects, String(rejects + 1));
+        return 'kept';
+      }
+      await clearFeedbackSetting(db, FEEDBACK_KEYS.pending);
+      await clearFeedbackSetting(db, FEEDBACK_KEYS.rejects);
+      return 'dropped';
+    }
   } catch {
     return 'kept';
   }
   await clearFeedbackSetting(db, FEEDBACK_KEYS.pending);
+  if (rejects) await clearFeedbackSetting(db, FEEDBACK_KEYS.rejects);
   return 'sent';
 }
 
 /**
  * Envoie l'avis en attente s'il y en a un. Il n'est effacé qu'après un accusé
- * du serveur : hors ligne ou en erreur, il reste pour le prochain lancement.
+ * du serveur (ou MAX_SURVEY_REJECTS refus définitifs) : hors ligne ou en erreur
+ * passagère, il reste pour le prochain lancement.
  * Un seul envoi à la fois (lancement et validation peuvent se croiser).
  */
 export function sendPendingSurvey(db: SettingsDb, transport: SurveyTransport): Promise<SendResult> {
@@ -90,4 +107,5 @@ export function sendPendingSurvey(db: SettingsDb, transport: SurveyTransport): P
 /** Met l'avis en file locale (avant tout envoi : rien n'est perdu hors ligne). */
 export async function queueSurvey(db: SettingsDb, payload: Record<string, unknown>): Promise<void> {
   await writeFeedbackSetting(db, FEEDBACK_KEYS.pending, JSON.stringify(payload));
+  await clearFeedbackSetting(db, FEEDBACK_KEYS.rejects);
 }

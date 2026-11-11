@@ -16,7 +16,12 @@ export const FEEDBACK_KEYS = {
   firstReadAt: 'import_beta_first_read_at',
   /** Avis en attente d'envoi (JSON), supprimé une fois reçu par le serveur. */
   pending: 'import_g1_survey_pending',
+  /** Nombre de refus définitifs (4xx) de l'avis en attente. */
+  rejects: 'import_g1_survey_rejects',
 } as const;
+
+/** Refus définitifs du serveur avant d'abandonner l'envoi de l'avis en attente. */
+export const MAX_SURVEY_REJECTS = 3;
 
 export const FEELINGS = ['great', 'ok', 'bad'] as const;
 export type Feeling = (typeof FEELINGS)[number];
