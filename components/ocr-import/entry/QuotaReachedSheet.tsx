@@ -23,6 +23,7 @@ export function QuotaReachedSheet({ isOpen, limit, resetsOn, onManual, onEnterCo
       onClose={onClose}
       overline={t('ocrImport.limit.eyebrow')}
       title={t('ocrImport.limit.title', { count: limit })}
+      titleLines={2}
       footer={
         <DialogButtonStack>
           <DialogPrimaryBtn label={t('ocrImport.quota.manual')} onPress={onManual} />
