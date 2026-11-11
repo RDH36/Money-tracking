@@ -20,8 +20,10 @@ import { DoneView } from '@/components/ocr-import/states/DoneView';
 import { EmptyView } from '@/components/ocr-import/states/EmptyView';
 import { useOcrQuota } from '@/hooks/premium/useOcrQuota';
 import { consumedReads, planReads, type ReadPlan } from '@/lib/premium';
-import { importSavedProps, readCompletedProps } from '@/lib/ocr/import/analytics';
-import { duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
+import {
+  correctedFields, genericReadProps, importSavedProps, readCompletedProps,
+} from '@/lib/ocr/import/analytics';
+import { accountsBelowZero, duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
 import { getCategoryDisplayName } from '@/constants/categories';
 import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
@@ -99,6 +101,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
   const posthog = usePostHog();
   const onSaved = useCallback(async (inserted: ReviewItem[]) => {
     posthog.capture('ocr_import_saved', importSavedProps(inserted));
+    for (const field of correctedFields(inserted)) posthog.capture('import_field_corrected', { field });
     try {
       await consume?.(consumedReads(inserted.map((i) => ({ image: i.op.image, forceDuplicate: i.forceDuplicate }))));
     } catch (err) {
@@ -116,6 +119,8 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     if (imp.phase !== 'review' || reported.current) return;
     reported.current = true;
     posthog.capture('ocr_read_completed', readCompletedProps(imp.items, imp.stats.sources));
+    const generic = genericReadProps(imp.items, source);
+    if (generic) posthog.capture('import_generic_read', generic);
   }, [imp.phase, imp.items, imp.stats.sources, posthog]);
   const { accounts } = useAccounts();
   const { categories, expenseCategories } = useCategories();
@@ -170,7 +175,10 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     );
   } else {
     const dupSelected = imp.items.filter((i) => i.selected && i.duplicate).length;
-    const notice = imp.saveFailed
+    const cashBlocked = accountsBelowZero(imp.items, accounts).some((b) => b.blocked);
+    const notice = cashBlocked
+      ? { text: t('ocrImport.cashBlockedSave'), tone: 'bad' as const }
+      : imp.saveFailed
       ? { text: t('ocrImport.saveFailed'), tone: 'bad' as const }
       : imp.invalidSelected > 0
         ? { text: t('ocrImport.invalid', { count: imp.invalidSelected }), tone: 'bad' as const }
@@ -185,6 +193,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
         saving={imp.phase === 'saving'}
         notice={notice}
         onSave={imp.save}
+        blocked={cashBlocked}
         onToggleMany={imp.toggleMany}
         header={
           <ReviewSummary

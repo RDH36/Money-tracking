@@ -51,6 +51,8 @@ export interface ParsedOperation {
   merchant: string | null;
   /** Id de catégorie par défaut proposé par mots-clés (`food`, `bills`…). */
   categoryHint: string | null;
+  /** `categoryHint` imposé, avant l'historique (frais d'opérateur : toujours « Factures »). */
+  fixedCategory?: boolean;
   uncertain: UncertainField[];
   /**
    * Moyen de paiement lu sur un ticket : `cash` → compte espèces proposé,
@@ -80,4 +82,6 @@ export interface SourceParser {
   parse(page: OcrPage): ParseResult;
   /** Ticket papier photographié (une opération par photo, peut être pivoté). */
   ticket?: boolean;
+  /** Lecteur de repli (générique) : retenu seulement si aucune autre source n'est reconnue. */
+  fallback?: boolean;
 }

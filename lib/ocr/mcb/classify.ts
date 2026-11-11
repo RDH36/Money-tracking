@@ -23,7 +23,7 @@ const DEBIT_RE = /\b(virement\s+[eé]mis|frais|commission|cotisation|agios|pr[e�
 
 // Mots-clés → catégorie par défaut (ids de constants/categories.ts).
 const CATEGORY_RULES: [RegExp, string][] = [
-  [/\b(anthropic|claude|openai|chatgpt|netflix|spotify|youtube|google|apple\.com|icloud|microsoft|canal\+?|jirama|telma|orange|airtel|starlink|abonnement|subscription)\b/, 'bills'],
+  [/\b(anthropic|claude|openai|chatgpt|netflix|spotify|youtube|google|apple\.com|icloud|microsoft|canal\+?|jirama|telma|yas|orange|airtel|starlink|abonnement|subscription)\b/, 'bills'],
   [/\b(restaurant|resto|pizza|snack|pick n eat|kfc|burger|cafe|boulangerie|shoprite|leader price|jumbo|score|carrefour|epicerie|supermarche)\b/, 'food'],
   [/\b(total ?energies|galana|jovena|shell|station|taxi|uber|yango|carburant|essence|parking|tsaradia|air madagascar)\b/, 'transport'],
   [/\b(pharmacie|clinique|hopital|medical|laboratoire)\b/, 'health'],

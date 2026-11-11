@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
-import type { ReviewItem } from '@/lib/ocr/import/review';
+import { identicalGroups, type ReviewItem } from '@/lib/ocr/import/review';
 import { BulkToggle } from './BulkToggle';
 
 interface ReviewListProps {
@@ -17,6 +17,8 @@ interface ReviewListProps {
   /** Message sous le bouton : erreur d'enregistrement, opérations invalides, doublon coché. */
   notice: { text: string; tone: 'warn' | 'bad' } | null;
   onSave: () => void;
+  /** Enregistrement interdit (compte espèces sous zéro). */
+  blocked?: boolean;
   /** Interrupteur « Tout cocher » de ces lignes. */
   onToggleMany: (keys: string[]) => void;
 }
@@ -28,7 +30,7 @@ function dateHeader(ymd: string, locale: string): string {
 
 /** Opérations groupées par date (comme l'appli de la banque), bouton collant en bas. */
 export function ReviewList({
-  items, header, renderItem, locale, selectedCount, saving, notice, onSave, onToggleMany,
+  items, header, renderItem, locale, selectedCount, saving, notice, onSave, blocked = false, onToggleMany,
 }: ReviewListProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -42,18 +44,30 @@ export function ReviewList({
       list.push(item);
       byDate.set(item.date, list);
     }
+    // Opérations identiques du jour : une seule carte (lignes gardées), à la place de la 1re.
+    const toRows = (list: ReviewItem[]): ReviewItem[][] => {
+      const groupOf = new Map<string, string[]>();
+      for (const g of identicalGroups(list)) for (const k of g) groupOf.set(k, g);
+      const rows: ReviewItem[][] = [];
+      for (const item of list) {
+        const g = groupOf.get(item.key);
+        if (!g) rows.push([item]);
+        else if (g[0] === item.key) rows.push(list.filter((i) => g.includes(i.key)));
+      }
+      return rows;
+    };
     return [...byDate.entries()]
       .sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0))
-      .map(([date, data]) => ({ date, data }));
+      .map(([date, all]) => ({ date, all, data: toRows(all) }));
   }, [items]);
 
-  const disabled = selectedCount === 0 || saving;
+  const disabled = selectedCount === 0 || saving || blocked;
 
   return (
     <>
       <SectionList
         sections={sections}
-        keyExtractor={(i) => i.key}
+        keyExtractor={(row) => row[0].key}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
         ListHeaderComponent={
@@ -82,10 +96,27 @@ export function ReviewList({
             >
               {dateHeader(section.date, locale)}
             </Text>
-            <BulkToggle items={section.data} onPress={onToggleMany} scope={dateHeader(section.date, locale)} />
+            <BulkToggle items={section.all} onPress={onToggleMany} scope={dateHeader(section.date, locale)} />
           </View>
         )}
-        renderItem={({ item }) => <View style={{ marginBottom: 8 }}>{renderItem(item)}</View>}
+        renderItem={({ item: row }) => (row.length === 1 ? (
+          <View style={{ marginBottom: 8 }}>{renderItem(row[0])}</View>
+        ) : (
+          <View
+            style={{
+              marginBottom: 8, padding: 8, gap: 8, borderRadius: 18,
+              borderWidth: 1, borderColor: v2.warn, backgroundColor: v2.warnSoft,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4, paddingTop: 2 }}>
+              <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 1 }} />
+              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
+                {t('ocrImport.identicalGroup', { count: row.length })}
+              </Text>
+            </View>
+            {row.map((i) => <View key={i.key}>{renderItem(i)}</View>)}
+          </View>
+        ))}
       />
       <View
         style={{

@@ -14,6 +14,7 @@ import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import type { License } from '@/lib/premium';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
 import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
+import { BetaBadge } from './BetaBadge';
 
 type EntryAction = 'gallery' | 'camera';
 export type ImportSource = EntryAction | 'share';
@@ -98,9 +99,12 @@ export function ImportCaptureEntry() {
             <Ionicons name="scan-outline" size={17} color={v2.brand} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.ink }}>
-              {t('ocrImport.entryTitle')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ flexShrink: 1, fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.ink }}>
+                {t('ocrImport.entryTitle')}
+              </Text>
+              <BetaBadge />
+            </View>
             <Text style={{ marginTop: 1, fontFamily: v2.fontUIRegular, fontSize: 11, color: v2.inkMuted }}>
               {t('ocrImport.entrySub')}
             </Text>

@@ -10,6 +10,7 @@ export interface CategoryHistoryEntry {
 /**
  * 1. Historique : une dépense passée au libellé proche garde sa catégorie
  *    (après un premier import corrigé, les suivants se rangent seuls).
+ * 0. Catégorie imposée par le parseur (`fixedCategory`, frais d'opérateur).
  * 2. Mots-clés du parseur (`categoryHint`), si la catégorie existe encore.
  */
 export function suggestCategory(
@@ -18,6 +19,7 @@ export function suggestCategory(
   validCategoryIds: Set<string>
 ): string | null {
   if (op.kind !== 'expense') return null;
+  if (op.fixedCategory && op.categoryHint && validCategoryIds.has(op.categoryHint)) return op.categoryHint;
   const subject = op.merchant ?? op.note;
   for (const entry of history) {
     if (validCategoryIds.has(entry.categoryId) && labelOverlap(subject, entry.note) >= 0.6) {

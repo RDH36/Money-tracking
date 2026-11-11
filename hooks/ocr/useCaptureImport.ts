@@ -6,7 +6,7 @@ import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
 import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, isPaidCash, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
-import { saveImportedOperations } from '@/lib/ocr/import/save';
+import { CashBelowZeroError, saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
 
@@ -119,6 +119,11 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
       setSavedCount(await saveImportedOperations(db, toSave, onSaved));
       setPhase('done');
     } catch (err) {
+      // Garde-fou : compte espèces sous zéro, refus sans erreur technique.
+      if (err instanceof CashBelowZeroError) {
+        setPhase('review');
+        return;
+      }
       console.error('Saving imported operations failed:', err);
       // Rien n'est écrit (transaction annulée) : retour à la vérification.
       setSaveFailed(true);

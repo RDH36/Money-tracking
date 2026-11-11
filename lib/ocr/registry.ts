@@ -1,16 +1,19 @@
 /**
  * Registre des parseurs par source et détection automatique. Sources :
- * captures MCB Juice, tickets GAB BOA, tickets carte BMOI, tickets de caisse
- * (lecteur générique). Prochaines : BNI, BOA, BRED (un SourceParser chacun).
+ * captures de SMS d'opérateur (Mobile Money), captures MCB Juice, tickets GAB BOA, tickets carte BMOI, puis le lecteur
+ * générique des relevés (toute banque ou appli, en repli : il ne gagne que si
+ * aucune autre source n'est reconnue), puis les tickets de caisse (un total).
  */
 import type { OcrPage, ParseResult, SourceParser } from './types';
 import { mcbParser } from './mcb';
 import { boaGabParser } from './tickets/boa-gab';
 import { bmoiTpeParser } from './tickets/bmoi-tpe';
 import { receiptParser } from './tickets/receipt';
+import { genericParser } from './generic';
+import { smsScreenshotParser } from './sms/screenshot';
 import { orientations } from './tickets/geometry';
 
-export const SOURCE_PARSERS: SourceParser[] = [mcbParser, boaGabParser, bmoiTpeParser, receiptParser];
+export const SOURCE_PARSERS: SourceParser[] = [smsScreenshotParser, mcbParser, boaGabParser, bmoiTpeParser, genericParser, receiptParser];
 
 /** Seuil de confiance minimal pour attribuer une page à une source. */
 const MIN_CONFIDENCE = 0.5;
@@ -19,7 +22,9 @@ export function detectSource(page: OcrPage, parsers = SOURCE_PARSERS): SourcePar
   let best: SourceParser | null = null;
   let bestScore = MIN_CONFIDENCE;
   const tickets: SourceParser[] = [];
-  for (const parser of parsers) {
+  const others = parsers.filter((p) => !p.fallback);
+  const fallbacks = parsers.filter((p) => p.fallback);
+  for (const parser of others) {
     const score = parser.detect(page);
     if (score >= MIN_CONFIDENCE && parser.ticket) tickets.push(parser);
     if (score >= bestScore) {
@@ -29,7 +34,9 @@ export function detectSource(page: OcrPage, parsers = SOURCE_PARSERS): SourcePar
   }
   // Plusieurs tickets de sortes différentes sur une même photo : on ne devine pas.
   if (best?.ticket && tickets.length > 1) return null;
-  return best;
+  if (best) return best;
+  // Aucune source reconnue : lecteur générique des relevés.
+  return fallbacks.find((p) => p.detect(page) >= MIN_CONFIDENCE) ?? null;
 }
 
 export interface PageResult extends ParseResult {

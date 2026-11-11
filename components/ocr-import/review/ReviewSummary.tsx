@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { AccountPickerV2 } from '@/components/add';
 import type { ImportStats } from '@/hooks/ocr/useCaptureImport';
-import { countToSave, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
+import { accountsBelowZero, countToSave, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
 import type { AccountWithBalance } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -31,6 +31,7 @@ export function ReviewSummary({
   const toSave = countToSave(items);
   const banked = items.filter((i) => !isPaidCash(i));
   const sharedAccount = banked.every((i) => i.accountId === banked[0]?.accountId) ? banked[0]?.accountId ?? null : null;
+  const belowZero = accountsBelowZero(items, accounts);
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
 
   const parts = [
@@ -119,6 +120,28 @@ export function ReviewSummary({
         label={t('ocrImport.accountLabel')}
         getAccountName={getAccountName}
       />
+      {belowZero.map((b) => {
+        const account = accounts.find((a) => a.id === b.accountId);
+        return (
+          <View
+            key={b.accountId}
+            style={{
+              marginTop: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderRadius: 12,
+              paddingHorizontal: 12, paddingVertical: 9, backgroundColor: v2.badSoft,
+            }}
+          >
+            <Ionicons name="warning-outline" size={14} color={v2.bad} style={{ marginTop: 1 }} />
+            <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.bad }}>
+              {b.blocked
+                ? t('ocrImport.cashBelowZero', { missing: formatMoney(Math.abs(b.projected)) })
+                : t('ocrImport.belowZero', {
+                  account: account ? getAccountName(account) : '',
+                  amount: `\u2212${formatMoney(Math.abs(b.projected))}`,
+                })}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }

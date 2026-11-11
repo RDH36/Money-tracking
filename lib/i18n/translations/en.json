@@ -1480,6 +1480,11 @@
     }
   },
   "ocrImport": {
+    "belowZero": "The {{account}} account will go to {{amount}}. Its starting balance may be too low, or pick another account.",
+    "cashBelowZero": "A Cash account can't go below zero ({{missing}} missing). Pick another account or uncheck some operations.",
+    "cashBlockedSave": "Cash account below zero: can't save.",
+    "identicalGroup": "{{count}} identical operations that day: uncheck any extra one.",
+    "beta": "Beta",
     "entryTitle": "Import automatically",
     "entrySub": "App screenshots, receipts, bills",
     "pickError": "Couldn't open the gallery.",
@@ -1587,7 +1592,13 @@
       "mcb": "MCB Juice",
       "boa-gab": "BOA ATM receipt",
       "bmoi-tpe": "BMOI card receipt",
-      "receipt": "Till receipt"
+      "receipt": "Till receipt",
+      "generic": "Statement",
+      "mvola": "MVola",
+      "orange-money": "Orange Money",
+      "airtel-money": "Airtel Money",
+      "sms-screenshot": "Mobile Money SMS",
+      "sms": "Mobile Money SMS"
     },
     "tips": {
       "title": "For a paper receipt",
@@ -1618,6 +1629,7 @@
     },
     "limit": {
       "eyebrow": "Reads this cycle",
+      "bubble": "Thanks for testing!",
       "title": "Your {{count}} reads for this cycle are done",
       "body": "They come back on {{date}}. Until then, log your expenses by hand: it takes 10 seconds.",
       "close": "Close"

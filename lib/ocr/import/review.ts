@@ -175,3 +175,54 @@ export function duplicateHint(i: ReviewItem, f: HintFormatters): DuplicateHint |
     params: { what: [label, f.money(i.match.amount)].filter(Boolean).join(' '), date: f.date(i.match.date) },
   };
 }
+
+export interface BelowZero {
+  accountId: string;
+  projected: number;
+  /** Compte espèces : il ne peut jamais passer sous zéro, l'enregistrement est bloqué. */
+  blocked: boolean;
+}
+
+/**
+ * Comptes qui passeraient sous zéro après les opérations cochées : solde projeté (< 0).
+ * Un compte bancaire peut être à découvert (simple avertissement) ; un compte espèces non.
+ */
+export function accountsBelowZero(
+  items: Pick<ReviewItem, 'selected' | 'kind' | 'amount' | 'direction' | 'accountId' | 'counterAccountId'>[],
+  balances: { id: string; current_balance: number; type?: string }[],
+): BelowZero[] {
+  const types = new Map(balances.map((a) => [a.id, a.type]));
+  const projected = new Map(balances.map((a) => [a.id, a.current_balance]));
+  const add = (id: string | null, delta: number) => {
+    if (id && projected.has(id)) projected.set(id, (projected.get(id) ?? 0) + delta);
+  };
+  for (const i of items) {
+    if (!i.selected) continue;
+    if (i.kind === 'transfer') {
+      const [from, to] = i.direction === 'debit' ? [i.accountId, i.counterAccountId] : [i.counterAccountId, i.accountId];
+      add(from, -i.amount);
+      add(to, i.amount);
+    } else add(i.accountId, i.kind === 'income' ? i.amount : -i.amount);
+  }
+  const touched = new Set(items.filter((i) => i.selected).flatMap((i) => [i.accountId, i.counterAccountId]));
+  return [...projected].filter(([id, v]) => v < 0 && touched.has(id)).map(([accountId, value]) => ({ accountId, projected: value, blocked: types.get(accountId) === 'cash' }));
+}
+
+/**
+ * Opérations identiques du même jour (même sens, montant et contrepartie, frais
+ * exclus) : affichées dans une seule carte pour repérer un SMS en double.
+ * Rien n'est fusionné : chaque ligne reste une opération. Renvoie les groupes de 2 et plus.
+ */
+export function identicalGroups(
+  items: Pick<ReviewItem, 'key' | 'kind' | 'amount' | 'direction' | 'date' | 'op'>[],
+): string[][] {
+  const groups = new Map<string, string[]>();
+  for (const i of items) {
+    if (i.op.fixedCategory) continue;
+    const party = i.op.note.trim().toLowerCase();
+    if (!party) continue;
+    const id = [i.kind, i.direction, i.amount, i.date, party].join('|');
+    groups.set(id, [...(groups.get(id) ?? []), i.key]);
+  }
+  return [...groups.values()].filter((g) => g.length > 1);
+}
