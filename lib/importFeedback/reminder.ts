@@ -26,10 +26,12 @@ async function syncOnce(api: ReminderApi, input: Omit<ReminderPlanInput, 'grante
     await api.cancel(IMPORT_BETA_REMINDER_ID);
     return 'cancelled';
   }
-  // Déjà programmé : on n'y touche pas (jamais deux fois, jamais décalé).
-  if (exists) return 'kept';
+  // Déjà programmé : même identifiant et même date (jamais deux fois, jamais décalé),
+  // mais on le repose : un arrêt forcé de l'app efface l'alarme du système alors que
+  // l'identifiant reste listé, et le rappel ne partirait plus.
+  if (exists) await api.cancel(IMPORT_BETA_REMINDER_ID);
   await api.scheduleAt(IMPORT_BETA_REMINDER_ID, date, IMPORT_BETA_REMINDER_TYPE);
-  return 'scheduled';
+  return exists ? 'kept' : 'scheduled';
 }
 
 /**
