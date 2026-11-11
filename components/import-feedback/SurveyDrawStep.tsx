@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { View, Text, Pressable, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -14,9 +13,8 @@ interface SurveyDrawStepProps {
   onEmailChange: (v: string) => void;
   consent: boolean;
   onConsentChange: (v: boolean) => void;
+  /** Le message s'affiche dans le pied de feuille ; ici, seul le champ en cause est marqué. */
   error: SurveyError | 'save' | null;
-  /** Message d'erreur, placé juste sous la case (visible avec le clavier). */
-  errorSlot?: ReactNode;
 }
 
 /**
@@ -24,7 +22,7 @@ interface SurveyDrawStepProps {
  * haut (visible au-dessus du clavier) ; la case de consentement n'est jamais
  * cochée d'avance.
  */
-export function SurveyDrawStep({ email, onEmailChange, consent, onConsentChange, error, errorSlot }: SurveyDrawStepProps) {
+export function SurveyDrawStep({ email, onEmailChange, consent, onConsentChange, error }: SurveyDrawStepProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const consentBad = error === 'consentMissing';
@@ -66,8 +64,6 @@ export function SurveyDrawStep({ email, onEmailChange, consent, onConsentChange,
           {t('betaTester.draw.consent')}
         </Text>
       </Pressable>
-
-      {errorSlot}
 
       <View style={{ borderRadius: 12, padding: 12, backgroundColor: v2.bgRaised, gap: 6 }}>
         <Text style={{ fontFamily: v2.fontUIRegular, fontSize: 12, lineHeight: 17, color: v2.inkMuted }}>

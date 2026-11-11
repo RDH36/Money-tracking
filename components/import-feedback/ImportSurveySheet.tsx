@@ -89,7 +89,7 @@ export function ImportSurveySheet({ isOpen, onClose, trigger }: ImportSurveyShee
   };
   const nextDisabled = !feeling || busy;
 
-  // Sous la case de consentement : reste visible au-dessus du clavier.
+  // Dans le pied de feuille (fixe) : visible clavier ouvert, à toute taille de police.
   const errorBlock = error ? (
     <View
       style={{
@@ -111,20 +111,23 @@ export function ImportSurveySheet({ isOpen, onClose, trigger }: ImportSurveyShee
       </Text>
     </Pressable>
   ) : (
-    <View style={{ flexDirection: 'row', gap: 10 }}>
-      <Pressable onPress={handleBack} disabled={busy} accessibilityRole="button" style={outline}>
-        <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink }}>
-          {step === 0 ? t('betaTester.survey.later') : t('cloudSurvey.back')}
-        </Text>
-      </Pressable>
-      <Pressable
-        onPress={handleNext} disabled={nextDisabled} accessibilityRole="button"
-        style={{ ...solid, opacity: nextDisabled ? 0.5 : 1 }}
-      >
-        <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
-          {busy ? t('feedback.sending') : step === STEPS - 1 ? t('feedback.send') : t('cloudSurvey.next')}
-        </Text>
-      </Pressable>
+    <View style={{ gap: 10 }}>
+      {errorBlock}
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <Pressable onPress={handleBack} disabled={busy} accessibilityRole="button" style={outline}>
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '600', color: v2.ink }}>
+            {step === 0 ? t('betaTester.survey.later') : t('cloudSurvey.back')}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={handleNext} disabled={nextDisabled} accessibilityRole="button"
+          style={{ ...solid, opacity: nextDisabled ? 0.5 : 1 }}
+        >
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 13, fontWeight: '700', color: v2.inkOnDark }}>
+            {busy ? t('feedback.sending') : step === STEPS - 1 ? t('feedback.send') : t('cloudSurvey.next')}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -185,7 +188,6 @@ export function ImportSurveySheet({ isOpen, onClose, trigger }: ImportSurveyShee
               consent={consent}
               onConsentChange={(v) => { setConsent(v); setError(null); }}
               error={error}
-              errorSlot={errorBlock}
             />
           )}
 
