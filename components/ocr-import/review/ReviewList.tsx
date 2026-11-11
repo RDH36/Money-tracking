@@ -104,13 +104,13 @@ export function ReviewList({
         ) : (
           <View
             style={{
-              marginBottom: 8, padding: 8, gap: 8, borderRadius: 18,
+              marginBottom: 8, padding: 10, gap: 10, borderRadius: 18,
               borderWidth: 1, borderColor: v2.warn, backgroundColor: v2.warnSoft,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4, paddingTop: 2 }}>
-              <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 1 }} />
-              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 2 }}>
+              <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 2 }} />
+              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, lineHeight: 17, color: v2.warn }}>
                 {t('ocrImport.identicalGroup', { count: row.length })}
               </Text>
             </View>

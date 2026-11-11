@@ -1735,5 +1735,61 @@
     "pillDownloading": "Downloading the update…",
     "pillDownloadingPct": "Downloading the update… {{pct}}%",
     "pillReady": "Update ready · Restart"
+  },
+  "betaTester": {
+    "card": {
+      "title": "Beta tester",
+      "progress": "{{used}}/{{limit}}",
+      "progressA11y": "{{used}} of {{limit}} imports",
+      "sub": "Import {{limit}} screenshots, then tell us what you think of the import. A prize draw is planned among the reviews.",
+      "readySub": "You tried the import. Tell us what you think, it takes 1 minute.",
+      "cta": "Give my opinion"
+    },
+    "survey": {
+      "title": "Your opinion on the import",
+      "q1": "How did importing your screenshots go?",
+      "q2": "What should we improve?",
+      "q3": "Enter the prize draw?",
+      "commentLabel": "Your opinion (optional)",
+      "commentPlaceholder": "A screenshot read wrong, an unclear step…",
+      "later": "Later"
+    },
+    "feelings": {
+      "great": "Very well",
+      "greatSub": "Everything was read correctly",
+      "ok": "Okay",
+      "okSub": "I had to fix a few lines",
+      "bad": "Not great",
+      "badSub": "Too many mistakes or too complicated"
+    },
+    "draw": {
+      "emailLabel": "Your email (optional)",
+      "emailPlaceholder": "name@example.com",
+      "consent": "I agree that my email is used for the draw and to send the code",
+      "info": "Among the reviews we receive, 10 people will be drawn at random to get unlimited import for life. The draw takes place before the next update. The people drawn receive a code by email, to enter in a future version of the app.",
+      "optional": "This is optional: without an email, your review is still sent, but you are not entered in the draw.",
+      "rules": "Draw rules"
+    },
+    "errors": {
+      "feelingMissing": "Pick an answer first.",
+      "emailInvalid": "This email doesn't look valid. Fix it or clear it.",
+      "emailMissing": "Enter your email to join the draw, or untick the box.",
+      "consentMissing": "Tick the box to join the draw, or clear your email.",
+      "save": "Your review couldn't be saved. Try again."
+    },
+    "success": {
+      "title": "Thanks for your review!",
+      "sent": "Your review has been sent. You are now a Beta tester.",
+      "queued": "You're offline: your review is kept on your phone and will be sent as soon as you're back online. You are now a Beta tester.",
+      "draw": "You are entered in the prize draw. If you are drawn, you will get an email."
+    },
+    "settings": {
+      "label": "Beta tester ✓",
+      "sublabel": "Thanks for your review of the import"
+    },
+    "reminder": {
+      "title": "Beta tester: how is it going?",
+      "body": "Import your 3 screenshots and tell us what you think of the import."
+    }
   }
 }

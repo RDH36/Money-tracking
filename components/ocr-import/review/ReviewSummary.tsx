@@ -34,10 +34,12 @@ export function ReviewSummary({
   const belowZero = accountsBelowZero(items, accounts);
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
 
+  // Décompte par type : seulement les lignes cochées (il suit les décochages, comme le titre).
+  const picked = fresh.filter((i) => i.selected);
   const parts = [
-    { key: 'expenses', count: fresh.filter((i) => i.kind === 'expense').length },
-    { key: 'incomes', count: fresh.filter((i) => i.kind === 'income').length },
-    { key: 'withdrawals', count: fresh.filter((i) => i.kind === 'transfer').length },
+    { key: 'expenses', count: picked.filter((i) => i.kind === 'expense').length },
+    { key: 'incomes', count: picked.filter((i) => i.kind === 'income').length },
+    { key: 'withdrawals', count: picked.filter((i) => i.kind === 'transfer').length },
     { key: 'known', count: items.filter((i) => i.duplicate === 'reference').length },
     { key: 'maybeKnown', count: items.filter((i) => i.duplicate === 'similar' || i.duplicate === 'batch').length },
   ].filter((p) => p.count > 0);

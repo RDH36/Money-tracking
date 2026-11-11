@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { AddTransactionHeader } from '@/components/add';
 import { ImportCaptureEntry } from '@/components/ocr-import';
+import { BetaTesterCard } from '@/components/import-feedback/BetaTesterCard';
 import type { AddEntryMode } from '@/hooks/habit/useAddEntryMode';
 import { FirstExpenseHeader } from './FirstExpenseHeader';
 import { EveningBanner } from './EveningBanner';
@@ -14,7 +15,7 @@ interface AddScreenTopProps {
 
 /**
  * Haut de l'écran d'ajout selon le mode d'arrivée. Mode normal : titre
- * « Nouvelle transaction » + carte d'import, comme avant.
+ * « Nouvelle transaction » + carte d'import, puis invitation « Testeur bêta ».
  */
 export function AddScreenTop({ mode, formatMoney, deferBusy, onDefer }: AddScreenTopProps) {
   const { t } = useTranslation();
@@ -25,6 +26,7 @@ export function AddScreenTop({ mode, formatMoney, deferBusy, onDefer }: AddScree
         ? <EveningBanner formatMoney={formatMoney} />
         : <AddTransactionHeader title={t('add.newTransaction')} />}
       <ImportCaptureEntry />
+      <BetaTesterCard />
     </>
   );
 }
