@@ -85,7 +85,13 @@ export function ImportCaptureEntry() {
     if (!shown) return;
     if (how === 'skipped') posthog.capture('import_tutorial_skipped', { source: shown.source, seconds });
     else if (how === 'completed') posthog.capture('import_tutorial_completed', { source: shown.source });
-    if (shown.then) start(shown.then);
+    if (!shown.then) return;
+    // Tuto vu : il remplace la feuille d'intro. Vidéo illisible : la feuille reste.
+    if (how === 'error') start(shown.then);
+    else {
+      intro.markSeen();
+      run(shown.then);
+    }
   };
 
   const onPress = (action: EntryAction) => {
