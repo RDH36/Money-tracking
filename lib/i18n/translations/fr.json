@@ -1520,6 +1520,7 @@
     "noAccount": "Choisis un compte",
     "errorTitle": "Lecture impossible",
     "errorBody": "Les images n'ont pas pu être lues. Réessaie avec d'autres captures.",
+    "doneBubble": "C'est rangé !",
     "doneTitle_one": "{{count}} opération ajoutée",
     "doneTitle_other": "{{count}} opérations ajoutées",
     "doneBody_one": "Elle compte à sa vraie date dans tes budgets et tes rapports.",
@@ -1620,7 +1621,8 @@
       "all": "Tout cocher",
       "duplicates_one": "Cocher aussi le doublon",
       "duplicates_other": "Cocher aussi les {{count}} doublons",
-      "clear": "Tout décocher"
+      "clear": "Tout décocher",
+      "everything": "Les {{count}} jours"
     },
     "hint": {
       "similar": "Ressemble à : {{what}} · saisi le {{date}}",
@@ -1741,15 +1743,16 @@
       "title": "Testeur bêta",
       "progress": "{{used}}/{{limit}}",
       "progressA11y": "{{used}} imports sur {{limit}}",
-      "sub": "Importe {{limit}} captures, puis donne ton avis sur l'import. Un tirage au sort est prévu parmi les avis.",
-      "readySub": "Tu as testé l'import. Dis-nous ce que tu en penses, ça prend 1 minute.",
+      "sub": "Importe {{limit}} captures et donne ton avis : 10 testeurs tirés au sort gagnent l'import illimité à vie.",
+      "prize": "l'import illimité à vie",
+      "readySub": "Donne ton avis en 1 minute et tente de gagner l'import illimité à vie (10 gagnants tirés au sort).",
       "cta": "Donner mon avis"
     },
     "survey": {
       "title": "Ton avis sur l'import",
       "q1": "Comment s'est passé l'import de tes captures ?",
       "q2": "Qu'est-ce qu'on doit améliorer ?",
-      "q3": "Participer au tirage au sort ?",
+      "q3": "Participer au tirage : l'import illimité à vie pour 10 testeurs",
       "commentLabel": "Ton avis (facultatif)",
       "commentPlaceholder": "Une capture mal lue, une étape pas claire…",
       "later": "Plus tard"
@@ -1781,15 +1784,15 @@
       "title": "Merci pour ton avis !",
       "sent": "Ton avis est bien envoyé. Tu es maintenant Testeur bêta.",
       "queued": "Tu es hors ligne : ton avis est gardé sur ton téléphone et partira tout seul dès que tu auras Internet. Tu es maintenant Testeur bêta.",
-      "draw": "Tu participes au tirage au sort. Si tu es tiré au sort, tu recevras un e-mail."
+      "draw": "Tu participes au tirage au sort de l'import illimité à vie. Si tu es tiré au sort, tu recevras un e-mail."
     },
     "settings": {
       "label": "Testeur bêta ✓",
       "sublabel": "Merci pour ton avis sur l'import"
     },
     "reminder": {
-      "title": "Testeur bêta : où en es-tu ?",
-      "body": "Importe tes 3 captures et donne ton avis sur l'import."
+      "title": "10 imports illimités à vie à gagner",
+      "body": "Importe tes 3 captures et donne ton avis pour participer au tirage au sort."
     }
   }
 }

@@ -65,11 +65,11 @@ export function SurveyDrawStep({ email, onEmailChange, consent, onConsentChange,
         </Text>
       </Pressable>
 
-      <View style={{ borderRadius: 12, padding: 12, backgroundColor: v2.bgRaised, gap: 6 }}>
-        <Text style={{ fontFamily: v2.fontUIRegular, fontSize: 12, lineHeight: 17, color: v2.inkMuted }}>
+      <View style={{ borderRadius: 12, padding: 12, backgroundColor: v2.bgRaised, gap: 8 }}>
+        <Text style={{ fontFamily: v2.fontUIRegular, fontSize: 12, lineHeight: 18, color: v2.inkMuted }}>
           {t('betaTester.draw.info')}
         </Text>
-        <Text style={{ fontFamily: v2.fontUIRegular, fontSize: 12, lineHeight: 17, color: v2.inkMuted }}>
+        <Text style={{ fontFamily: v2.fontUIRegular, fontSize: 12, lineHeight: 18, color: v2.inkMuted }}>
           {t('betaTester.draw.optional')}
         </Text>
         <Pressable

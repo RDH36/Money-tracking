@@ -1,6 +1,7 @@
 import { Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { accountIconName } from '@/lib/icons/accountIcon';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
@@ -45,7 +46,7 @@ export function AccountList({ accounts, formatMoney, onDelete }: AccountListProp
                   style={{ backgroundColor: getAccountColor(account.type) + '30' }}
                 >
                   <Ionicons
-                    name={account.icon as keyof typeof Ionicons.glyphMap}
+                    name={accountIconName(account.icon)}
                     size={20}
                     color={getAccountColor(account.type)}
                   />

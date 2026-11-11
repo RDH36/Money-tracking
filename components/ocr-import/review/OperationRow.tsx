@@ -116,6 +116,9 @@ export function OperationRow({
           ) : null}
           <Text
             numberOfLines={2}
+            // Coupure aux espaces et aux tirets seulement (jamais au milieu d'un mot).
+            textBreakStrategy="simple"
+            android_hyphenationFrequency="none"
             style={{ fontFamily: v2.fontUI, fontSize: 14, fontWeight: '700', color: locked ? v2.inkMuted : v2.ink }}
           >
             {item.note || item.op.label}

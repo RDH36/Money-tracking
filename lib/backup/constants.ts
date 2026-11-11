@@ -96,3 +96,10 @@ export const EXCLUDED_SETTING_KEYS = [
   // Dossier de téléchargement choisi (Android SAF) — propre à chaque appareil.
   'backup_dir_uri',
 ];
+
+/**
+ * Clés de `settings` jamais EXPORTÉES : l'avis d'import en attente d'envoi peut
+ * contenir un e-mail ; il part du téléphone qui l'a écrit, pas d'un autre.
+ * (Liste séparée de EXCLUDED_SETTING_KEYS, qui ne concerne que l'import.)
+ */
+export const EXPORT_SKIPPED_SETTING_KEYS = ['import_g1_survey_pending'];

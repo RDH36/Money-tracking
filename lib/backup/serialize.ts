@@ -5,7 +5,7 @@
  * pour produire un clone fidèle de la base sur le nouveau téléphone.
  */
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { BACKUP_TABLES } from './constants';
+import { BACKUP_TABLES, EXPORT_SKIPPED_SETTING_KEYS } from './constants';
 
 /** Données brutes de la base, indexées par nom de table. */
 export type BackupData = Record<string, Record<string, unknown>[]>;
@@ -14,7 +14,10 @@ export async function serializeDatabase(db: SQLiteDatabase): Promise<BackupData>
   const data: BackupData = {};
   for (const table of BACKUP_TABLES) {
     // Noms de tables issus d'une liste constante interne (pas d'entrée user).
-    data[table] = await db.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table}`);
+    const rows = await db.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table}`);
+    data[table] = table === 'settings'
+      ? rows.filter((r) => !EXPORT_SKIPPED_SETTING_KEYS.includes(String(r.key)))
+      : rows;
   }
   return data;
 }

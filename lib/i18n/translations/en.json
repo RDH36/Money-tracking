@@ -1520,6 +1520,7 @@
     "noAccount": "Pick an account",
     "errorTitle": "Couldn't read",
     "errorBody": "The images could not be read. Try again with other screenshots.",
+    "doneBubble": "All tidied up!",
     "doneTitle_one": "{{count}} transaction added",
     "doneTitle_other": "{{count}} transactions added",
     "doneBody_one": "It counts on its real date in your budgets and reports.",
@@ -1620,7 +1621,8 @@
       "all": "Select all",
       "duplicates_one": "Also select the duplicate",
       "duplicates_other": "Also select the {{count}} duplicates",
-      "clear": "Deselect all"
+      "clear": "Deselect all",
+      "everything": "All {{count}} days"
     },
     "hint": {
       "similar": "Looks like: {{what}} · entered on {{date}}",
@@ -1741,15 +1743,16 @@
       "title": "Beta tester",
       "progress": "{{used}}/{{limit}}",
       "progressA11y": "{{used}} of {{limit}} imports",
-      "sub": "Import {{limit}} screenshots, then tell us what you think of the import. A prize draw is planned among the reviews.",
-      "readySub": "You tried the import. Tell us what you think, it takes 1 minute.",
+      "sub": "Import {{limit}} screenshots and share your opinion: 10 testers drawn at random win unlimited import for life.",
+      "prize": "unlimited import for life",
+      "readySub": "Share your opinion in 1 minute for a chance to win unlimited import for life (10 testers drawn at random).",
       "cta": "Give my opinion"
     },
     "survey": {
       "title": "Your opinion on the import",
       "q1": "How did importing your screenshots go?",
       "q2": "What should we improve?",
-      "q3": "Enter the prize draw?",
+      "q3": "Enter the draw: unlimited import for life for 10 testers",
       "commentLabel": "Your opinion (optional)",
       "commentPlaceholder": "A screenshot read wrong, an unclear step…",
       "later": "Later"
@@ -1781,15 +1784,15 @@
       "title": "Thanks for your review!",
       "sent": "Your review has been sent. You are now a Beta tester.",
       "queued": "You're offline: your review is kept on your phone and will be sent as soon as you're back online. You are now a Beta tester.",
-      "draw": "You are entered in the prize draw. If you are drawn, you will get an email."
+      "draw": "You are entered in the draw for unlimited import for life. If you are drawn, you will get an email."
     },
     "settings": {
       "label": "Beta tester ✓",
       "sublabel": "Thanks for your review of the import"
     },
     "reminder": {
-      "title": "Beta tester: how is it going?",
-      "body": "Import your 3 screenshots and tell us what you think of the import."
+      "title": "10 unlimited imports for life to win",
+      "body": "Import your 3 screenshots and share your opinion to enter the prize draw."
     }
   }
 }

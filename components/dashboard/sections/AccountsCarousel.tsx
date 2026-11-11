@@ -1,5 +1,6 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { accountIconName } from '@/lib/icons/accountIcon';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2, formatMoneyFr, type V2Tokens } from '@/constants/designTokensV2';
@@ -106,7 +107,7 @@ export function AccountsCarousel({
                   }}
                 >
                   <Ionicons
-                    name={(account.icon as IoniconName) ?? 'wallet-outline'}
+                    name={accountIconName(account.icon, 'wallet-outline')}
                     size={15}
                     color={tint.fg}
                   />

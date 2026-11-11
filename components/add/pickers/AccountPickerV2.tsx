@@ -1,5 +1,6 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { accountIconName } from '@/lib/icons/accountIcon';
 import type { ComponentProps } from 'react';
 import { useV2 } from '@/constants/designTokensV2';
 import type { AccountWithBalance } from '@/types';
@@ -64,7 +65,7 @@ export function AccountPickerV2({
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Ionicons
-                  name={(account.icon as IoniconName) ?? 'wallet-outline'}
+                  name={accountIconName(account.icon, 'wallet-outline')}
                   size={16}
                   color={active ? v2.brand : v2.inkSubtle}
                 />

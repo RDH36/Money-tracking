@@ -1,8 +1,9 @@
-import { View, Text, Pressable } from 'react-native';
+import { Text, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { EaseView } from 'react-native-ease';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
+import { BubuleSays } from '../BubuleSays';
 
 interface DoneViewProps {
   count: number;
@@ -10,23 +11,21 @@ interface DoneViewProps {
   onImportMore: () => void;
 }
 
-/** Fin de l'import : coche animée, puis « Voir » ou « Importer d'autres captures ». */
+/** Fin de l'import : Bubule et sa bulle, puis « Voir » ou « Importer d'autres captures ». */
 export function DoneView({ count, onView, onImportMore }: DoneViewProps) {
   const v2 = useV2();
   const { t } = useTranslation();
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+    <ScrollView
+      contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 24 }}
+    >
       <EaseView
         initialAnimate={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', damping: 12, stiffness: 180, mass: 1 }}
-        style={{
-          width: 76, height: 76, borderRadius: 24, backgroundColor: v2.goodSoft,
-          alignItems: 'center', justifyContent: 'center',
-        }}
       >
-        <Ionicons name="checkmark" size={38} color={v2.good} />
+        <BubuleSays pose="enjoy" text={t('ocrImport.doneBubble')} />
       </EaseView>
 
       <EaseView
@@ -37,7 +36,7 @@ export function DoneView({ count, onView, onImportMore }: DoneViewProps) {
       >
         <Text
           style={{
-            marginTop: 20, fontFamily: v2.fontDisplay, fontSize: 22, fontWeight: '700',
+            marginTop: 4, fontFamily: v2.fontDisplay, fontSize: 22, fontWeight: '700',
             color: v2.ink, textAlign: 'center', letterSpacing: -0.4,
           }}
         >
@@ -77,6 +76,6 @@ export function DoneView({ count, onView, onImportMore }: DoneViewProps) {
           </Text>
         </Pressable>
       </EaseView>
-    </View>
+    </ScrollView>
   );
 }

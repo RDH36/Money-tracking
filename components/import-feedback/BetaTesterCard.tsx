@@ -33,6 +33,11 @@ export function BetaTesterCard() {
   const sheet = <ImportSurveySheet isOpen={open} onClose={() => setOpen(false)} trigger="card" />;
   if (!card) return <>{null}{sheet}</>;
 
+  // Le lot du tirage ressort dans la phrase (gras, encre pleine), sans changer le texte.
+  const sub = card.ready ? t('betaTester.card.readySub') : t('betaTester.card.sub', { limit: card.limit });
+  const prize = t('betaTester.card.prize');
+  const at = sub.indexOf(prize);
+
   return (
     <>
     <View
@@ -64,7 +69,13 @@ export function BetaTesterCard() {
             </Text>
           </View>
           <Text style={{ marginTop: 2, fontFamily: v2.fontUIRegular, fontSize: 11, lineHeight: 15, color: v2.inkMuted }}>
-            {card.ready ? t('betaTester.card.readySub') : t('betaTester.card.sub', { limit: card.limit })}
+            {at < 0 ? sub : (
+              <>
+                {sub.slice(0, at)}
+                <Text style={{ fontFamily: v2.fontUI, fontWeight: '700', color: v2.ink }}>{prize}</Text>
+                {sub.slice(at + prize.length)}
+              </>
+            )}
           </Text>
         </View>
       </View>
