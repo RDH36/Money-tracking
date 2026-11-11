@@ -1548,7 +1548,8 @@
       "all": "Fidio daholo",
       "duplicates_one": "Fidio koa ilay indroa",
       "duplicates_other": "Fidio koa ireo indroa {{count}}",
-      "clear": "Esory daholo"
+      "clear": "Esory daholo",
+      "everything": "Ireo {{count}} andro"
     },
     "hint": {
       "similar": "Mitovy amin’ny : {{what}} · voasoratra ny {{date}}",
