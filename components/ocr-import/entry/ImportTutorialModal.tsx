@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEventListener } from 'expo';
@@ -37,11 +37,19 @@ function TutorialPlayer({ onEnd }: Pick<ImportTutorialModalProps, 'onEnd'>) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const done = useRef(false);
+  const [shown, setShown] = useState(false);
   const player = useVideoPlayer(VIDEOS[tutorialLang(i18n.language)], (p) => {
     p.loop = false;
     p.muted = false;
-    p.play();
   });
+
+  // La vue vidéo n'est montée (et la lecture lancée) qu'une fois la fenêtre de la
+  // Modal affichée : montée avant, la première lecture après le lancement de
+  // l'app restait noire avec le son (mesuré sur Android 10).
+  const onShow = useCallback(() => {
+    setShown(true);
+    player.play();
+  }, [player]);
 
   const finish = useCallback(
     (how: TutorialEnd) => {
@@ -73,15 +81,11 @@ function TutorialPlayer({ onEnd }: Pick<ImportTutorialModalProps, 'onEnd'>) {
   }, [player]);
 
   return (
-    <Modal visible animationType="none" statusBarTranslucent onRequestClose={() => finish('skipped')}>
+    <Modal visible animationType="none" statusBarTranslucent onShow={onShow} onRequestClose={() => finish('skipped')}>
       <View style={styles.root}>
-        <VideoView
-          player={player}
-          style={StyleSheet.absoluteFill}
-          contentFit="contain"
-          nativeControls={false}
-          surfaceType="textureView"
-        />
+        {shown ? (
+          <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls={false} />
+        ) : null}
         <Pressable
           onPress={() => finish('skipped')}
           accessibilityRole="button"
