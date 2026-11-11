@@ -1586,6 +1586,10 @@
     "editButton": "Edit",
     "editA11y": "Edit transaction {{label}}",
     "lockedA11y": "Already saved, cannot be selected: {{label}}",
+    "tutorial": {
+      "watch": "Watch the tutorial",
+      "skip": "Skip"
+    },
     "takePhoto": "Take a photo",
     "cameraError": "Could not open the camera.",
     "cameraDenied": "Allow the camera in the phone settings to photograph a receipt.",

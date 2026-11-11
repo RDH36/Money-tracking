@@ -1556,6 +1556,10 @@
       "batch": "Mitovy vola sy daty amin’ny andalana hafa ato amin’ity fampidirana ity",
       "reference": "Efa nampidirina (laharana mitovy)"
     },
+    "tutorial": {
+      "watch": "Voir le tuto",
+      "skip": "Passer"
+    },
     "takePhoto": "Maka sary",
     "cameraError": "Tsy mety misokatra ny fakan-tsary.",
     "cameraDenied": "Avelao hampiasa ny fakan-tsary ao amin’ny fikirakirana ny finday mba haka sary tapakila.",

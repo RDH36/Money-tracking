@@ -1586,6 +1586,10 @@
     "editButton": "Modifier",
     "editA11y": "Modifier l'opération {{label}}",
     "lockedA11y": "Déjà enregistrée, ne peut pas être cochée : {{label}}",
+    "tutorial": {
+      "watch": "Voir le tuto",
+      "skip": "Passer"
+    },
     "takePhoto": "Prendre une photo",
     "cameraError": "Impossible d'ouvrir l'appareil photo.",
     "cameraDenied": "Autorise l'appareil photo dans les réglages du téléphone pour photographier un ticket.",

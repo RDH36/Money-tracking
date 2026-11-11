@@ -9,10 +9,13 @@ import { OCR_IMPORT_ENABLED, PLUS_ENABLED } from '@/constants/app';
 import { isOcrAvailable } from '@/modules/mitsitsy-ocr';
 import { usePostHog } from 'posthog-react-native';
 import { useCaptureIntro } from '@/hooks/ocr/useCaptureIntro';
+import { useImportTutorial } from '@/hooks/ocr/useImportTutorial';
 import { useOcrQuota } from '@/hooks/premium/useOcrQuota';
 import { PlusActivatedDialog, RedeemCodeSheet } from '@/components/plus';
 import type { License } from '@/lib/premium';
+import type { TutorialSource } from '@/lib/ocr/tutorial';
 import { CaptureIntroSheet } from './entry/CaptureIntroSheet';
+import { ImportTutorialModal, type TutorialEnd } from './entry/ImportTutorialModal';
 import { QuotaReachedSheet } from './entry/QuotaReachedSheet';
 import { BetaBadge } from './BetaBadge';
 
@@ -53,6 +56,9 @@ export function ImportCaptureEntry() {
   const [quotaOpen, setQuotaOpen] = useState(false);
   const [codeOpen, setCodeOpen] = useState(false);
   const [activated, setActivated] = useState<License | null>(null);
+  const tutorial = useImportTutorial();
+  // Tuto vidéo affiché : `then` = bouton d'import qui l'a déclenché (première ouverture).
+  const [tuto, setTuto] = useState<{ source: TutorialSource; then: EntryAction | null } | null>(null);
 
   if (!OCR_IMPORT_ENABLED || !isOcrAvailable) return null;
 
@@ -61,12 +67,33 @@ export function ImportCaptureEntry() {
     router.push({ pathname: '/import/capture', params: { pick: action } });
   };
 
+  const start = (action: EntryAction) => {
+    if (intro.seen) run(action);
+    else setPending(action);
+  };
+
+  const showTutorial = (source: TutorialSource, then: EntryAction | null) => {
+    tutorial.markSeen();
+    posthog.capture('import_tutorial_shown', { source });
+    setTuto({ source, then });
+  };
+
+  // Fin du tuto (passé, terminé ou illisible) : l'import demandé reprend son cours habituel.
+  const onTutorialEnd = (how: TutorialEnd, seconds: number) => {
+    const shown = tuto;
+    setTuto(null);
+    if (!shown) return;
+    if (how === 'skipped') posthog.capture('import_tutorial_skipped', { source: shown.source, seconds });
+    else if (how === 'completed') posthog.capture('import_tutorial_completed', { source: shown.source });
+    if (shown.then) start(shown.then);
+  };
+
   const onPress = (action: EntryAction) => {
     if (quota.loaded && quota.remaining <= 0) {
       posthog.capture('ocr_quota_reached', { limit: quota.limit, reads_used: quota.used, surface: 'entry' });
       setQuotaOpen(true);
-    } else if (intro.seen) run(action);
-    else setPending(action);
+    } else if (tutorial.shouldAutoPlay) showTutorial('auto', action);
+    else start(action);
   };
 
   const continueFromIntro = () => {
@@ -137,7 +164,22 @@ export function ImportCaptureEntry() {
             </Pressable>
           ))}
         </View>
+        <Pressable
+          onPress={() => showTutorial('manual', null)}
+          accessibilityRole="button"
+          accessibilityLabel={t('ocrImport.tutorial.watch')}
+          style={{
+            alignSelf: 'center', minHeight: 44, marginTop: 2, marginBottom: -10, paddingHorizontal: 12,
+            flexDirection: 'row', alignItems: 'center', gap: 6,
+          }}
+        >
+          <Ionicons name="play-circle-outline" size={16} color={v2.inkMuted} />
+          <Text style={{ fontFamily: v2.fontUI, fontSize: 12, fontWeight: '700', color: v2.inkMuted }}>
+            {t('ocrImport.tutorial.watch')}
+          </Text>
+        </Pressable>
       </View>
+      <ImportTutorialModal visible={tuto !== null} onEnd={onTutorialEnd} />
       <CaptureIntroSheet
         isOpen={pending !== null}
         onClose={() => setPending(null)}
