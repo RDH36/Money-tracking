@@ -12,6 +12,7 @@ import { DatabaseProvider } from "@/lib/database/sqlite";
 import { getBgBaseHex } from "@/constants/designTokens";
 import { posthog } from "@/lib/posthog";
 import { LockGate } from "@/components/lock";
+import { ImportFeedbackBoot } from '@/components/import-feedback/ImportFeedbackBoot';
 
 function LoadingFallback() {
   return (
@@ -89,6 +90,7 @@ export default function RootLayout() {
               <LanguageProvider>
                 <ThemeProvider>
                   <ScreenTracker />
+                  <ImportFeedbackBoot />
                   <LockGate>
                     <AppContent />
                   </LockGate>

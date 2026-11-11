@@ -1520,6 +1520,7 @@
     "noAccount": "Pick an account",
     "errorTitle": "Couldn't read",
     "errorBody": "The images could not be read. Try again with other screenshots.",
+    "doneBubble": "All tidied up!",
     "doneTitle_one": "{{count}} transaction added",
     "doneTitle_other": "{{count}} transactions added",
     "doneBody_one": "It counts on its real date in your budgets and reports.",
@@ -1620,7 +1621,8 @@
       "all": "Select all",
       "duplicates_one": "Also select the duplicate",
       "duplicates_other": "Also select the {{count}} duplicates",
-      "clear": "Deselect all"
+      "clear": "Deselect all",
+      "everything": "All {{count}} days"
     },
     "hint": {
       "similar": "Looks like: {{what}} · entered on {{date}}",
@@ -1735,5 +1737,62 @@
     "pillDownloading": "Downloading the update…",
     "pillDownloadingPct": "Downloading the update… {{pct}}%",
     "pillReady": "Update ready · Restart"
+  },
+  "betaTester": {
+    "card": {
+      "title": "Beta tester",
+      "progress": "{{used}}/{{limit}}",
+      "progressA11y": "{{used}} of {{limit}} imports",
+      "sub": "Import {{limit}} screenshots and share your opinion: 10 testers drawn at random win unlimited import for life.",
+      "prize": "unlimited import for life",
+      "readySub": "Share your opinion in 1 minute for a chance to win unlimited import for life (10 testers drawn at random).",
+      "cta": "Give my opinion"
+    },
+    "survey": {
+      "title": "Your opinion on the import",
+      "q1": "How did importing your screenshots go?",
+      "q2": "What should we improve?",
+      "q3": "Enter the draw: unlimited import for life for 10 testers",
+      "commentLabel": "Your opinion (optional)",
+      "commentPlaceholder": "A screenshot read wrong, an unclear step…",
+      "later": "Later"
+    },
+    "feelings": {
+      "great": "Very well",
+      "greatSub": "Everything was read correctly",
+      "ok": "Okay",
+      "okSub": "I had to fix a few lines",
+      "bad": "Not great",
+      "badSub": "Too many mistakes or too complicated"
+    },
+    "draw": {
+      "emailLabel": "Your email (optional)",
+      "emailPlaceholder": "name@example.com",
+      "consent": "I agree that my email is used for the draw and to send the code",
+      "info": "Among the reviews we receive, 10 people will be drawn at random to get unlimited import for life. The draw takes place before the next update. The people drawn receive a code by email, to enter in a future version of the app.",
+      "optional": "This is optional: without an email, your review is still sent, but you are not entered in the draw.",
+      "rules": "Draw rules"
+    },
+    "errors": {
+      "feelingMissing": "Pick an answer first.",
+      "emailInvalid": "This email doesn't look valid. Fix it or clear it.",
+      "emailMissing": "Enter your email to join the draw, or untick the box.",
+      "consentMissing": "Tick the box to join the draw, or clear your email.",
+      "save": "Your review couldn't be saved. Try again."
+    },
+    "success": {
+      "title": "Thanks for your review!",
+      "sent": "Your review has been sent. You are now a Beta tester.",
+      "queued": "You're offline: your review is kept on your phone and will be sent as soon as you're back online. You are now a Beta tester.",
+      "draw": "You are entered in the draw for unlimited import for life. If you are drawn, you will get an email."
+    },
+    "settings": {
+      "label": "Beta tester ✓",
+      "sublabel": "Thanks for your review of the import"
+    },
+    "reminder": {
+      "title": "10 unlimited imports for life to win",
+      "body": "Import your 3 screenshots and share your opinion to enter the prize draw."
+    }
   }
 }

@@ -27,6 +27,7 @@ import { accountsBelowZero, duplicateHint, type ReviewItem } from '@/lib/ocr/imp
 import { getCategoryDisplayName } from '@/constants/categories';
 import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
+import { ImportSurveyAutoPrompt } from '@/components/import-feedback/ImportSurveyAutoPrompt';
 import type { AccountWithBalance } from '@/types';
 
 /**
@@ -79,10 +80,13 @@ export default function ImportCaptureScreen() {
     );
   }
   return (
-    <ImportCaptureFlow
-      key={key} uris={all.slice(0, plan.allowed)} truncatedFrom={plan.truncatedFrom}
-      source={state.source} onImportMore={importMore} consume={quota.unlimited ? null : quota.consume}
-    />
+    <>
+      <ImportCaptureFlow
+        key={key} uris={all.slice(0, plan.allowed)} truncatedFrom={plan.truncatedFrom}
+        source={state.source} onImportMore={importMore} consume={quota.unlimited ? null : quota.consume}
+      />
+      <ImportSurveyAutoPrompt loaded={quota.loaded} unlimited={quota.unlimited} used={quota.used} limit={quota.limit} />
+    </>
   );
 }
 
@@ -126,7 +130,8 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
   const { categories, expenseCategories } = useCategories();
   const [editingKey, setEditingKey] = useState<string | null>(null);
 
-  const formatMoney = (cents: number) => formatCurrency(cents, currency.code);
+  // Montant négatif (solde de compte) : vrai signe « − », comme les lignes.
+  const formatMoney = (cents: number) => formatCurrency(cents, currency.code).replace('-', '\u2212');
   const getAccountName = (a: AccountWithBalance): string =>
     a.is_default === 1 ? (a.type === 'bank' ? t('account.defaultBank') : t('account.defaultCash')) : a.name;
   const accountName = (id: string | null) => {

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { usePostHog } from 'posthog-react-native';
 import { useAccounts, useCategories } from '@/hooks';
 import { UpdateSettingsRow } from '@/components/app-update';
+import { BetaTesterSettingsRow } from '@/components/import-feedback/BetaTesterSettingsRow';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { useUnlocksStore } from '@/stores/unlocksStore';
 import { useQuestsStore } from '@/stores/questsStore';
@@ -137,6 +138,7 @@ export default function SettingsScreen() {
           />
           {PLUS_ENABLED ? <PlusSettingsRow /> : null}
           <UpdateSettingsRow />
+          <BetaTesterSettingsRow />
           <SettingsRow
             icon="chatbubble-outline"
             iconColor="#14B8A6"

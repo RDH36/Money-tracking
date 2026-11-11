@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, View, Text, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { accountIconName } from '@/lib/icons/accountIcon';
 import type { ComponentProps } from 'react';
 import { CenterDialog } from '@/components/ui/CenterDialog';
 import {
@@ -103,7 +104,7 @@ export function ValidatePlanificationDialog({
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                    <Ionicons name={account.icon as IoniconName} size={18} color={color} />
+                    <Ionicons name={accountIconName(account.icon)} size={18} color={color} />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text
                         numberOfLines={1}

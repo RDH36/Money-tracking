@@ -111,6 +111,19 @@ export function isPaidCash(i: ReviewItem): boolean {
   return i.op.payment === 'cash' && i.kind === 'expense';
 }
 
+/**
+ * Compte bancaire commun choisi dans l'en-tête (les tickets payés en espèces
+ * gardent le leur). Un retrait dont la contrepartie se confondait avec le compte
+ * choisi la perd ; elle revient (compte espèces) dès que le choix ne s'y oppose plus.
+ */
+export function withAccountForAll<T extends ReviewItem>(items: T[], accountId: string, cashId: string | null): T[] {
+  return items.map((i) => {
+    if (isPaidCash(i)) return i;
+    const counter = i.kind === 'transfer' ? i.counterAccountId ?? cashId : i.counterAccountId;
+    return { ...i, accountId, counterAccountId: counter === accountId ? null : counter };
+  });
+}
+
 /** Une opération cochée est enregistrable si ses comptes sont cohérents. */
 export function isDraftValid(d: ImportDraft): boolean {
   if (d.amount <= 0 || !d.accountId) return false;

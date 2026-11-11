@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { dedupeOperations } from '@/lib/ocr';
 import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
-import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, isPaidCash, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
+import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, toggleItem, withAccountForAll, type ReviewItem } from '@/lib/ocr/import/review';
 import { CashBelowZeroError, saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
@@ -36,6 +36,8 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
   const [stats, setStats] = useState<ImportStats>(EMPTY_STATS);
   const [savedCount, setSavedCount] = useState(0);
   const [saveFailed, setSaveFailed] = useState(false);
+  // Compte espèces par défaut des retraits (contrepartie rendue par setAccountForAll).
+  const cashIdRef = useRef<string | null>(null);
   const urisKey = uris.join('|');
 
   // Relancé à chaque nouvelle liste de captures (« Importer d'autres captures »,
@@ -61,6 +63,7 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
           loadImportAccounts(db, reading.sources[0] ?? 'mcb'),
         ]);
         if (cancelled) return;
+        cashIdRef.current = accounts.cashId;
         setItems(buildReviewItems(deduped, { history, validCategoryIds, ...accounts }));
         setStats({
           captures: uris.length,
@@ -99,13 +102,7 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
 
   /** Change le compte bancaire de toutes les opérations (sauf tickets payés en espèces). */
   const setAccountForAll = useCallback((accountId: string) => {
-    setItems((prev) =>
-      prev.map((i) => isPaidCash(i) ? i : ({
-        ...i,
-        accountId,
-        counterAccountId: i.counterAccountId === accountId ? null : i.counterAccountId,
-      }))
-    );
+    setItems((prev) => withAccountForAll(prev, accountId, cashIdRef.current));
   }, []);
 
   const toSave = draftsToSave(items);

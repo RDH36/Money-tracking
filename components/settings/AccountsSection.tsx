@@ -1,14 +1,12 @@
 import { View, Text, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
+import { accountIconName } from '@/lib/icons/accountIcon';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { useBalanceHidden } from '@/stores/settingsStore';
 import { SectionLabel, SettingsCard } from '@/components/settings/v2';
 import type { AccountWithBalance } from '@/types';
-
-type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 interface AccountsSectionProps {
   accounts: AccountWithBalance[];
@@ -104,7 +102,7 @@ export function AccountsSection({ accounts, formatMoney, onDelete, onEdit, onAdd
         {accounts.map((acc, i) => {
           const isLast = i === accounts.length - 1;
           const color = acc.type === 'bank' ? '#3B82F6' : v2.good;
-          const iconName: IoniconName = (acc.icon as IoniconName) ?? 'wallet-outline';
+          const iconName = accountIconName(acc.icon, 'wallet-outline');
           return (
             <View
               key={acc.id}

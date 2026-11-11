@@ -1520,6 +1520,7 @@
     "noAccount": "Choisis un compte",
     "errorTitle": "Lecture impossible",
     "errorBody": "Les images n'ont pas pu être lues. Réessaie avec d'autres captures.",
+    "doneBubble": "C'est rangé !",
     "doneTitle_one": "{{count}} opération ajoutée",
     "doneTitle_other": "{{count}} opérations ajoutées",
     "doneBody_one": "Elle compte à sa vraie date dans tes budgets et tes rapports.",
@@ -1620,7 +1621,8 @@
       "all": "Tout cocher",
       "duplicates_one": "Cocher aussi le doublon",
       "duplicates_other": "Cocher aussi les {{count}} doublons",
-      "clear": "Tout décocher"
+      "clear": "Tout décocher",
+      "everything": "Les {{count}} jours"
     },
     "hint": {
       "similar": "Ressemble à : {{what}} · saisi le {{date}}",
@@ -1735,5 +1737,62 @@
     "pillDownloading": "Téléchargement de la mise à jour…",
     "pillDownloadingPct": "Téléchargement de la mise à jour… {{pct}} %",
     "pillReady": "Mise à jour prête · Redémarrer"
+  },
+  "betaTester": {
+    "card": {
+      "title": "Testeur bêta",
+      "progress": "{{used}}/{{limit}}",
+      "progressA11y": "{{used}} imports sur {{limit}}",
+      "sub": "Importe {{limit}} captures et donne ton avis : 10 testeurs tirés au sort gagnent l'import illimité à vie.",
+      "prize": "l'import illimité à vie",
+      "readySub": "Donne ton avis en 1 minute et tente de gagner l'import illimité à vie (10 gagnants tirés au sort).",
+      "cta": "Donner mon avis"
+    },
+    "survey": {
+      "title": "Ton avis sur l'import",
+      "q1": "Comment s'est passé l'import de tes captures ?",
+      "q2": "Qu'est-ce qu'on doit améliorer ?",
+      "q3": "Participer au tirage : l'import illimité à vie pour 10 testeurs",
+      "commentLabel": "Ton avis (facultatif)",
+      "commentPlaceholder": "Une capture mal lue, une étape pas claire…",
+      "later": "Plus tard"
+    },
+    "feelings": {
+      "great": "Très bien",
+      "greatSub": "Tout a été bien lu",
+      "ok": "Correct",
+      "okSub": "J'ai dû corriger quelques lignes",
+      "bad": "Pas terrible",
+      "badSub": "Trop d'erreurs ou trop compliqué"
+    },
+    "draw": {
+      "emailLabel": "Ton e-mail (facultatif)",
+      "emailPlaceholder": "nom@exemple.com",
+      "consent": "J'accepte que mon e-mail serve au tirage et à l'envoi du code",
+      "info": "Parmi les avis reçus, 10 personnes seront tirées au sort pour avoir l'import illimité à vie. Le tirage a lieu avant la prochaine mise à jour. Les personnes tirées au sort reçoivent un code par e-mail, à saisir dans une prochaine version de l'app.",
+      "optional": "C'est facultatif : sans e-mail, ton avis est envoyé quand même, mais tu ne participes pas au tirage.",
+      "rules": "Règlement du tirage"
+    },
+    "errors": {
+      "feelingMissing": "Choisis d'abord une réponse.",
+      "emailInvalid": "Cet e-mail n'a pas l'air valide. Corrige-le ou efface-le.",
+      "emailMissing": "Écris ton e-mail pour participer au tirage, ou décoche la case.",
+      "consentMissing": "Coche la case pour participer au tirage, ou efface ton e-mail.",
+      "save": "Ton avis n'a pas pu être enregistré. Réessaie."
+    },
+    "success": {
+      "title": "Merci pour ton avis !",
+      "sent": "Ton avis est bien envoyé. Tu es maintenant Testeur bêta.",
+      "queued": "Tu es hors ligne : ton avis est gardé sur ton téléphone et partira tout seul dès que tu auras Internet. Tu es maintenant Testeur bêta.",
+      "draw": "Tu participes au tirage au sort de l'import illimité à vie. Si tu es tiré au sort, tu recevras un e-mail."
+    },
+    "settings": {
+      "label": "Testeur bêta ✓",
+      "sublabel": "Merci pour ton avis sur l'import"
+    },
+    "reminder": {
+      "title": "10 imports illimités à vie à gagner",
+      "body": "Importe tes 3 captures et donne ton avis pour participer au tirage au sort."
+    }
   }
 }

@@ -71,11 +71,14 @@ export function ReviewList({
         stickySectionHeadersEnabled={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
         ListHeaderComponent={
-          <View style={{ marginBottom: 4 }}>
+          <View>
             {header}
-            {/* Une seule date : l'interrupteur du groupe suffit. */}
+            {/* Une seule date : l'interrupteur du groupe suffit. Plusieurs : celui-ci porte sur toutes. */}
             {sections.length > 1 ? (
-              <View style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, fontWeight: '600', color: v2.inkMuted }}>
+                  {t('ocrImport.bulk.everything', { count: sections.length })}
+                </Text>
                 <BulkToggle items={items} onPress={onToggleMany} />
               </View>
             ) : null}
@@ -84,7 +87,9 @@ export function ReviewList({
         renderSectionHeader={({ section }) => (
           <View
             style={{
-              marginTop: 18, marginBottom: 8, flexDirection: 'row', alignItems: 'center',
+              // 1er groupe : collé à l'en-tête (pas de vide sous le choix du compte).
+              marginTop: section.date === sections[0]?.date ? 10 : 18,
+              marginBottom: 8, flexDirection: 'row', alignItems: 'center',
               justifyContent: 'space-between', gap: 8,
             }}
           >
@@ -104,13 +109,14 @@ export function ReviewList({
         ) : (
           <View
             style={{
-              marginBottom: 8, padding: 8, gap: 8, borderRadius: 18,
+              // Marge latérale fine : les lignes gardent presque la largeur d'une carte seule.
+              marginBottom: 8, paddingVertical: 10, paddingHorizontal: 4, gap: 10, borderRadius: 18,
               borderWidth: 1, borderColor: v2.warn, backgroundColor: v2.warnSoft,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4, paddingTop: 2 }}>
-              <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 1 }} />
-              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, color: v2.warn }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 12, paddingTop: 6, paddingBottom: 2 }}>
+              <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 2 }} />
+              <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, lineHeight: 17, color: v2.warn }}>
                 {t('ocrImport.identicalGroup', { count: row.length })}
               </Text>
             </View>
