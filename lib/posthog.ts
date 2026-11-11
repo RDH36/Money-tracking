@@ -1,5 +1,7 @@
 import PostHog from 'posthog-react-native';
 import Constants from 'expo-constants';
+import { File, Paths } from 'expo-file-system';
+import { createSerialStorage } from './analytics/serialStorage';
 
 const apiKey = Constants.expoConfig?.extra?.posthogProjectToken as string | undefined;
 const host = Constants.expoConfig?.extra?.posthogHost as string | undefined;
@@ -20,8 +22,13 @@ console.error = (...args: unknown[]) => {
   originalConsoleError(...args);
 };
 
+// Same file as the library default (Paths.document + key), so the identity persisted
+// by earlier versions is kept; writes are queued instead of racing each other.
+const customStorage = createSerialStorage((key) => new File(Paths.document, key));
+
 export const posthog = new PostHog(apiKey || 'placeholder_key', {
   host,
+  customStorage,
   disabled: !isPostHogConfigured,
   captureAppLifecycleEvents: true,
   flushAt: 20,
