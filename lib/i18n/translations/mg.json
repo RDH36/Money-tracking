@@ -781,6 +781,12 @@
   },
   "changelog": {
     "current": "Ankehitriny",
+    "importCaptures": "Manafatra avy amin'ny sary (bêta) : alaivo sary ny tapakila na safidio ny sarin'ny SMS MVola na Orange Money, vakian'ny app ny fifanakalozana ary hamarininao alohan'ny hitahirizana",
+    "importTutorial": "Misy horonan-tsary mampianatra ny fanafarana amin'ny voalohany, ary azo jerena hatrany amin'ny « Voir le tuto »",
+    "inAppUpdates": "Alaina mivantana ao amin'ny app izao ny fanavaozana",
+    "eveningReminder": "Fampahatsiahivana hariva : hanoratana ny fandaniana tamin'ny andro (Firafitra → Fampatsiahivana)",
+    "negativeSign": "Miseho ny famantarana − amin'ny vola ambony ratsy (fandraisana sy kaonty)",
+    "noCameraDevices": "Azo apetraka amin'ny finday tsy misy fakan-tsary ihany koa ny app",
     "analysisFeature": "Ny jeriko : bokotra Famakafakana mamaky ny tsingerinao ka mamoaka fehin-kevitra 3 misy isa + hetsika 1 azo ampiharina amin'ny tsindrona iray — 100 % tsy mila aterineto",
     "analysisSinceLast": "Mifampitaha amin'ny teo aloha ny jery tsirairay : hitanao raha nahomby izay novainao",
     "analysisHeroKept": "Aseho eo amin'ny fandraisana izao ny voatahirinao tamin'ity volana ity sy ny tahan'ny fitsimbinanao",

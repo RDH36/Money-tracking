@@ -34,12 +34,4 @@ export const OTHER_APPS: OtherApp[] = [
     accent: '#5E0B2F',
     siteUrl: `https://hifety.com/?${UTM}`,
   },
-  {
-    id: 'flipia',
-    name: 'Flipia',
-    taglineKey: 'otherApps.flipiaTagline',
-    icon: require('@/assets/images/other-apps/flipia.png'),
-    accent: '#3F37A6',
-    storeUrl: 'https://play.google.com/store/apps/details?id=com.rdh36.flipia',
-  },
 ];

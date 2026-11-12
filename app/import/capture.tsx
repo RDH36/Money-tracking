@@ -11,9 +11,7 @@ import { useCaptureImport } from '@/hooks/ocr/useCaptureImport';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/currency';
 import { SOURCE_PARSERS } from '@/lib/ocr';
-import {
-  EditOperationSheet, ImportStateView, OperationRow, ReviewSummary,
-} from '@/components/ocr-import';
+import { EditOperationSheet, ImportStateView, OperationRow, ReviewSummary } from '@/components/ocr-import';
 import { ReviewList } from '@/components/ocr-import/review/ReviewList';
 import { ReadingView } from '@/components/ocr-import/states/ReadingView';
 import { DoneView } from '@/components/ocr-import/states/DoneView';
@@ -24,6 +22,7 @@ import {
   correctedFields, genericReadProps, importSavedProps, readCompletedProps,
 } from '@/lib/ocr/import/analytics';
 import { accountsBelowZero, duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
+import { headerAccountId, showsOwnAccount } from '@/lib/ocr/import/account/headerAccount';
 import { getCategoryDisplayName } from '@/constants/categories';
 import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
@@ -157,6 +156,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     const h = duplicateHint(item, hintFormatters);
     return h ? t(h.key, h.params) : null;
   };
+  const headerId = useMemo(() => headerAccountId(imp.items, imp.cashId), [imp.items, imp.cashId]);
   const editing = imp.items.find((i) => i.key === editingKey) ?? null;
   const close = () => router.back();
 
@@ -214,6 +214,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
             item={item}
             category={expenseCategories.find((c) => c.id === item.categoryId) ?? null}
             counterAccountName={accountName(item.counterAccountId)}
+            accountName={showsOwnAccount(item, headerId) ? accountName(item.accountId) : null}
             formatMoney={formatMoney}
             hint={hintOf(item)}
             onToggle={() => imp.toggle(item.key)}

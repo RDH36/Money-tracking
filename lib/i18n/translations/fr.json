@@ -820,6 +820,12 @@
   },
   "changelog": {
     "current": "Actuel",
+    "importCaptures": "Importer depuis une capture (bêta) : prends en photo un ticket ou choisis des captures de SMS MVola ou Orange Money, l'app lit les opérations et tu vérifies avant d'enregistrer",
+    "importTutorial": "Un tuto vidéo montre l'import à la première utilisation, puis reste disponible avec « Voir le tuto »",
+    "inAppUpdates": "Les mises à jour se téléchargent directement depuis l'app",
+    "eveningReminder": "Rappel du soir : un rappel pour noter les dépenses de la journée (Paramètres → Notifications)",
+    "negativeSign": "Le signe − s'affiche sur les soldes négatifs (accueil et comptes)",
+    "noCameraDevices": "L'app s'installe aussi sur les téléphones sans caméra",
     "analysisFeature": "Mon bilan : un bouton Analyser qui lit ton cycle et sort 3 constats chiffrés + 1 action applicable en un tap — 100 % hors-ligne",
     "analysisSinceLast": "Chaque bilan se compare au précédent : tu vois si ce que tu as changé a marché",
     "analysisHeroKept": "L'accueil affiche désormais ce que tu as gardé ce mois et ton taux d'épargne",

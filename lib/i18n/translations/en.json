@@ -820,6 +820,12 @@
   },
   "changelog": {
     "current": "Current",
+    "importCaptures": "Import from a screenshot (beta): snap a receipt or pick MVola or Orange Money SMS screenshots, the app reads the transactions and you check them before saving",
+    "importTutorial": "A video tutorial shows how import works the first time, then stays available with \"Watch the tutorial\"",
+    "inAppUpdates": "Updates now download right from the app",
+    "eveningReminder": "Evening reminder: a nudge to log the day's expenses (Settings → Notifications)",
+    "negativeSign": "The − sign now shows on negative balances (home and accounts)",
+    "noCameraDevices": "The app can now be installed on phones without a camera",
     "analysisFeature": "My review: an Analyze button that reads your cycle and returns 3 numbered findings + 1 one-tap action — 100% offline",
     "analysisSinceLast": "Each review compares to the previous one: you see whether what you changed worked",
     "analysisHeroKept": "The home screen now shows what you kept this month and your savings rate",

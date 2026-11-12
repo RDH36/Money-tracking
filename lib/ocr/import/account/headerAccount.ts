@@ -34,6 +34,11 @@ export function headerAccountId(items: ReviewItem[], cashId: string | null): str
   return first !== null && governed.every((i) => i.accountId === first) ? first : null;
 }
 
+/** La ligne affiche son compte quand il diffère de celui de l'en-tête (null = aucun en-tête commun : toutes). */
+export function showsOwnAccount(item: ReviewItem, headerId: string | null): boolean {
+  return item.accountId !== headerId;
+}
+
 /**
  * Compte choisi en haut, appliqué aux lignes gouvernées (voir `governedByHeader`).
  * Un retrait dont la contrepartie se confondait avec le compte choisi la perd ;

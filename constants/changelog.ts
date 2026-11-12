@@ -11,6 +11,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.2.0",
+    date: "2026-11-12",
+    changes: [
+      { type: "added", key: "changelog.importCaptures" },
+      { type: "added", key: "changelog.importTutorial" },
+      { type: "added", key: "changelog.inAppUpdates" },
+      { type: "added", key: "changelog.eveningReminder" },
+      { type: "fixed", key: "changelog.negativeSign" },
+      { type: "fixed", key: "changelog.noCameraDevices" },
+    ],
+  },
+  {
     version: "2.0.4",
     date: "2026-10-14",
     changes: [

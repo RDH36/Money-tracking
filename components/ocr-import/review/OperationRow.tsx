@@ -18,6 +18,8 @@ interface OperationRowProps {
   item: ReviewItem;
   category: Category | null;
   counterAccountName: string | null;
+  /** Compte de la ligne, fourni seulement quand il diffère du compte d'en-tête. */
+  accountName?: string | null;
   formatMoney: (cents: number) => string;
   /** Explication du doublon (transaction qui ressemble, même référence…). */
   hint?: string | null;
@@ -26,7 +28,7 @@ interface OperationRowProps {
 }
 
 export function OperationRow({
-  item, category, counterAccountName, formatMoney, hint, onToggle, onPress,
+  item, category, counterAccountName, accountName, formatMoney, hint, onToggle, onPress,
 }: OperationRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -46,7 +48,7 @@ export function OperationRow({
   let tagColor = v2.inkSubtle;
   if (item.kind === 'transfer') {
     tagIcon = 'swap-horizontal';
-    tagText = `${t('ocrImport.edit.transfer')} ${isCredit ? '←' : '→'} ${counterAccountName ?? t('ocrImport.noAccount')}`;
+    tagText = `${t('ocrImport.edit.transfer')}${accountName ? ` ${accountName}` : ''} ${isCredit ? '←' : '→'} ${counterAccountName ?? t('ocrImport.noAccount')}`;
     tagColor = v2.inkMuted;
   } else if (item.kind === 'income') {
     tagIcon = 'arrow-down';
@@ -57,6 +59,7 @@ export function OperationRow({
     tagText = getCategoryDisplayName(category.id, category.name, t);
     tagColor = category.color ?? v2.brand;
   }
+  if (accountName && item.kind !== 'transfer') tagText = `${tagText} · ${accountName}`;
 
   return (
     <View
