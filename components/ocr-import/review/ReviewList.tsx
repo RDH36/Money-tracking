@@ -101,10 +101,7 @@ export function ReviewList({
             >
               {dateHeader(section.date, locale)}
             </Text>
-            {/* Un seul « Tout cocher » à l'écran : celui de la liste quand il y a plusieurs dates. */}
-            {sections.length === 1 ? (
-              <BulkToggle items={section.all} onPress={onToggleMany} scope={dateHeader(section.date, locale)} />
-            ) : null}
+            <BulkToggle items={section.all} onPress={onToggleMany} scope={dateHeader(section.date, locale)} />
           </View>
         )}
         renderItem={({ item: row }) => (row.length === 1 ? (
