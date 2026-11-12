@@ -37,6 +37,8 @@ export interface ReviewItem extends ImportDraft {
   matchId: string | null;
   match: ExistingTransaction | null;
   selected: boolean;
+  /** Compte choisi à la main dans la fiche : le compte de l'en-tête ne le remplace plus. */
+  accountManual?: boolean;
 }
 
 export interface ReviewContext {
@@ -66,6 +68,7 @@ export function buildReviewItems(items: DedupedOperation[], ctx: ReviewContext):
     // Ticket payé en espèces : la dépense sort du compte espèces.
     accountId: op.payment === 'cash' && op.kind === 'expense' ? ctx.cashId ?? ctx.bankId : ctx.bankId,
     counterAccountId: op.kind === 'transfer' ? ctx.cashId : null,
+    accountManual: false,
     externalRef: externalRefOf(op),
   }));
 }
@@ -91,7 +94,8 @@ export function applyPatch(i: ReviewItem, patch: Partial<ReviewItem>): ReviewIte
   const duplicate = unflagged ? null : i.duplicate;
   // Badge tombé (montant différent) : la ligne se coche, ce n'est plus la même opération.
   const selected = duplicate === 'reference' ? false : patch.selected ?? (unflagged ? true : i.selected);
-  return { ...i, ...patch, duplicate, selected };
+  const accountManual = !!i.accountManual || (patch.accountId !== undefined && patch.accountId !== i.accountId);
+  return { ...i, ...patch, duplicate, selected, accountManual };
 }
 
 /** Nombre d'opérations réellement enregistrées (titre de l'en-tête). */
@@ -106,23 +110,8 @@ export function draftsToSave(items: ReviewItem[]): ReviewItem[] {
     .map((i) => ({ ...i, forceDuplicate: i.duplicate !== null }));
 }
 
-/** Dépense d'un ticket payé en espèces : hors du choix du « Compte bancaire ». */
-export function isPaidCash(i: ReviewItem): boolean {
-  return i.op.payment === 'cash' && i.kind === 'expense';
-}
-
-/**
- * Compte bancaire commun choisi dans l'en-tête (les tickets payés en espèces
- * gardent le leur). Un retrait dont la contrepartie se confondait avec le compte
- * choisi la perd ; elle revient (compte espèces) dès que le choix ne s'y oppose plus.
- */
-export function withAccountForAll<T extends ReviewItem>(items: T[], accountId: string, cashId: string | null): T[] {
-  return items.map((i) => {
-    if (isPaidCash(i)) return i;
-    const counter = i.kind === 'transfer' ? i.counterAccountId ?? cashId : i.counterAccountId;
-    return { ...i, accountId, counterAccountId: counter === accountId ? null : counter };
-  });
-}
+// Compte de l'en-tête (tickets payés en espèces, compte choisi à la main) : voir ./account/headerAccount.
+export { isPaidCash, withAccountForAll } from './account/headerAccount';
 
 /** Une opération cochée est enregistrable si ses comptes sont cohérents. */
 export function isDraftValid(d: ImportDraft): boolean {

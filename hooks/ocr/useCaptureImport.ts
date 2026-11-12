@@ -100,7 +100,7 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
     setItems((prev) => prev.map((i) => (i.key === key ? applyPatch(i, patch) : i)));
   }, []);
 
-  /** Change le compte bancaire de toutes les opérations (sauf tickets payés en espèces). */
+  /** Compte choisi en haut : lignes sans compte choisi à la main (tickets payés en espèces à part). */
   const setAccountForAll = useCallback((accountId: string) => {
     setItems((prev) => withAccountForAll(prev, accountId, cashIdRef.current));
   }, []);
@@ -133,6 +133,8 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
 
   return {
     phase, progress, currentUri, items, stats, savedCount, saveFailed,
+    // Lu au rendu : posé avant le setItems qui provoque ce rendu.
+    cashId: cashIdRef.current,
     selectedCount: toSave.length, invalidSelected,
     toggle, toggleMany, update, setAccountForAll, save,
   };
