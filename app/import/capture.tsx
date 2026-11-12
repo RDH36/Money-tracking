@@ -147,6 +147,8 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     date: (ymd: string) => new Date(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10))
       .toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' }),
     category: (id: string | null | undefined) => {
+      // Catégorie système des revenus : nom traduit comme sur les cartes de transaction.
+      if (id === 'system-income') return t('add.income');
       const c = categories.find((x) => x.id === id);
       return c ? getCategoryDisplayName(c.id, c.name, t) || null : null;
     },
@@ -203,7 +205,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
         header={
           <ReviewSummary
             items={imp.items} stats={imp.stats} sourceLabel={sourceLabel} appCurrency={currency.code}
-            accounts={accounts} onAccountChange={imp.setAccountForAll}
+            accounts={accounts} cashId={imp.cashId} onAccountChange={imp.setAccountForAll}
             formatMoney={formatMoney} getAccountName={getAccountName}
           />
         }

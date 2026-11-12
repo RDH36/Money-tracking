@@ -151,7 +151,7 @@ export default function AddTransactionScreen() {
             autoFocus={entryMode !== 'onboarding'}
           />
 
-          {showTip && currentTip && entryMode !== 'onboarding' && <AddTipCard text={t(currentTip)} />}
+          {showTip && entryMode !== 'onboarding' && <AddTipCard tip={currentTip} mode={mode} type={type} />}
 
           {mode === 'transaction' ? (
             <>

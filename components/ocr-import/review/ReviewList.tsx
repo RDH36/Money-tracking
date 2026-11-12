@@ -109,12 +109,12 @@ export function ReviewList({
         ) : (
           <View
             style={{
-              // Marge latérale fine : les lignes gardent presque la largeur d'une carte seule.
-              marginBottom: 8, paddingVertical: 10, paddingHorizontal: 4, gap: 10, borderRadius: 18,
+              // Marge fine et égale sur les 4 côtés : les lignes gardent presque la largeur d'une carte seule.
+              marginBottom: 8, padding: 6, gap: 6, borderRadius: 18,
               borderWidth: 1, borderColor: v2.warn, backgroundColor: v2.warnSoft,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 12, paddingTop: 6, paddingBottom: 2 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 10, paddingTop: 6, paddingBottom: 2 }}>
               <Ionicons name="copy-outline" size={13} color={v2.warn} style={{ marginTop: 2 }} />
               <Text style={{ flex: 1, fontFamily: v2.fontUI, fontSize: 12, lineHeight: 17, color: v2.warn }}>
                 {t('ocrImport.identicalGroup', { count: row.length })}

@@ -1528,7 +1528,7 @@
     "finish": "Done",
     "edit": {
       "title": "Edit transaction",
-      "bankLabel": "Bank label",
+      "bankLabel": "Label",
       "type": "Type",
       "expense": "Expense",
       "income": "Income",

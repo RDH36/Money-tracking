@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { AccountPickerV2 } from '@/components/add';
 import type { ImportStats } from '@/hooks/ocr/useCaptureImport';
-import { accountsBelowZero, countToSave, isPaidCash, type ReviewItem } from '@/lib/ocr/import/review';
+import { accountsBelowZero, countToSave, type ReviewItem } from '@/lib/ocr/import/review';
+import { headerAccountId, isCashOnlyImport } from '@/lib/ocr/import/account/headerAccount';
 import type { AccountWithBalance } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -16,6 +17,8 @@ interface ReviewSummaryProps {
   sourceLabel: string | null;
   appCurrency: string;
   accounts: AccountWithBalance[];
+  /** Compte espèces de l'utilisateur (type cash), null s'il n'en a pas. */
+  cashId: string | null;
   onAccountChange: (accountId: string) => void;
   formatMoney: (cents: number) => string;
   getAccountName: (a: AccountWithBalance) => string;
@@ -23,14 +26,14 @@ interface ReviewSummaryProps {
 
 /** En-tête de la vérification : décompte par type, avertissements, compte bancaire. */
 export function ReviewSummary({
-  items, stats, sourceLabel, appCurrency, accounts, onAccountChange, formatMoney, getAccountName,
+  items, stats, sourceLabel, appCurrency, accounts, cashId, onAccountChange, formatMoney, getAccountName,
 }: ReviewSummaryProps) {
   const v2 = useV2();
   const { t } = useTranslation();
   const fresh = items.filter((i) => !i.duplicate);
   const toSave = countToSave(items);
-  const banked = items.filter((i) => !isPaidCash(i));
-  const sharedAccount = banked.every((i) => i.accountId === banked[0]?.accountId) ? banked[0]?.accountId ?? null : null;
+  // Compte proposé en haut : le compte espèces pour un import de tickets payés en espèces.
+  const sharedAccount = headerAccountId(items, cashId);
   const belowZero = accountsBelowZero(items, accounts);
   const readCurrency = items.find((i) => i.op.currency !== appCurrency)?.op.currency;
 
@@ -119,7 +122,7 @@ export function ReviewSummary({
         selectedId={sharedAccount}
         onSelect={(id) => { if (id) onAccountChange(id); }}
         formatMoney={formatMoney}
-        label={t('ocrImport.accountLabel')}
+        label={isCashOnlyImport(items, cashId) ? t('add.account') : t('ocrImport.accountLabel')}
         getAccountName={getAccountName}
       />
       {belowZero.map((b) => {

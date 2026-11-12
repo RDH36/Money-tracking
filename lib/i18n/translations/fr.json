@@ -1528,7 +1528,7 @@
     "finish": "Terminer",
     "edit": {
       "title": "Modifier l'opération",
-      "bankLabel": "Libellé de la banque",
+      "bankLabel": "Libellé",
       "type": "Type",
       "expense": "Dépense",
       "income": "Revenu",
