@@ -84,7 +84,8 @@ export const useAppUpdateStore = create<AppUpdateState>((set, get) => {
         try {
           send({ type: 'checked', info: await updateModule.checkUpdate() });
         } catch (err) {
-          console.warn('In-app update check failed:', err);
+          // info, pas warn : sans Play Store (Huawei) l'échec est attendu, pas de bandeau jaune en dev.
+          console.info('In-app update check failed:', err);
           send({ type: 'error' });
         }
       }
