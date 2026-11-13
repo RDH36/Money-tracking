@@ -6,6 +6,7 @@ import { useSettingsStore, ColorMode } from '@/stores';
 import { DEFAULT_CYCLE_INIT } from '@/stores/settingsStore';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 import { loadCycleSettings } from '@/hooks/useCycleSettings';
+import { loadBudgetAlerts } from '@/hooks/useBudgetAlerts';
 
 export interface ThemeContextValue {
   theme: Theme;
@@ -29,7 +30,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult, cycle] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult, cycle, budgetAlerts] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', [
             'balance_hidden',
           ]),
@@ -56,13 +57,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           ]),
           // Phase 7 : cycle_mode, cycle_pay_day, expected_income, source, confirmed_at
           loadCycleSettings(db),
+          // interrupteurs d'alerte budget 50/80/100
+          loadBudgetAlerts(db),
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || 'off';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const colorMode = (colorModeResult?.value as ColorMode) || 'system';
         const tipsEnabled = tipsResult?.value !== '0';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'rose', frequency, currency, colorMode, tipsEnabled, appLockResult?.value === '1', appLockBiometricResult?.value === '1', cycle);
+        initialize(balanceResult?.value === '1', themeResult?.value || 'rose', frequency, currency, colorMode, tipsEnabled, appLockResult?.value === '1', appLockBiometricResult?.value === '1', cycle, budgetAlerts);
         scheduleReminders(frequency);
       } catch (error) {
         console.error('Error loading settings:', error);

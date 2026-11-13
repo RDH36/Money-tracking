@@ -3,6 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2, type V2Tokens } from '@/constants/designTokensV2';
 import { Progress } from '@/components/dashboard';
+import { useBudgetAlertFlags } from '@/hooks/useBudgetAlerts';
+import { isAlertVisible } from '@/lib/budget/alerts';
 
 interface CategoryHeroCardProps {
   categoryColor: string | null;
@@ -34,6 +36,7 @@ export function CategoryHeroCard({
 }: CategoryHeroCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
+  const alerts = useBudgetAlertFlags();
   const hasLimit = !!limit && limit > 0;
   const pct = percentage ?? 0;
   const tone = !hasLimit ? v2.inkSubtle : status === 'red' ? v2.bad : status === 'orange' ? v2.warn : v2.good;
@@ -103,7 +106,7 @@ export function CategoryHeroCard({
           {t('categoryDetail.resetInLabel', { time: resetTime })}
         </Text>
         <View style={{ flex: 1 }} />
-        {hasLimit && pct >= 80 ? (
+        {hasLimit && pct >= 50 && (pct > 100 || isAlertVisible(pct, alerts)) ? (
           <View
             style={{
               backgroundColor: pct > 100 ? v2.badSoft : v2.warnSoft,
@@ -135,6 +138,7 @@ interface LegendProps { v2: V2Tokens; pct: number; }
 
 function ThresholdLegend({ v2, pct }: LegendProps) {
   const { t } = useTranslation();
+  const { alert80, alert100 } = useBudgetAlertFlags();
   const reached50 = pct >= 50;
   const reached80 = pct >= 80;
   const exceeded = pct > 100;
@@ -154,7 +158,7 @@ function ThresholdLegend({ v2, pct }: LegendProps) {
         active={reached80}
         activeColor={v2.warn}
         leftBorder
-        statusKey={reached80 ? 'categoryDetail.statusAlertReady' : 'categoryDetail.statusNotYet'}
+        statusKey={reached80 && alert80 ? 'categoryDetail.statusAlertReady' : reached80 ? 'categoryDetail.statusReached' : 'categoryDetail.statusNotYet'}
       />
       <LegendCol
         v2={v2}
@@ -162,7 +166,7 @@ function ThresholdLegend({ v2, pct }: LegendProps) {
         active={exceeded}
         activeColor={v2.bad}
         leftBorder
-        statusKey={exceeded ? 'categoryDetail.statusExceeded' : 'categoryDetail.statusNotYet'}
+        statusKey={exceeded && alert100 ? 'categoryDetail.statusExceeded' : exceeded ? 'categoryDetail.statusReached' : 'categoryDetail.statusNotYet'}
       />
     </View>
   );

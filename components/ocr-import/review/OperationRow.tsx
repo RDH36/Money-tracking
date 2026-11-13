@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import { getCategoryDisplayName } from '@/constants/categories';
 import { isLocked, type ReviewItem } from '@/lib/ocr/import/review';
+import { AccountChip } from './AccountChip';
 import type { Category } from '@/types';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -18,17 +19,19 @@ interface OperationRowProps {
   item: ReviewItem;
   category: Category | null;
   counterAccountName: string | null;
-  /** Compte de la ligne, fourni seulement quand il diffère du compte d'en-tête. */
+  /** Nom du compte de la ligne : toujours affiché dans la puce du bas. */
   accountName?: string | null;
   formatMoney: (cents: number) => string;
   /** Explication du doublon (transaction qui ressemble, même référence…). */
   hint?: string | null;
   onToggle: () => void;
   onPress: () => void;
+  /** Appui sur la puce compte : feuille de choix (dépense, revenu). Retrait : la feuille d'édition. */
+  onAccountPress: () => void;
 }
 
 export function OperationRow({
-  item, category, counterAccountName, accountName, formatMoney, hint, onToggle, onPress,
+  item, category, counterAccountName, accountName, formatMoney, hint, onToggle, onPress, onAccountPress,
 }: OperationRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
@@ -48,7 +51,7 @@ export function OperationRow({
   let tagColor = v2.inkSubtle;
   if (item.kind === 'transfer') {
     tagIcon = 'swap-horizontal';
-    tagText = `${t('ocrImport.edit.transfer')}${accountName ? ` ${accountName}` : ''} ${isCredit ? '←' : '→'} ${counterAccountName ?? t('ocrImport.noAccount')}`;
+    tagText = t('ocrImport.edit.transfer');
     tagColor = v2.inkMuted;
   } else if (item.kind === 'income') {
     tagIcon = 'arrow-down';
@@ -59,7 +62,10 @@ export function OperationRow({
     tagText = getCategoryDisplayName(category.id, category.name, t);
     tagColor = category.color ?? v2.brand;
   }
-  if (accountName && item.kind !== 'transfer') tagText = `${tagText} · ${accountName}`;
+  const isTransfer = item.kind === 'transfer';
+  const accountLabel = isTransfer
+    ? `${accountName ?? t('ocrImport.noAccount')} ${isCredit ? '←' : '→'} ${counterAccountName ?? t('ocrImport.noAccount')}`
+    : accountName ?? t('ocrImport.noAccount');
 
   return (
     <View
@@ -134,6 +140,7 @@ export function OperationRow({
           <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: v2.fontUI, fontSize: 11, color: v2.inkMuted }}>
             {tagText}
           </Text>
+          <AccountChip label={accountLabel} transfer={isTransfer} disabled={locked} onPress={isTransfer ? onPress : onAccountPress} />
         </View>
         <View style={{ alignItems: 'flex-end', gap: 8 }}>
           <Text

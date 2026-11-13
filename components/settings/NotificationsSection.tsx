@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useV2 } from '@/constants/designTokensV2';
 import type { ReminderFrequency } from '@/lib/notifications';
+import { useBudgetAlerts } from '@/hooks/useBudgetAlerts';
 import {
   SectionLabel,
   SettingsCard,
@@ -31,9 +31,7 @@ const FREQUENCIES: { id: ReminderFrequency; tk: string; descKey: string; badgeKe
 export function NotificationsSection({ reminderFrequency, onReminderChange }: NotificationsSectionProps) {
   const v2 = useV2();
   const { t } = useTranslation();
-  const [t50, setT50] = useState(false);
-  const [t80, setT80] = useState(true);
-  const [t100, setT100] = useState(true);
+  const { alerts, setAlert } = useBudgetAlerts();
 
   return (
     <View>
@@ -138,21 +136,21 @@ export function NotificationsSection({ reminderFrequency, onReminderChange }: No
           iconColor={v2.warn}
           label={t('notificationsV2.threshold50')}
           sublabel={t('notificationsV2.threshold50Sub')}
-          right={<SettingsToggle value={t50} onChange={setT50} />}
+          right={<SettingsToggle value={alerts.alert50} onChange={(on: boolean) => setAlert('alert50', on)} />}
         />
         <SettingsRow
           icon="warning-outline"
           iconColor={v2.warn}
           label={t('notificationsV2.threshold80')}
           sublabel={t('notificationsV2.threshold80Sub')}
-          right={<SettingsToggle value={t80} onChange={setT80} />}
+          right={<SettingsToggle value={alerts.alert80} onChange={(on: boolean) => setAlert('alert80', on)} />}
         />
         <SettingsRow
           icon="warning"
           iconColor={v2.bad}
           label={t('notificationsV2.thresholdLimit')}
           sublabel={t('notificationsV2.thresholdLimitSub')}
-          right={<SettingsToggle value={t100} onChange={setT100} />}
+          right={<SettingsToggle value={alerts.alert100} onChange={(on: boolean) => setAlert('alert100', on)} />}
           isLast
         />
       </SettingsCard>

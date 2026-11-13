@@ -13,6 +13,8 @@ import { formatCurrency } from '@/lib/currency';
 import { SOURCE_PARSERS } from '@/lib/ocr';
 import { EditOperationSheet, ImportStateView, OperationRow, ReviewSummary } from '@/components/ocr-import';
 import { ReviewList } from '@/components/ocr-import/review/ReviewList';
+import { AccountChoiceSheet } from '@/components/ocr-import/review/AccountChoiceSheet';
+import { buildImportNotice } from '@/components/ocr-import/review/importNotice';
 import { ReadingView } from '@/components/ocr-import/states/ReadingView';
 import { DoneView } from '@/components/ocr-import/states/DoneView';
 import { EmptyView } from '@/components/ocr-import/states/EmptyView';
@@ -21,8 +23,7 @@ import { consumedReads, planReads, type ReadPlan } from '@/lib/premium';
 import {
   correctedFields, genericReadProps, importSavedProps, readCompletedProps,
 } from '@/lib/ocr/import/analytics';
-import { accountsBelowZero, duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
-import { headerAccountId, showsOwnAccount } from '@/lib/ocr/import/account/headerAccount';
+import { duplicateHint, type ReviewItem } from '@/lib/ocr/import/review';
 import { getCategoryDisplayName } from '@/constants/categories';
 import { CaptureFrame } from '@/components/ocr-import/states/CaptureFrame';
 import { QuotaBlockedView } from '@/components/ocr-import/states/QuotaBlockedView';
@@ -128,7 +129,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
   const { accounts } = useAccounts();
   const { categories, expenseCategories } = useCategories();
   const [editingKey, setEditingKey] = useState<string | null>(null);
-
+  const [accountKey, setAccountKey] = useState<string | null>(null);
   // Montant négatif (solde de compte) : vrai signe « − », comme les lignes.
   const formatMoney = (cents: number) => formatCurrency(cents, currency.code).replace('-', '\u2212');
   const getAccountName = (a: AccountWithBalance): string =>
@@ -156,7 +157,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
     const h = duplicateHint(item, hintFormatters);
     return h ? t(h.key, h.params) : null;
   };
-  const headerId = useMemo(() => headerAccountId(imp.items, imp.cashId), [imp.items, imp.cashId]);
+  const accountItem = imp.items.find((i) => i.key === accountKey) ?? null;
   const editing = imp.items.find((i) => i.key === editingKey) ?? null;
   const close = () => router.back();
 
@@ -181,17 +182,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
       <EmptyView reason={imp.stats.sources.length === 0 ? 'notMcb' : 'noOps'} onPickOther={importMore} onClose={close} />
     );
   } else {
-    const dupSelected = imp.items.filter((i) => i.selected && i.duplicate).length;
-    const cashBlocked = accountsBelowZero(imp.items, accounts).some((b) => b.blocked);
-    const notice = cashBlocked
-      ? { text: t('ocrImport.cashBlockedSave'), tone: 'bad' as const }
-      : imp.saveFailed
-      ? { text: t('ocrImport.saveFailed'), tone: 'bad' as const }
-      : imp.invalidSelected > 0
-        ? { text: t('ocrImport.invalid', { count: imp.invalidSelected }), tone: 'bad' as const }
-        : dupSelected > 0
-          ? { text: t('ocrImport.dupSelected', { count: dupSelected }), tone: 'warn' as const }
-          : null;
+    const { notice, cashBlocked } = buildImportNotice(t, imp.items, accounts, imp.saveFailed, imp.invalidSelected);
     body = (
       <ReviewList
         items={imp.items}
@@ -205,7 +196,7 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
         header={
           <ReviewSummary
             items={imp.items} stats={imp.stats} sourceLabel={sourceLabel} appCurrency={currency.code}
-            accounts={accounts} cashId={imp.cashId} onAccountChange={imp.setAccountForAll}
+            accounts={accounts}
             formatMoney={formatMoney} getAccountName={getAccountName}
           />
         }
@@ -214,11 +205,12 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
             item={item}
             category={expenseCategories.find((c) => c.id === item.categoryId) ?? null}
             counterAccountName={accountName(item.counterAccountId)}
-            accountName={showsOwnAccount(item, headerId) ? accountName(item.accountId) : null}
+            accountName={accountName(item.accountId)}
             formatMoney={formatMoney}
             hint={hintOf(item)}
             onToggle={() => imp.toggle(item.key)}
             onPress={() => setEditingKey(item.key)}
+            onAccountPress={() => setAccountKey(item.key)}
           />
         )}
       />
@@ -233,6 +225,15 @@ function ImportCaptureFlow({ uris, truncatedFrom, source, onImportMore: importMo
         </Text>
       ) : null}
       {body}
+      <AccountChoiceSheet
+        isOpen={!!accountItem}
+        selectedId={accountItem?.accountId ?? null}
+        accounts={accounts}
+        formatMoney={formatMoney}
+        getAccountName={getAccountName}
+        onSelect={(id) => { if (accountKey) imp.setAccountFor(accountKey, id); setAccountKey(null); }}
+        onClose={() => setAccountKey(null)}
+      />
       <EditOperationSheet
         item={editing}
         onClose={() => setEditingKey(null)}

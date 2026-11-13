@@ -3,6 +3,7 @@ import { Theme, THEMES, DEFAULT_THEME_ID, getThemeById } from '@/constants/color
 import { ReminderFrequency } from '@/lib/notifications';
 import { CURRENCIES, DEFAULT_CURRENCY, getCurrencyByCode, Currency } from '@/constants/currencies';
 import type { CycleMode, CycleSettings } from '@/lib/analysis/types';
+import { DEFAULT_BUDGET_ALERTS, type BudgetAlerts, type BudgetAlertId } from '@/lib/budget/alerts';
 
 export type ColorMode = 'light' | 'dark' | 'system';
 export type ExpectedIncomeSource = 'detected' | 'manual';
@@ -57,7 +58,7 @@ export function parseCycleInit(rows: CycleRawRows): CycleInit {
   };
 }
 
-interface SettingsState extends CycleInit {
+interface SettingsState extends CycleInit, BudgetAlerts {
   balanceHidden: boolean;
   appLockEnabled: boolean;
   appLockBiometric: boolean;
@@ -87,6 +88,7 @@ interface SettingsState extends CycleInit {
   setReminderFrequency: (frequency: ReminderFrequency) => void;
   setCurrencyCode: (code: string) => void;
   setTipsEnabled: (enabled: boolean) => void;
+  setBudgetAlert: (id: BudgetAlertId, on: boolean) => void;
   setCycleMode: (mode: CycleMode) => void;
   setCyclePayDay: (day: number | null) => void;
   setExpectedIncome: (amount: number | null) => void;
@@ -101,7 +103,8 @@ interface SettingsState extends CycleInit {
     tipsEnabled: boolean,
     appLockEnabled: boolean,
     appLockBiometric: boolean,
-    cycle?: CycleInit
+    cycle?: CycleInit,
+    alerts?: BudgetAlerts
   ) => void;
   setLoading: (loading: boolean) => void;
 }
@@ -116,6 +119,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   currencyCode: DEFAULT_CURRENCY,
   tipsEnabled: true,
   ...DEFAULT_CYCLE_INIT,
+  ...DEFAULT_BUDGET_ALERTS,
   isLoading: true,
   isInitialized: false,
 
@@ -162,6 +166,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setTipsEnabled: (enabled) => set({ tipsEnabled: enabled }),
 
+  setBudgetAlert: (id, on) => set({ [id]: on } as Pick<BudgetAlerts, BudgetAlertId>),
+
   setCycleMode: (mode) => {
     if (CYCLE_MODES.includes(mode)) set({ cycleMode: mode });
   },
@@ -176,7 +182,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setCycleConfirmedAt: (iso) => set({ cycleConfirmedAt: iso }),
 
-  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode, tipsEnabled, appLockEnabled, appLockBiometric, cycle = DEFAULT_CYCLE_INIT) => {
+  initialize: (balanceHidden, themeId, reminderFrequency, currencyCode, colorMode, tipsEnabled, appLockEnabled, appLockBiometric, cycle = DEFAULT_CYCLE_INIT, alerts = DEFAULT_BUDGET_ALERTS) => {
     set({
       balanceHidden,
       appLockEnabled,
@@ -187,6 +193,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       currencyCode: CURRENCIES.some((c) => c.code === currencyCode) ? currencyCode : DEFAULT_CURRENCY,
       tipsEnabled: tipsEnabled ?? true,
       ...cycle,
+      ...alerts,
       isLoading: false,
       isInitialized: true,
     });

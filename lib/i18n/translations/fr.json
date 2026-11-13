@@ -1524,6 +1524,8 @@
     "toCheck": "À vérifier",
     "noCategory": "Sans catégorie",
     "noAccount": "Choisis un compte",
+    "accountSheetTitle": "Compte de l'opération",
+    "accountChipA11y": "Compte : {{account}}, appuyer pour changer",
     "errorTitle": "Lecture impossible",
     "errorBody": "Les images n'ont pas pu être lues. Réessaie avec d'autres captures.",
     "doneBubble": "C'est rangé !",

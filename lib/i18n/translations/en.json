@@ -1524,6 +1524,8 @@
     "toCheck": "Check this",
     "noCategory": "No category",
     "noAccount": "Pick an account",
+    "accountSheetTitle": "Operation account",
+    "accountChipA11y": "Account: {{account}}, tap to change",
     "errorTitle": "Couldn't read",
     "errorBody": "The images could not be read. Try again with other screenshots.",
     "doneBubble": "All tidied up!",

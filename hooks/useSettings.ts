@@ -3,6 +3,7 @@ import { useSQLiteContext } from '@/lib/database';
 import { useSettingsStore, ColorMode } from '@/stores';
 import { DEFAULT_CYCLE_INIT } from '@/stores/settingsStore';
 import { loadCycleSettings } from '@/hooks/useCycleSettings';
+import { loadBudgetAlerts } from '@/hooks/useBudgetAlerts';
 import { ReminderFrequency, scheduleReminders } from '@/lib/notifications';
 import { DEFAULT_CURRENCY } from '@/constants/currencies';
 import { checkInternetConnection } from '@/lib/network';
@@ -37,7 +38,7 @@ export function useSettings() {
 
     const loadSettings = async () => {
       try {
-        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult, cycle] = await Promise.all([
+        const [balanceResult, themeResult, reminderResult, currencyResult, colorModeResult, tipsResult, appLockResult, appLockBiometricResult, cycle, budgetAlerts] = await Promise.all([
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['balance_hidden']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['theme_id']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['reminder_frequency']),
@@ -47,13 +48,14 @@ export function useSettings() {
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['app_lock_enabled']),
           db.getFirstAsync<{ value: string }>('SELECT value FROM settings WHERE key = ?', ['app_lock_biometric']),
           loadCycleSettings(db), // Phase 7 : les 5 clés du cycle personnel
+          loadBudgetAlerts(db), // interrupteurs d'alerte budget 50/80/100
         ]);
 
         const frequency = (reminderResult?.value as ReminderFrequency) || '1h';
         const currency = currencyResult?.value || DEFAULT_CURRENCY;
         const mode = (colorModeResult?.value as ColorMode) || 'system';
         const tips = tipsResult?.value !== '0';
-        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips, appLockResult?.value === '1', appLockBiometricResult?.value === '1', cycle);
+        initialize(balanceResult?.value === '1', themeResult?.value || 'turquoise', frequency, currency, mode, tips, appLockResult?.value === '1', appLockBiometricResult?.value === '1', cycle, budgetAlerts);
       } catch (error) {
         console.error('Error loading settings:', error);
         initialize(false, 'turquoise', '1h', DEFAULT_CURRENCY, 'system', true, false, false, DEFAULT_CYCLE_INIT);

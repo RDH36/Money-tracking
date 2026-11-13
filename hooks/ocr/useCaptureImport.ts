@@ -5,7 +5,7 @@ import { readCaptures } from '@/lib/ocr/import/read';
 import {
   loadCategoryHistory, loadExistingForDedupe, loadExpenseCategoryIds, loadImportAccounts,
 } from '@/lib/ocr/import/queries';
-import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, toggleItem, withAccountForAll, type ReviewItem } from '@/lib/ocr/import/review';
+import { buildReviewItems, draftsToSave, isDraftValid, applyPatch, applyBulk, toggleItem, type ReviewItem } from '@/lib/ocr/import/review';
 import { CashBelowZeroError, saveImportedOperations } from '@/lib/ocr/import/save';
 
 export type ImportPhase = 'reading' | 'review' | 'saving' | 'done' | 'error';
@@ -100,9 +100,9 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
     setItems((prev) => prev.map((i) => (i.key === key ? applyPatch(i, patch) : i)));
   }, []);
 
-  /** Compte choisi en haut : lignes sans compte choisi à la main (tickets payés en espèces à part). */
-  const setAccountForAll = useCallback((accountId: string) => {
-    setItems((prev) => withAccountForAll(prev, accountId, cashIdRef.current));
+  /** Compte d'une seule opération (puce de la carte) ; applyPatch le marque choisi à la main. */
+  const setAccountFor = useCallback((key: string, accountId: string) => {
+    setItems((prev) => prev.map((i) => (i.key === key ? applyPatch(i, { accountId }) : i)));
   }, []);
 
   const toSave = draftsToSave(items);
@@ -136,6 +136,6 @@ export function useCaptureImport(uris: string[], onSaved?: (inserted: ReviewItem
     // Lu au rendu : posé avant le setItems qui provoque ce rendu.
     cashId: cashIdRef.current,
     selectedCount: toSave.length, invalidSelected,
-    toggle, toggleMany, update, setAccountForAll, save,
+    toggle, toggleMany, update, setAccountFor, save,
   };
 }

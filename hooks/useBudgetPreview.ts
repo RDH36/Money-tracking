@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSQLiteContext } from '@/lib/database';
 import { parseAmount, getNumericValue } from '@/lib/amountInput';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { isAlertVisible } from '@/lib/budget/alerts';
 import type { Category } from '@/types';
 
 export interface BudgetPreview {
@@ -29,6 +31,9 @@ export function useBudgetPreview({
 }: Params): BudgetPreview | null {
   const db = useSQLiteContext();
   const [preview, setPreview] = useState<BudgetPreview | null>(null);
+  const alert50 = useSettingsStore((s) => s.alert50);
+  const alert80 = useSettingsStore((s) => s.alert80);
+  const alert100 = useSettingsStore((s) => s.alert100);
 
   useEffect(() => {
     if (!active || !categoryId) {
@@ -56,7 +61,7 @@ export function useBudgetPreview({
       const newTotal = (result?.total ?? 0) + amountValue;
       const pct = Math.round((newTotal / cat.budget_limit!) * 100);
       setPreview(
-        pct >= 80
+        isAlertVisible(pct, { alert50, alert80, alert100 })
           ? {
               spent: formatMoney(newTotal),
               limit: formatMoney(cat.budget_limit!),
@@ -68,7 +73,7 @@ export function useBudgetPreview({
     return () => {
       cancelled = true;
     };
-  }, [active, categoryId, amount, expenseCategories, db, formatMoney, date]);
+  }, [active, categoryId, amount, expenseCategories, db, formatMoney, date, alert50, alert80, alert100]);
 
   return preview;
 }

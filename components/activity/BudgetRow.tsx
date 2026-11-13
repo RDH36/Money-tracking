@@ -4,6 +4,8 @@ import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useV2, type V2Tokens } from '@/constants/designTokensV2';
 import { Progress } from '@/components/dashboard';
+import { useBudgetAlertFlags } from '@/hooks/useBudgetAlerts';
+import { SHOW_BUDGET_PROJECTION } from '@/lib/budget/alerts';
 import type { ActivityBudgetItem } from './BudgetByCategoryCard';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -24,6 +26,7 @@ function alpha(hex: string | null, suffix: string): string {
 export function BudgetRow({ budget, isLast, formatMoney, elapsedRatio, onPress }: BudgetRowProps) {
   const v2 = useV2();
   const { t } = useTranslation();
+  const alerts = useBudgetAlertFlags();
   const hasLimit = budget.limit > 0;
   const pct = hasLimit ? Math.round((budget.spent / budget.limit) * 100) : 0;
   const over = pct > 100;
@@ -76,13 +79,19 @@ export function BudgetRow({ budget, isLast, formatMoney, elapsedRatio, onPress }
             </Text>
           </View>
           {/* Fin de mois estimée : projection de la dépense au rythme actuel. */}
+          {SHOW_BUDGET_PROJECTION ? (
           <Text style={{ fontFamily: v2.fontUI, fontSize: 10, color: v2.inkSubtle, fontWeight: '500', marginTop: 4 }}>
             {t('budgets.projected')} : {formatMoney(projected)}
-            {' · '}
-            <Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
-              {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
-            </Text>
+            {willExceed && !alerts.alert100 ? null : (
+              <>
+                {' · '}
+                <Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
+                  {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
+                </Text>
+              </>
+            )}
           </Text>
+          ) : null}
         </>
       ) : (
         <Text style={{
@@ -108,6 +117,7 @@ interface RowHeaderProps {
 
 function RowHeader({ v2, budget, color, iconName, tone, formatMoney, hasLimit }: RowHeaderProps) {
   const { t } = useTranslation();
+  const { alert80 } = useBudgetAlertFlags();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
       <View
@@ -127,7 +137,7 @@ function RowHeader({ v2, budget, color, iconName, tone, formatMoney, hasLimit }:
           >
             {budget.name}
           </Text>
-          {budget.alert ? (
+          {budget.alert && alert80 ? (
             <View style={{ backgroundColor: v2.warnSoft, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 999 }}>
               <Text style={{ fontFamily: v2.fontUI, fontSize: 9, fontWeight: '700', color: v2.warn }}>
                 {t('activity.thresholdAlert')}

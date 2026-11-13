@@ -1475,6 +1475,8 @@
     "toCheck": "Hamarino",
     "noCategory": "Tsy misy sokajy",
     "noAccount": "Misafidiana kaonty",
+    "accountSheetTitle": "Kaontin'ny fampiasana vola",
+    "accountChipA11y": "Kaonty : {{account}}, tsindrio raha hanova",
     "errorTitle": "Tsy voavaky",
     "errorBody": "Tsy voavaky ireo sary. Andramo amin'ny sary hafa.",
     "doneTitle_one": "Fifanakalozana {{count}} nampidirina",

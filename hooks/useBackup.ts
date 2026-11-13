@@ -9,7 +9,8 @@ import {
   type SaveMethod,
 } from '@/lib/backup';
 import { useDataRefreshStore } from '@/stores/dataRefreshStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, DEFAULT_CYCLE_INIT } from '@/stores/settingsStore';
+import { loadBudgetAlerts } from '@/hooks/useBudgetAlerts';
 import { useGamificationStore, type GamificationData } from '@/stores/gamificationStore';
 import { useUnlocksStore } from '@/stores/unlocksStore';
 import { useQuestsStore } from '@/stores/questsStore';
@@ -44,7 +45,9 @@ async function rehydrateStores(db: SQLiteDatabase): Promise<void> {
     (colorMode as any) || settings.colorMode,
     tips !== '0',
     settings.appLockEnabled, // conservé (device-local)
-    settings.appLockBiometric
+    settings.appLockBiometric,
+    DEFAULT_CYCLE_INIT,
+    await loadBudgetAlerts(db)
   );
 
   const gRows = await db.getAllAsync<{ key: string; value: string }>(

@@ -6,6 +6,8 @@ import { useV2, formatMoneyFr } from '@/constants/designTokensV2';
 import { Progress } from '../Progress';
 import { SectionHead } from '../SectionHead';
 import type { BudgetData } from '@/hooks/useBudgets';
+import { useBudgetAlertFlags } from '@/hooks/useBudgetAlerts';
+import { isAlertVisible, SHOW_BUDGET_PROJECTION } from '@/lib/budget/alerts';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -25,6 +27,7 @@ function alpha15(hex: string): string {
 export function BudgetsCard({ monthLabel, budgets, onSeeAllPress, elapsedRatio }: BudgetsCardProps) {
   const v2 = useV2();
   const { t } = useTranslation();
+  const alerts = useBudgetAlertFlags();
   const visible = budgets.filter((b) => b.budgetLimit && b.budgetLimit > 0).slice(0, 3);
   const pacePct = Math.max(0, Math.min(100, elapsedRatio * 100));
 
@@ -82,6 +85,7 @@ export function BudgetsCard({ monthLabel, budgets, onSeeAllPress, elapsedRatio }
             const over = pct > 100;
             const near = pct >= 80 && pct <= 100;
             const tone = over ? v2.bad : near ? v2.warn : v2.good;
+            const alertOn = isAlertVisible(pct, alerts);
             const isLast = i === visible.length - 1;
             const categoryColor = b.category.color ?? v2.brand;
             const iconName: IoniconName = (b.category.icon as IoniconName) ?? 'pricetag-outline';
@@ -208,12 +212,12 @@ export function BudgetsCard({ monthLabel, budgets, onSeeAllPress, elapsedRatio }
                       fontWeight: '700',
                     }}
                   >
-                    {pct}%{over ? ` · ${t('dashboard.statusExceeded')}` : near ? ` · ${t('dashboard.statusAlert')}` : ''}
+                    {pct}%{alertOn ? (over ? ` · ${t('dashboard.statusExceeded')}` : ` · ${t('dashboard.statusAlert')}`) : ''}
                   </Text>
                 </View>
 
-                {/* Fin de mois estimée : projection de la dépense au rythme actuel. */}
-                {(() => {
+                {/* Projection de fin de mois : masquée (SHOW_BUDGET_PROJECTION). */}
+                {SHOW_BUDGET_PROJECTION && (() => {
                   const projected = b.projected ?? Math.round(b.spent / Math.max(elapsedRatio, 0.0001));
                   const willExceed = projected > limit;
                   return (
@@ -227,10 +231,11 @@ export function BudgetsCard({ monthLabel, budgets, onSeeAllPress, elapsedRatio }
                       }}
                     >
                       {t('budgets.projected')} : {formatMoneyFr(projected)}
-                      {' · '}
-                      <Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
-                        {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
-                      </Text>
+                      {willExceed && !alerts.alert100 ? null : (
+                        <>{' · '}<Text style={{ color: willExceed ? v2.bad : v2.good, fontWeight: '700' }}>
+                          {willExceed ? t('budgets.willExceed') : t('budgets.onTrack')}
+                        </Text></>
+                      )}
                     </Text>
                   );
                 })()}
